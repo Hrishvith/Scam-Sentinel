@@ -13,11 +13,14 @@ from __future__ import annotations
 import hashlib
 import io
 import os
+import sys
 import time
 import wave
 from pathlib import Path
 
 import requests
+
+from budget import Budget
 
 
 def _load_dotenv(path: Path = Path(__file__).with_name(".env")) -> None:
@@ -44,6 +47,10 @@ class GnaniError(RuntimeError):
     """Any failure talking to the Gnani API (message is safe to show in the UI)."""
 
 
+class BudgetExceeded(GnaniError):
+    """The budget guard refused a call (rate unmeasured, or it would dip into the reserve)."""
+
+
 def wav_duration_seconds(audio: bytes) -> float | None:
     """Duration of a WAV payload, or None if it isn't a readable WAV."""
     try:
@@ -55,7 +62,8 @@ def wav_duration_seconds(audio: bytes) -> float | None:
 
 class GnaniClient:
     def __init__(self, api_key: str | None = None, *, timeout: int = 60, max_retries: int = 3,
-                 backoff: float = 1.0, cache_dir: str | Path | None = None, use_cache: bool = True):
+                 backoff: float = 1.0, cache_dir: str | Path | None = None, use_cache: bool = True,
+                 budget: Budget | None = None):
         self.api_key = api_key or os.getenv("GNANI_API_KEY")
         if not self.api_key:
             raise GnaniError("No API key. Set GNANI_API_KEY or paste it in the sidebar.")
@@ -64,8 +72,16 @@ class GnaniClient:
         self.cache_dir = Path(cache_dir or os.getenv("GNANI_CACHE_DIR", ".cache"))
         self._session = requests.Session()
         self.stats = {"stt_calls": 0, "tts_calls": 0, "cache_hits": 0}
+        self.budget = budget or Budget()
 
     # -- internals ---------------------------------------------------------
+    def _guard(self, kind: str, units: float) -> None:
+        """Print the cost estimate and refuse calls the budget does not allow."""
+        est = self.budget.check(kind, units)
+        print(est.line(), file=sys.stderr)
+        if not est.ok:
+            raise BudgetExceeded(f"Budget guard: {est.reason}.")
+
     def _cache_file(self, kind: str, *parts: bytes | str, ext: str) -> Path:
         h = hashlib.sha256()
         for p in parts:
@@ -118,14 +134,21 @@ class GnaniClient:
             data["bias_list"] = ",".join(bias_words[:100])
             data["bias_score"] = "1.0"
 
+        # Non-WAV duration is unknown locally: budget for the 60 s maximum.
+        seconds = dur if dur is not None else float(MAX_STT_SECONDS)
+        log = dict(language=language_code, model="prisma-stt-v3", units_estimated=dur is None)
+
         cache = self._cache_file("stt", audio, language_code, fmt, data.get("bias_list", ""), ext="txt")
         if self.use_cache and cache.exists():
             self.stats["cache_hits"] += 1
+            self.budget.record("stt", seconds, cache_hit=True, **log)
             return cache.read_text(encoding="utf-8")
 
+        self._guard("stt", seconds)
         resp = self._post(STT_PATH, files={"audio_file": (filename, audio)}, data=data)
         self.stats["stt_calls"] += 1
         body = resp.json()
+        self.budget.record("stt", seconds, cache_hit=False, request_id=body.get("request_id"), **log)
         if not body.get("success", True) or "transcript" not in body:
             raise GnaniError(f"Unexpected STT response: {str(body)[:200]}")
         text = body["transcript"].strip()
@@ -144,10 +167,13 @@ class GnaniClient:
             raise GnaniError("container must be 'mp3' or 'wav'.")
         cache = self._cache_file("tts", text, language, voice, model, str(speed), container,
                                  str(sample_rate), ext=container)
+        log = dict(language=language, model=model)
         if self.use_cache and cache.exists():
             self.stats["cache_hits"] += 1
+            self.budget.record("tts", len(text), cache_hit=True, **log)
             return cache.read_bytes()
 
+        self._guard("tts", len(text))
         audio_config = {"container": container, "sample_rate": sample_rate, "num_channels": 1}
         if container == "mp3":
             audio_config["bitrate"] = "64k"
@@ -157,6 +183,7 @@ class GnaniClient:
                    "speed": speed, "audio_config": audio_config}
         resp = self._post(TTS_PATH, json=payload)
         self.stats["tts_calls"] += 1
+        self.budget.record("tts", len(text), cache_hit=False, **log)
         audio = resp.content
         if not audio:
             raise GnaniError("TTS returned empty audio.")
