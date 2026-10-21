@@ -25,9 +25,9 @@ LEVEL_UI = {"low": ("🟢", "Low risk"), "medium": ("🟠", "Suspicious"), "high
 
 class LiveRunner:
     def __init__(self, api_key: str, lang: str, *, rate: int, max_seconds: float, speak: bool,
-                 wav_path: Path | None = None, play: bool = False):
+                 wav_path: Path | None = None, play: bool = False, headphones: bool = False):
         self.api_key, self.lang, self.rate, self.max_seconds = api_key, lang, rate, max_seconds
-        self.speak, self.wav_path, self.play = speak, wav_path, play
+        self.speak, self.wav_path, self.play, self.headphones = speak, wav_path, play, headphones
         self.events: queue.Queue[LiveEvent] = queue.Queue()
         self.stop = threading.Event()
         self.thread = threading.Thread(target=lambda: asyncio.run(self._run()), daemon=True)
@@ -41,7 +41,8 @@ class LiveRunner:
             session = LiveSession(self.api_key, self.lang, rate, on_event=self.events.put,
                                   max_seconds=self.max_seconds, stop=self.stop)
             if self.speak:
-                player = AlertPlayer(GnaniClient(self.api_key), self.lang, session)
+                player = AlertPlayer(GnaniClient(self.api_key), self.lang, session,
+                                     mute_session=pcm is None and not self.headphones)
                 for warning in player.prepare():
                     self.events.put(LiveEvent("error", {"message": warning}))
                 session.on_alert = player
@@ -108,10 +109,12 @@ def live_tab(api_key: str, lang: str, speak: bool) -> None:
     st.caption("Streams audio to Gnani Prisma in real time and warns mid-call. Billed per second streamed.")
     files = sorted(SIMULATED.glob("*.wav")) if SIMULATED.is_dir() else []
     source = st.radio("Source", ["Microphone"] + (["Simulated call (file)"] if files else []), horizontal=True)
-    wav_path, play, rate = None, False, 16000
+    wav_path, play, rate, headphones = None, False, 16000, False
     if source == "Microphone":
         rate = st.selectbox("Sample rate", RATES[:2], format_func=lambda r: f"{r} Hz" + (" (phone line)" if r == 8000 else ""))
-        st.caption("Use headphones: the spoken warning is muted from the stream, but speakers can still echo.")
+        headphones = st.checkbox("I'm using headphones", value=False,
+                                 help="On speakers the mic would hear the warning itself, so listening pauses "
+                                      "while it plays. With headphones it keeps listening.")
     else:
         wav_path = st.selectbox("Simulated call", files, format_func=lambda p: p.stem)
         play = st.checkbox("Play it aloud while streaming", value=True)
@@ -125,7 +128,7 @@ def live_tab(api_key: str, lang: str, speak: bool) -> None:
     c1, c2 = st.columns(2)
     if c1.button("▶ Start", type="primary", disabled=running or not api_key or not est.ok):
         runner = LiveRunner(api_key, lang, rate=rate, max_seconds=max_seconds, speak=speak,
-                            wav_path=wav_path, play=play)
+                            wav_path=wav_path, play=play, headphones=headphones)
         st.session_state.live = {"runner": runner, "lines": [], "alerts": [], "errors": [], "level": "low",
                                  "score": 0.0, "status": "connecting…", "summary": None}
         runner.start()

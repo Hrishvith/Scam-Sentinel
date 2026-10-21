@@ -298,11 +298,18 @@ class LiveSession:
 # ---- spoken warning --------------------------------------------------------------------------
 class AlertPlayer:
     """Speaks the warning on the PC speakers. Both warnings are synthesized (and cached) up front,
-    so an alert plays instantly; the session is muted while it plays so the mic does not hear it."""
+    so an alert plays instantly.
 
-    def __init__(self, client: GnaniClient, lang: str, session: LiveSession | None = None):
-        self.client, self.lang, self.session = client, lang, session
+    `mute_session`: only for a microphone on open speakers, where the mic would hear the warning
+    itself. It also drops whatever the caller says meanwhile, so never use it for a file stream
+    (no echo possible) or with headphones.
+    """
+
+    def __init__(self, client: GnaniClient, lang: str, session: LiveSession | None = None,
+                 mute_session: bool = False):
+        self.client, self.lang, self.session, self.mute_session = client, lang, session, mute_session
         self.audio: dict[str, bytes] = {}
+        self._threads: list[threading.Thread] = []
 
     def prepare(self) -> list[str]:
         warnings = []
@@ -316,20 +323,36 @@ class AlertPlayer:
         return warnings
 
     def __call__(self, level: str, det: Detection) -> None:
+        # Called on the event loop: never block here. Each warning waits for the previous one in
+        # its own thread, so warnings never talk over each other and streaming never stalls.
         if level in self.audio:
-            threading.Thread(target=self._play, args=(self.audio[level],), daemon=True).start()
+            prev = self._threads[-1] if self._threads else None
+            thread = threading.Thread(target=self._play_after, args=(prev, self.audio[level]), daemon=True)
+            self._threads.append(thread)
+            thread.start()
+
+    def _play_after(self, prev: threading.Thread | None, audio: bytes) -> None:
+        if prev:
+            prev.join()
+        self._play(audio)
+
+    def wait(self) -> None:
+        """Block until every warning has finished playing (the CLI would otherwise cut it off)."""
+        for t in self._threads:
+            t.join()
 
     def _play(self, audio: bytes) -> None:
         import winsound
 
-        if self.session:
-            self.session.muted.set()
+        mute = self.session if self.mute_session else None
+        if mute:
+            mute.muted.set()
         try:
             winsound.PlaySound(audio, winsound.SND_MEMORY)
         finally:
-            time.sleep(0.3)
-            if self.session:
-                self.session.muted.clear()
+            if mute:
+                time.sleep(0.3)
+                mute.muted.clear()
 
 
 # ---- command line --------------------------------------------------------------------------
@@ -367,8 +390,10 @@ async def _main(args) -> None:
         rate, pcm = read_wav_pcm(args.file)
     session = LiveSession(api_key, args.lang, rate, on_event=print_event, max_seconds=args.max_seconds,
                           stop=stop)
+    player = None
     if args.speak:
-        player = AlertPlayer(GnaniClient(api_key), args.lang, session)
+        player = AlertPlayer(GnaniClient(api_key), args.lang, session,
+                             mute_session=pcm is None and not args.headphones)
         for w in player.prepare():
             print(w, file=sys.stderr)
         session.on_alert = player
@@ -386,6 +411,8 @@ async def _main(args) -> None:
         await session.run(source)
     except asyncio.CancelledError:
         stop.set()
+    if player:
+        await asyncio.to_thread(player.wait)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -396,6 +423,8 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--play", action="store_true", help="play the --file aloud while streaming it")
     ap.add_argument("--max-seconds", type=float, default=300.0, help="hard cap on streamed audio")
     ap.add_argument("--no-speak", dest="speak", action="store_false", help="text alerts only (no TTS)")
+    ap.add_argument("--headphones", action="store_true",
+                    help="keep listening while the warning plays (no speaker echo to block)")
     args = ap.parse_args(argv)
     try:
         asyncio.run(_main(args))

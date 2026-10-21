@@ -173,3 +173,41 @@ def test_alert_player_prepares_both_warnings_as_wav(tmp_path):
     assert player.prepare() == [] and set(player.audio) == {"medium", "high"}
     assert {kw["json"]["audio_config"]["container"] for _, kw in calls} == {"wav"}
     assert all(kw["json"]["language"] == "kn-IN" for _, kw in calls)
+
+
+@pytest.mark.parametrize("mute", [False, True])
+def test_alert_player_mutes_only_when_asked(monkeypatch, mute):
+    import sys, types
+    from live import AlertPlayer
+
+    seen = []
+    session = LiveSession("k", "en-IN")
+    fake_winsound = types.SimpleNamespace(SND_MEMORY=4, PlaySound=lambda audio, flags: seen.append(session.muted.is_set()))
+    monkeypatch.setitem(sys.modules, "winsound", fake_winsound)
+    monkeypatch.setattr("live.time.sleep", lambda s: None)
+    player = AlertPlayer(client=None, lang="en-IN", session=session, mute_session=mute)
+    player._play(b"wav")
+    assert seen == [mute] and not session.muted.is_set()
+
+
+def test_alerts_queue_without_blocking_the_caller(monkeypatch):
+    import sys, threading, time, types
+    from live import AlertPlayer
+
+    gate, order = threading.Event(), []
+
+    def play(audio, flags):
+        order.append(audio)
+        if audio == b"medium":
+            gate.wait(2)       # the first warning is still playing
+
+    monkeypatch.setitem(sys.modules, "winsound", types.SimpleNamespace(SND_MEMORY=4, PlaySound=play))
+    player = AlertPlayer(client=None, lang="en-IN")
+    player.audio = {"medium": b"medium", "high": b"high"}
+    t0 = time.monotonic()
+    player("medium", Detection(level="medium"))
+    player("high", Detection(level="high"))
+    assert time.monotonic() - t0 < 0.5          # the event loop is never held up
+    gate.set()
+    player.wait()
+    assert order == [b"medium", b"high"]         # played in order, never over each other
