@@ -11,7 +11,7 @@ import make_demo_call  # noqa: E402
 from alerts import alert_text, top_reasons  # noqa: E402
 from audio_utils import add_noise, concat_wavs, ensure_wav, split_wav  # noqa: E402
 from detector import detect, detect_rules  # noqa: E402
-from gnani_client import GnaniClient, GnaniError  # noqa: E402
+from gnani_client import GnaniClient, GnaniError, fix_wav_sizes, wav_duration_seconds  # noqa: E402
 from pipeline import analyze_call, analyze_texts, analyze_transcripts  # noqa: E402
 
 
@@ -212,3 +212,13 @@ def test_demo_call_generator_builds_noisy_8khz_wav(tmp_path, monkeypatch):
     out = make_demo_call.build("en", out_dir=str(tmp_path / "calls"))
     with wave.open(str(out)) as w:
         assert w.getframerate() == 8000 and w.getnframes() > 8000 * 5
+
+
+def test_streaming_wav_sizes_from_timbre_are_repaired(tmp_path):
+    good = wav_bytes(2, rate=16000)
+    streamed = good[:4] + b"\xff\xff\xff\xff" + good[8:40] + b"\xff\xff\xff\xff" + good[44:]
+    client, _ = make_client(tmp_path, lambda url, kw, n: FakeResp(content=streamed))
+    out = client.synthesize("hello", container="wav", sample_rate=16000)
+    assert out == good and wav_duration_seconds(out) == 2.0
+    assert client.synthesize("hello", container="wav", sample_rate=16000) == good  # cache hit too
+    assert fix_wav_sizes(b"ID3mp3data") == b"ID3mp3data"
