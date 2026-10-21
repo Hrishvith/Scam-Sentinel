@@ -1,0 +1,14 @@
+{
+  "id": "kn_scam_kyc",
+  "lang": "kn",
+  "label": "scam",
+  "condition": "clean",
+  "simulated": true,
+  "stt_language": "kn-IN",
+  "noise_amplitude": 30,
+  "audio_seconds": 19.44,
+  "chunks": [
+    "ನಮಸ್ಕಾರ ಮೇಡಮ್ ನಾನು ನಿಮ್ಮ ಬ್ಯಾಂಕಿನ ಕೆ ವೈ ಸಿ ವಿಭಾಗದಿಂದ ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ"
+  ],
+  "transcript": "ನಮಸ್ಕಾರ ಮೇಡಮ್ ನಾನು ನಿಮ್ಮ ಬ್ಯಾಂಕಿನ ಕೆ ವೈ ಸಿ ವಿಭಾಗದಿಂದ ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ"
+}

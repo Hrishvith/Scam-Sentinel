@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 import requests
 
-from tactics import SAFETY_PHRASES, TACTICS
+from tactics import DELIVERY_PHRASES, ESCALATION, SAFETY_PHRASES, TACTICS
 from taxonomy import normalize
 
 LEVELS = ["low", "medium", "high"]
@@ -61,12 +61,19 @@ def detect_rules(text: str) -> Detection:
 
     notes: list[str] = []
     weights = {name: TACTICS[name]["weight"] for name in found}
-    if "credentials" in weights and any(p in plain for p in map(normalize, SAFETY_PHRASES)):
+    # An OTP mention is only discounted when nothing else escalates (scammers also say "don't share").
+    context = None
+    if "credentials" in weights and not found.keys() & ESCALATION:
+        if any(p in plain for p in map(normalize, SAFETY_PHRASES)):
+            context = "Sounds like an awareness message (\"never share\"), so OTP/PIN weight was reduced."
+        elif any(p in plain for p in map(normalize, DELIVERY_PHRASES)):
+            context = "Sounds like a delivery hand-over OTP, so OTP weight was reduced."
+    if context:
         weights["credentials"] *= 0.3
-        notes.append("Sounds like an awareness message (\"never share\"), so OTP/PIN weight was reduced.")
+        notes.append(context)
 
     score = sum(weights.values())
-    if found.keys() & _PRIVATE and found.keys() & _DANGEROUS_ASK:
+    if not context and found.keys() & _PRIVATE and found.keys() & _DANGEROUS_ASK:
         score += 2.0
         notes.append("Official-sounding pressure combined with a request for OTP, money or app access.")
     if "secrecy" in found and found.keys() & _DANGEROUS_ASK:

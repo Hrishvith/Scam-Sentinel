@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from alerts import alert_text
-from audio_utils import ensure_wav, split_wav
+from audio_utils import ensure_wav, split_on_pauses
 from detector import Detection, detect
 from gnani_client import BudgetExceeded, GnaniClient, GnaniError
 from tactics import BIAS_WORDS
@@ -71,9 +71,11 @@ def analyze_transcripts(texts: list[str], lang: str, client: GnaniClient | None 
 
 
 def analyze_call(audio: bytes, lang: str, client: GnaniClient, *, filename: str = "call.wav",
-                 chunk_seconds: float = 25.0, speak: bool = True) -> CallAnalysis:
+                 chunk_seconds: float = 12.0, speak: bool = True) -> CallAnalysis:
     wav = ensure_wav(audio, filename)
-    parts = split_wav(wav, chunk_seconds)
+    # One utterance per request: Prisma kn-IN can drop everything after the first sentence of a
+    # longer clip. chunk_seconds caps utterances that have no pause.
+    parts = split_on_pauses(wav, max_seconds=chunk_seconds)
     texts, starts, warnings = [], [], []
     for start, data in parts:
         try:
