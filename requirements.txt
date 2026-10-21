@@ -1,3 +1,4 @@
 streamlit>=1.40
 requests>=2.31
 pytest>=8.0
+truststore>=0.10

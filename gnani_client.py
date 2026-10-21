@@ -22,6 +22,12 @@ import requests
 
 from budget import Budget
 
+try:  # verify TLS against the OS certificate store (works behind antivirus HTTPS scanning, e.g. Avast)
+    import truststore
+    truststore.inject_into_ssl()
+except ImportError:
+    pass
+
 
 def _load_dotenv(path: Path = Path(__file__).with_name(".env")) -> None:
     """Load KEY=VALUE lines from .env into os.environ (real env vars win)."""
@@ -58,6 +64,25 @@ def wav_duration_seconds(audio: bytes) -> float | None:
             return w.getnframes() / float(w.getframerate())
     except (wave.Error, EOFError):
         return None
+
+
+def fix_wav_sizes(audio: bytes) -> bytes:
+    """Timbre streams WAV with placeholder sizes (0xFFFFFFFF); rewrite them to the real lengths.
+
+    Non-WAV input, or a WAV whose sizes are already right, is returned unchanged.
+    """
+    if len(audio) < 12 or audio[:4] != b"RIFF" or audio[8:12] != b"WAVE":
+        return audio
+    buf = bytearray(audio)
+    pos = 12
+    while pos + 8 <= len(buf):
+        chunk_id, size = bytes(buf[pos:pos + 4]), int.from_bytes(buf[pos + 4:pos + 8], "little")
+        if chunk_id == b"data":
+            buf[pos + 4:pos + 8] = (len(buf) - pos - 8).to_bytes(4, "little")
+            break
+        pos += 8 + size + (size & 1)
+    buf[4:8] = (len(buf) - 8).to_bytes(4, "little")
+    return bytes(buf)
 
 
 class GnaniClient:
@@ -171,7 +196,7 @@ class GnaniClient:
         if self.use_cache and cache.exists():
             self.stats["cache_hits"] += 1
             self.budget.record("tts", len(text), cache_hit=True, **log)
-            return cache.read_bytes()
+            return fix_wav_sizes(cache.read_bytes())
 
         self._guard("tts", len(text))
         audio_config = {"container": container, "sample_rate": sample_rate, "num_channels": 1}
@@ -184,7 +209,7 @@ class GnaniClient:
         resp = self._post(TTS_PATH, json=payload)
         self.stats["tts_calls"] += 1
         self.budget.record("tts", len(text), cache_hit=False, **log)
-        audio = resp.content
+        audio = fix_wav_sizes(resp.content)
         if not audio:
             raise GnaniError("TTS returned empty audio.")
         if self.use_cache:
