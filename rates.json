@@ -6,5 +6,6 @@
   "tts_credits_per_1k_chars": 2.902198,
   "calibration_max_audio_seconds": 120,
   "calibration_max_chars": 1000,
-  "_reconciled": "2026-10-22: scaled x1.0545 so the ledger matches the dashboard (21.49 spent at 4978.51)"
+  "_reconciled": "2026-10-22: scaled x1.0545 so the ledger matches the dashboard (21.49 spent at 4978.51)",
+  "stt_stream_credits_per_audio_second": 0.007279
 }
