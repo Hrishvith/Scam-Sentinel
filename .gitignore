@@ -1,0 +1,8 @@
+.env
+.cache/
+demo_calls/
+.venv/
+usage_ledger.jsonl
+__pycache__/
+*.pyc
+.pytest_cache/
