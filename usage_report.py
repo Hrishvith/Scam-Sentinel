@@ -19,14 +19,14 @@ from budget import KINDS, Budget, cost, load_rates, rates_path, read_ledger
 def report(budget: Budget) -> str:
     rates = load_rates(budget.rates_file)
     rows = read_ledger(budget.ledger_file)
-    lines = [f"{'kind':<5} {'calls':>6} {'cached':>7} {'units billed':>16} {'est. credits':>13}"]
+    lines = [f"{'kind':<10} {'calls':>6} {'cached':>7} {'units billed':>16} {'est. credits':>13}"]
     for kind, (field, key, per, _) in KINDS.items():
         real = [r for r in rows if r.get("kind") == kind and not r.get("cache_hit")]
         hits = sum(1 for r in rows if r.get("kind") == kind and r.get("cache_hit"))
         units = sum(float(r.get(field) or 0) for r in real)
         c = cost(kind, units, rates)
-        unit = "s audio" if kind == "stt" else "chars"
-        lines.append(f"{kind:<5} {len(real):>6} {hits:>7} {units:>10.1f} {unit:<5} "
+        unit = "s audio" if field == "audio_seconds" else "chars"
+        lines.append(f"{kind:<10} {len(real):>6} {hits:>7} {units:>10.1f} {unit:<5} "
                      f"{'unmeasured' if c is None else f'{c:.2f}':>13}")
     start = float(rates["starting_credits"])
     reserve = start * float(rates["reserve_fraction"])
