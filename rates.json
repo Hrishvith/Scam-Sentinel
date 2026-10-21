@@ -2,8 +2,9 @@
   "_note": "Gnani does not publish prices. Fill the two rates from the dashboard Usage page (see usage_report.py --calibrate). null = not measured yet.",
   "starting_credits": 5000,
   "reserve_fraction": 0.2,
-  "stt_credits_per_audio_second": 0.009191,
-  "tts_credits_per_1k_chars": 2.752294,
+  "stt_credits_per_audio_second": 0.009692,
+  "tts_credits_per_1k_chars": 2.902198,
   "calibration_max_audio_seconds": 120,
-  "calibration_max_chars": 1000
+  "calibration_max_chars": 1000,
+  "_reconciled": "2026-10-22: scaled x1.0545 so the ledger matches the dashboard (21.49 spent at 4978.51)"
 }
