@@ -9,6 +9,7 @@ import streamlit as st
 from alerts import HELPLINE, SITE, lang_key, top_reasons
 from budget import Budget, load_rates
 from gnani_client import GnaniClient, GnaniError
+from live_ui import live_tab
 from pipeline import analyze_call, analyze_transcripts
 
 st.set_page_config(page_title="Scam Sentinel", page_icon="🛡️", layout="centered")
@@ -35,7 +36,10 @@ with st.sidebar:
                f"{_rates['starting_credits'] * _rates['reserve_fraction']:.0f} held in reserve. "
                "Run usage_report.py for details.")
 
-tab_audio, tab_text = st.tabs(["🎧 Analyze a call", "📝 Paste a script (no credits)"])
+tab_live, tab_audio, tab_text = st.tabs(["🔴 Live", "🎧 Analyze a call", "📝 Paste a script (no credits)"])
+
+with tab_live:
+    live_tab(api_key, lang, speak)
 
 analysis, error = None, None
 try:

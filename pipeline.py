@@ -47,13 +47,15 @@ def analyze_texts(texts: list[str], starts: list[float] | None = None) -> tuple[
     return results, det
 
 
-def speak_alert(client: GnaniClient, text: str, lang: str) -> tuple[bytes | None, str | None]:
+def speak_alert(client: GnaniClient, text: str, lang: str, *, container: str = "mp3",
+                sample_rate: int = 24000) -> tuple[bytes | None, str | None]:
     """Try Timbre v3.0 first, fall back to v2.5 (Timbre is beta)."""
     last = None
     for model, voice in ALERT_VOICES:
         voice_name = voice if isinstance(voice, str) else voice.get(lang, "Kaveri")
         try:
-            return client.synthesize(text, language=lang, voice=voice_name, model=model), None
+            return client.synthesize(text, language=lang, voice=voice_name, model=model,
+                                     container=container, sample_rate=sample_rate), None
         except BudgetExceeded as exc:
             return None, f"Spoken alert skipped, showing text only ({exc})"
         except GnaniError as exc:

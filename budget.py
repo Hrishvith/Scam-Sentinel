@@ -23,6 +23,7 @@ DEFAULT_RATES = {
     "reserve_fraction": 0.20,
     "stt_credits_per_audio_second": None,
     "tts_credits_per_1k_chars": None,
+    "stt_stream_credits_per_audio_second": None,  # None: billed like REST STT, per streamed second
     "calibration_max_audio_seconds": 120,
     "calibration_max_chars": 1000,
 }
@@ -31,7 +32,11 @@ DEFAULT_RATES = {
 KINDS = {
     "stt": ("audio_seconds", "stt_credits_per_audio_second", 1.0, "calibration_max_audio_seconds"),
     "tts": ("chars", "tts_credits_per_1k_chars", 1000.0, "calibration_max_chars"),
+    # Realtime STT: units are seconds streamed (silence included), the conservative assumption.
+    "stt_stream": ("audio_seconds", "stt_stream_credits_per_audio_second", 1.0, "calibration_max_audio_seconds"),
 }
+# A kind whose own rate is unmeasured borrows this one's rate.
+FALLBACK_RATE = {"stt_stream": "stt"}
 
 
 def rates_path() -> Path:
@@ -68,6 +73,8 @@ def cost(kind: str, units: float, rates: dict) -> float | None:
     """Credits for `units` of `kind`, or None while the rate is unmeasured."""
     _, key, per, _ = KINDS[kind]
     rate = rates.get(key)
+    if rate is None and kind in FALLBACK_RATE:
+        return cost(FALLBACK_RATE[kind], units, rates)
     return None if rate is None else units / per * float(rate)
 
 
@@ -130,7 +137,7 @@ class Budget:
         return est
 
     def record(self, kind: str, units: float, *, language: str, model: str, cache_hit: bool,
-               request_id: str | None = None, units_estimated: bool = False) -> None:
+               request_id: str | None = None, units_estimated: bool = False, **extra) -> None:
         row = {"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), "kind": kind,
                KINDS[kind][0]: round(units, 3), "language": language, "model": model,
                "cache_hit": cache_hit}
@@ -138,6 +145,7 @@ class Budget:
             row["request_id"] = request_id
         if units_estimated:
             row["units_estimated"] = True
+        row.update(extra)
         self.ledger_file.parent.mkdir(parents=True, exist_ok=True)
         with self.ledger_file.open("a", encoding="utf-8") as f:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
