@@ -1,0 +1,18 @@
+{
+  "id": "hl_benign_friend",
+  "lang": "hl",
+  "label": "benign",
+  "condition": "clean",
+  "simulated": true,
+  "stt_language": "en-IN",
+  "noise_amplitude": 30,
+  "audio_seconds": 10.88,
+  "chunks": [
+    "arey yaar saturday ko movie chale",
+    "haan bilkul shaam ka show book kar de",
+    "done main tickets book karta hoon to popcorn liana",
+    "pakka",
+    "milate hain"
+  ],
+  "transcript": "arey yaar saturday ko movie chale haan bilkul shaam ka show book kar de done main tickets book karta hoon to popcorn liana pakka milate hain"
+}

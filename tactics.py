@@ -16,10 +16,10 @@ TACTICS: dict[str, dict] = {
         "labels": {"kn": "ಪೊಲೀಸ್ ಅಥವಾ ಅಧಿಕಾರಿಯಂತೆ ನಟನೆ", "hi": "पुलिस या अफ़सर बनकर बात करना",
                    "en": "pretending to be police or an official"},
         # Courier companies are NOT authority (real delivery calls are common); they are under "lure".
-        "keywords": ["ಪೊಲೀಸ್", "ಸಿಬಿಐ", "ಸಿ ಬಿ ಐ", "ಕಸ್ಟಮ್ಸ್", "ಟ್ರಾಯ್", "ಆರ್ಬಿಐ", "ಆರ್ ಬಿ ಐ", "ಸೈಬರ್ ಕ್ರೈಮ್",
-                     "ಆದಾಯ ತೆರಿಗೆ",
+        "keywords": ["ಪೊಲೀಸ್", "ಸಿಬಿಐ", "ಸಿ ಬಿ ಐ", "ಕಸ್ಟಮ್ಸ್", "ಟ್ರಾಯ್", "ಆರ್ಬಿಐ", "ಆರ್ ಬಿ ಐ", "ಸೈಬರ್ ಕ್ರೈಮ್", "ಸೈಬರ್ ಕ್ರೈಂ",
+                     "ಇನ್ಸ್ಪೆಕ್ಟರ್", "ಆದಾಯ ತೆರಿಗೆ",
                      "पुलिस", "सीबीआई", "सी बी आई", "कस्टम", "ट्राई", "आरबीआई", "आर बी आई", "साइबर क्राइम",
-                     "नारकोटिक्स", "इनकम टैक्स",
+                     "इंस्पेक्टर", "नारकोटिक्स", "इनकम टैक्स",
                      "police", "cbi", "c b i", "customs", "trai", "rbi", "r b i", "cyber crime", "cybercrime",
                      "narcotics", "income tax", "enforcement directorate", "inspector"],
     },
@@ -85,7 +85,8 @@ TACTICS: dict[str, dict] = {
         "weight": 3.0,
         "labels": {"kn": "ಅಪರಿಚಿತ ಆ್ಯಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಲು ಹೇಳುವುದು", "hi": "अनजान ऐप इंस्टॉल करवाना",
                    "en": "asking you to install a remote-control app"},
-        "keywords": ["ಎನಿಡೆಸ್ಕ್", "ಎನಿ ಡೆಸ್ಕ್", "ಟೀಮ್ ವ್ಯೂವರ್", "ಆ್ಯಪ್ ಡೌನ್ಲೋಡ್", "ಅಪ್ಲಿಕೇಶನ್ ಇನ್ಸ್ಟಾಲ್",
+        "keywords": ["ಎನಿಡೆಸ",  # also matches the clipped "ಎನಿಡೆಸ್" heard on noisy lines
+                     "ಟೀಮ್ ವ್ಯೂವರ್", "ಆ್ಯಪ್ ಡೌನ್ಲೋಡ್", "ಅಪ್ಲಿಕೇಶನ್ ಇನ್ಸ್ಟಾಲ್",
                      "एनीडेस्क", "एनी डेस्क", "टीम व्यूअर", "ऐप डाउनलोड", "ऐप इंस्टॉल", "ऐप्लिकेशन डाउनलोड",
                      "anydesk", "any desk", "teamviewer", "team viewer", "quicksupport", "quick support",
                      "download the app", "install the app", "screen share",
@@ -119,7 +120,7 @@ SAFETY_PHRASES = [
     "never share", "do not share", "don't share", "dont share", "never ask for",
     "ಹಂಚಿಕೊಳ್ಳಬೇಡಿ", "ಹಂಚಿಕೊಳ್ಳಬಾರದು",
     "साझा न करें", "साझा ना करें", "कभी न बताएं", "किसी को न दें",
-    "share mat", "share na kare", "share na karein", "share nahi karna",
+    "re:share\\s+(mat|matt|mark|na|nahi|nahin)\\b",   # "share mat" is often heard as "share mark"
 ]
 
 # One-word list for Prisma word boosting (letters only, one word per entry, per the docs).

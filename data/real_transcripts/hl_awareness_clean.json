@@ -1,0 +1,18 @@
+{
+  "id": "hl_awareness",
+  "lang": "hl",
+  "label": "benign",
+  "condition": "clean",
+  "simulated": true,
+  "stt_language": "en-IN",
+  "noise_amplitude": 30,
+  "audio_seconds": 11.6,
+  "chunks": [
+    "ye aapke bank ki taraf se ek zaruri message hai",
+    "apna otp",
+    "pin your password kabhi bhee kisi ke saath share mark kijiye",
+    "bank staff ke saath bhee nahi",
+    "koi maang ye toh cyber crime helpline pay complaint"
+  ],
+  "transcript": "ye aapke bank ki taraf se ek zaruri message hai apna otp pin your password kabhi bhee kisi ke saath share mark kijiye bank staff ke saath bhee nahi koi maang ye toh cyber crime helpline pay complaint"
+}

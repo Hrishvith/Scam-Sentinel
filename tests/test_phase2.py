@@ -59,6 +59,12 @@ def test_scam_corpus_calls_are_high_with_expected_tactics(call):
     assert det.level == "high" and set(call["expect"]) <= det.tactics.keys(), det.to_dict()
 
 
+def test_hinglish_awareness_survives_share_mat_heard_as_share_mark():
+    text = ("ye aapke bank ki taraf se ek zaruri message hai apna otp pin your password kabhi bhee kisi ke saath "
+            "share mark kijiye koi maange toh cyber crime helpline pay complaint")  # real Prisma output
+    assert detect_rules(text).level == "low"
+
+
 def test_scammer_saying_dont_share_is_not_discounted():
     det = detect_rules("Your account will be blocked today. Tell me the OTP now and do not share it with anyone else.")
     assert det.level == "high" and not any("awareness" in n for n in det.notes)
@@ -75,6 +81,9 @@ def test_delivery_otp_with_payment_pressure_is_still_flagged():
     ("abhi any desk app download karo", "remote_access"),
     ("call khat mat karna aur kisi ko mat bataana", "secrecy"),  # observed ASR spellings
     ("aaj raat aapka account block ho jayega", "threat"),
+    ("ಈಗಲೇ ಎನಿಡೆಸ್ ಆ್ಯಪ್ ಡೌನ್ ಲೋಡ್ ಮಾಡಿ", "remote_access"),   # clipped brand + split word (noisy kn)
+    ("ನಿಮ್ಮ ಪಾಸ್ ವರ್ಡ್ ಹೇಳಿ", "credentials"),                    # spaces are optional in Indic keywords
+    ("मैं साइबर क्राइम से इंस्पेक्टर बोल रहा हूँ", "authority"),
 ])
 def test_observed_prisma_spellings_are_matched(text, tactic):
     assert tactic in detect_rules(text).tactics

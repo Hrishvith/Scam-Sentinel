@@ -1,0 +1,19 @@
+{
+  "id": "hl_benign_delivery",
+  "lang": "hl",
+  "label": "benign",
+  "condition": "clean",
+  "simulated": true,
+  "stt_language": "en-IN",
+  "noise_amplitude": 30,
+  "audio_seconds": 13.12,
+  "chunks": [
+    "hello",
+    "mein career se bol raha hoon aapka parcel lekar gate pay khada hoon",
+    "achchha",
+    "mein bhee niche aati hoon",
+    "parcel late time delivery otp bata dena",
+    "theek hai do minute mein aati hoon"
+  ],
+  "transcript": "hello mein career se bol raha hoon aapka parcel lekar gate pay khada hoon achchha mein bhee niche aati hoon parcel late time delivery otp bata dena theek hai do minute mein aati hoon"
+}

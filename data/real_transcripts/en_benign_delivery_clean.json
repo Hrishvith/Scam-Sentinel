@@ -1,0 +1,18 @@
+{
+  "id": "en_benign_delivery",
+  "lang": "en",
+  "label": "benign",
+  "condition": "clean",
+  "simulated": true,
+  "stt_language": "en-IN",
+  "noise_amplitude": 30,
+  "audio_seconds": 12.64,
+  "chunks": [
+    "hello i am the delivery person from the courier company",
+    "i am outside your building with your parcel",
+    "oh great i will come down",
+    "please tell me the delivery otp when you collect it",
+    "ok i am coming in two minutes"
+  ],
+  "transcript": "hello i am the delivery person from the courier company i am outside your building with your parcel oh great i will come down please tell me the delivery otp when you collect it ok i am coming in two minutes"
+}

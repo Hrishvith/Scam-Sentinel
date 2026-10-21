@@ -1,0 +1,22 @@
+{
+  "id": "en_scam_kyc",
+  "lang": "en",
+  "label": "scam",
+  "condition": "clean",
+  "simulated": true,
+  "stt_language": "en-IN",
+  "noise_amplitude": 30,
+  "audio_seconds": 20.24,
+  "chunks": [
+    "good morning madam i am calling from your bank's kyc department",
+    "yes",
+    "what is it about",
+    "your kyc has expired and your account will be blocked today you must update it immediately",
+    "oh no",
+    "how do i update it",
+    "i have sent a code to your phone",
+    "tell me the otp right now and i will complete the update",
+    "do not share this with anyone else"
+  ],
+  "transcript": "good morning madam i am calling from your bank's kyc department yes what is it about your kyc has expired and your account will be blocked today you must update it immediately oh no how do i update it i have sent a code to your phone tell me the otp right now and i will complete the update do not share this with anyone else"
+}

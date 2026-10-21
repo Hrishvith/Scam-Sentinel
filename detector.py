@@ -25,13 +25,17 @@ _DANGEROUS_ASK = {"credentials", "payment", "remote_access"}  # "...and wants so
 def _compile(keyword: str) -> re.Pattern:
     if keyword.startswith("re:"):
         return re.compile(keyword[3:])
-    kw = re.escape(normalize(keyword))
     if keyword.isascii():
+        kw = re.escape(normalize(keyword))
         return re.compile(rf"(?<![a-z0-9]){kw}(?![a-z0-9])")
-    return re.compile(kw)
+    # Kannada/Hindi: Prisma splits words unpredictably ("ಒ ಟಿ ಪಿ", "ಡೌನ್ ಲೋಡ್"), so spaces are optional.
+    chars = normalize(keyword).replace(" ", "")
+    return re.compile(r"\s?".join(map(re.escape, chars)))
 
 
 _PATTERNS = {name: [(kw, _compile(kw)) for kw in spec["keywords"]] for name, spec in TACTICS.items()}
+_SAFETY = [_compile(p) for p in SAFETY_PHRASES]
+_DELIVERY = [_compile(p) for p in DELIVERY_PHRASES]
 
 
 @dataclass
@@ -64,9 +68,9 @@ def detect_rules(text: str) -> Detection:
     # An OTP mention is only discounted when nothing else escalates (scammers also say "don't share").
     context = None
     if "credentials" in weights and not found.keys() & ESCALATION:
-        if any(p in plain for p in map(normalize, SAFETY_PHRASES)):
+        if any(rx.search(plain) for rx in _SAFETY):
             context = "Sounds like an awareness message (\"never share\"), so OTP/PIN weight was reduced."
-        elif any(p in plain for p in map(normalize, DELIVERY_PHRASES)):
+        elif any(rx.search(plain) for rx in _DELIVERY):
             context = "Sounds like a delivery hand-over OTP, so OTP weight was reduced."
     if context:
         weights["credentials"] *= 0.3
