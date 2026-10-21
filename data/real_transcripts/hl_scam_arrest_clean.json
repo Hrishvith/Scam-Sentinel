@@ -1,0 +1,14 @@
+{
+  "id": "hl_scam_arrest",
+  "lang": "hl",
+  "label": "scam",
+  "condition": "clean",
+  "simulated": true,
+  "stt_language": "en-IN",
+  "noise_amplitude": 30,
+  "audio_seconds": 22.48,
+  "chunks": [
+    "hello mein cyber crime branch se inspector sharma bol raha hoon aapke naam ka ek parcel customs ne pakada hai kya maine toh koi parcel nahi bheja aapke against arrest warrant nikala hai ye digital arrest hai call khat mat karna aur kisi ko mat batana mein kya karun abhi any desk app download karo aur phone pe aaya otp bataao phir turant safe account mein paise transfer karo"
+  ],
+  "transcript": "hello mein cyber crime branch se inspector sharma bol raha hoon aapke naam ka ek parcel customs ne pakada hai kya maine toh koi parcel nahi bheja aapke against arrest warrant nikala hai ye digital arrest hai call khat mat karna aur kisi ko mat batana mein kya karun abhi any desk app download karo aur phone pe aaya otp bataao phir turant safe account mein paise transfer karo"
+}

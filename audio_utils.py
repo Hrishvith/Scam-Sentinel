@@ -66,6 +66,60 @@ def concat_wavs(parts: list[bytes], pause_seconds: float = 0.4) -> bytes:
     return out.getvalue()
 
 
+def split_on_pauses(wav: bytes, max_seconds: float = 12.0, min_pause: float = 0.4,
+                    window: float = 0.05) -> list[tuple[float, bytes]]:
+    """Split WAV audio at natural pauses into (start_second, wav_bytes) utterances.
+
+    Prisma's REST endpoint (seen with kn-IN) can return only the first sentence of a longer
+    clip, while one utterance per request comes back complete. Quiet is judged against the
+    clip's own noise floor, so noisy lines still split at pauses. Segments with no speech are
+    dropped (never billed); anything longer than `max_seconds` is cut evenly. Audio with no
+    usable level contrast (or non-16-bit / multi-channel WAV) falls back to split_wav.
+    """
+    try:
+        src = wave.open(io.BytesIO(wav))
+    except (wave.Error, EOFError):
+        return [(0.0, wav)]
+    with src:
+        channels, width, rate = src.getnchannels(), src.getsampwidth(), src.getframerate()
+        if channels != 1 or width != 2:
+            return split_wav(wav, max_seconds)
+        samples = array.array("h", src.readframes(src.getnframes()))
+    step = max(1, int(rate * window))
+    rms = [(sum(s * s for s in samples[i:i + step]) / len(samples[i:i + step])) ** 0.5
+           for i in range(0, len(samples), step)]
+    ordered = sorted(rms)
+    floor, loud = (ordered[len(ordered) // 10], ordered[int(len(ordered) * 0.9)]) if rms else (0, 0)
+    if loud < 500:  # no speech-level contrast to work with
+        return split_wav(wav, max_seconds)
+    quiet = [level < floor + 0.1 * (loud - floor) for level in rms]
+
+    need = max(1, round(min_pause / window))
+    cuts, run_start = [0], None
+    for i, q in enumerate(quiet + [False]):
+        if q and run_start is None:
+            run_start = i
+        elif not q and run_start is not None:
+            if i - run_start >= need:
+                cuts.append((run_start + i) // 2)
+            run_start = None
+    cuts.append(len(rms))
+
+    max_windows = max(1, int(max_seconds / window))
+    out = []
+    for a, b in zip(cuts, cuts[1:]):
+        while a < b:
+            end = min(b, a + max_windows)
+            if sum(not q for q in quiet[a:end]) >= 3:  # at least ~0.15 s of speech
+                buf = io.BytesIO()
+                with wave.open(buf, "wb") as o:
+                    o.setnchannels(1), o.setsampwidth(2), o.setframerate(rate)
+                    o.writeframes(samples[a * step:end * step].tobytes())
+                out.append((a * step / rate, buf.getvalue()))
+            a = end
+    return out or [(0.0, wav)]
+
+
 def add_noise(wav: bytes, amplitude: int = 400, seed: int = 7) -> bytes:
     """Mix low-level white noise into 16-bit mono/stereo WAV to mimic a poor phone line."""
     rng = random.Random(seed)
