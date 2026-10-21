@@ -1,0 +1,17 @@
+{
+  "id": "en_awareness",
+  "lang": "en",
+  "label": "benign",
+  "condition": "noisy",
+  "simulated": true,
+  "stt_language": "en-IN",
+  "noise_amplitude": 1500,
+  "audio_seconds": 10.16,
+  "chunks": [
+    "this is an important message from your bank",
+    "never share your otp",
+    "pin or password with anyone including bank staff",
+    "if someone asked for it report it to the cyber crime helpline"
+  ],
+  "transcript": "this is an important message from your bank never share your otp pin or password with anyone including bank staff if someone asked for it report it to the cyber crime helpline"
+}

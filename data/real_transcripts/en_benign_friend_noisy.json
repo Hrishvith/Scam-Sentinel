@@ -1,0 +1,21 @@
+{
+  "id": "en_benign_friend",
+  "lang": "en",
+  "label": "benign",
+  "condition": "noisy",
+  "simulated": true,
+  "stt_language": "en-IN",
+  "noise_amplitude": 1500,
+  "audio_seconds": 10.56,
+  "chunks": [
+    "hey are we still meeting for lunch on saturday",
+    "yes",
+    "one o'clock at the usual place",
+    "",
+    "i will book a table",
+    "tell your brother to come to",
+    "so",
+    "yuva"
+  ],
+  "transcript": "hey are we still meeting for lunch on saturday yes one o'clock at the usual place  i will book a table tell your brother to come to so yuva"
+}

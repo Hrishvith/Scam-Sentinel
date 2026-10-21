@@ -1,0 +1,19 @@
+{
+  "id": "hl_scam_kyc",
+  "lang": "hl",
+  "label": "scam",
+  "condition": "noisy",
+  "simulated": true,
+  "stt_language": "en-IN",
+  "noise_amplitude": 1500,
+  "audio_seconds": 17.84,
+  "chunks": [
+    "hello sir",
+    "mein aapke bank k kyc department se bol rahi hoon",
+    "haan bolie",
+    "aapka kyc expire ho gaya hai aaj raat aapka account block ho jaayega",
+    "arey ab kya karna hoga",
+    "aapke phone pay ek otp aaya hoga wo jaldi se bata dijiye mein abhi update kar deti hoon"
+  ],
+  "transcript": "hello sir mein aapke bank k kyc department se bol rahi hoon haan bolie aapka kyc expire ho gaya hai aaj raat aapka account block ho jaayega arey ab kya karna hoga aapke phone pay ek otp aaya hoga wo jaldi se bata dijiye mein abhi update kar deti hoon"
+}

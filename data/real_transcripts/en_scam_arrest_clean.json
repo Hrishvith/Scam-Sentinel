@@ -1,0 +1,22 @@
+{
+  "id": "en_scam_arrest",
+  "lang": "en",
+  "label": "scam",
+  "condition": "clean",
+  "simulated": true,
+  "stt_language": "en-IN",
+  "noise_amplitude": 30,
+  "audio_seconds": 24.08,
+  "chunks": [
+    "hello this is inspector rao from the cyber crime branch",
+    "a parcel in your name has been caught by customs",
+    "what i did not send any parcel",
+    "there is an arrest warrant against you",
+    "this is a digital arrest",
+    "do not disconnect this call and do not tell anyone",
+    "please what should i do",
+    "install the app anydesk right now and tell me the otp on your phone",
+    "then transfer the verification amount to a safe account immediately"
+  ],
+  "transcript": "hello this is inspector rao from the cyber crime branch a parcel in your name has been caught by customs what i did not send any parcel there is an arrest warrant against you this is a digital arrest do not disconnect this call and do not tell anyone please what should i do install the app anydesk right now and tell me the otp on your phone then transfer the verification amount to a safe account immediately"
+}
