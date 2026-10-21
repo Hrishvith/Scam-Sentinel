@@ -7,6 +7,7 @@ import os
 import streamlit as st
 
 from alerts import HELPLINE, SITE, lang_key, top_reasons
+from budget import Budget, load_rates
 from gnani_client import GnaniClient, GnaniError
 from pipeline import analyze_call, analyze_transcripts
 
@@ -28,6 +29,11 @@ with st.sidebar:
     lang = LANGS[st.selectbox("Language of the call", list(LANGS))]
     speak = st.toggle("Speak the warning", value=True)
     st.caption("Use simulated calls or recordings you have consent for. Audio is sent to Gnani for transcription.")
+    _rates = load_rates()
+    _spent, _ = Budget().totals()
+    st.caption(f"Credits (estimate): {_rates['starting_credits'] - _spent:.0f} left, "
+               f"{_rates['starting_credits'] * _rates['reserve_fraction']:.0f} held in reserve. "
+               "Run usage_report.py for details.")
 
 tab_audio, tab_text = st.tabs(["🎧 Analyze a call", "📝 Paste a script (no credits)"])
 

@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from alerts import alert_text
 from audio_utils import ensure_wav, split_wav
 from detector import Detection, detect
-from gnani_client import GnaniClient, GnaniError
+from gnani_client import BudgetExceeded, GnaniClient, GnaniError
 from tactics import BIAS_WORDS
 
 ALERT_VOICES = [("timbre-v3.0", "Chetana"), ("timbre-v2.5", {"kn-IN": "Saanvi", "hi-IN": "Nalini",
@@ -54,6 +54,8 @@ def speak_alert(client: GnaniClient, text: str, lang: str) -> tuple[bytes | None
         voice_name = voice if isinstance(voice, str) else voice.get(lang, "Kaveri")
         try:
             return client.synthesize(text, language=lang, voice=voice_name, model=model), None
+        except BudgetExceeded as exc:
+            return None, f"Spoken alert skipped, showing text only ({exc})"
         except GnaniError as exc:
             last = str(exc)
     return None, f"Spoken alert unavailable, showing text only ({last})"
@@ -77,6 +79,8 @@ def analyze_call(audio: bytes, lang: str, client: GnaniClient, *, filename: str 
         try:
             # verbatim + word boosting: favours the scam keywords that matter, not currency formatting
             text = client.transcribe(data, lang, filename="chunk.wav", itn=False, bias_words=BIAS_WORDS)
+        except BudgetExceeded:
+            raise  # stop at once; the remaining chunks would be refused too
         except GnaniError as exc:
             warnings.append(f"Chunk at {start:.0f}s skipped: {exc}")
             text = ""

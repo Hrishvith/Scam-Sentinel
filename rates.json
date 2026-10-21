@@ -1,0 +1,9 @@
+{
+  "_note": "Gnani does not publish prices. Fill the two rates from the dashboard Usage page (see usage_report.py --calibrate). null = not measured yet.",
+  "starting_credits": 5000,
+  "reserve_fraction": 0.20,
+  "stt_credits_per_audio_second": null,
+  "tts_credits_per_1k_chars": null,
+  "calibration_max_audio_seconds": 120,
+  "calibration_max_chars": 1000
+}
