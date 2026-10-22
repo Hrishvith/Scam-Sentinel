@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scam Sentinel call</title>
+<style>
+  :root { --bg:#0f1115; --card:#1a1d24; --ink:#f3f3f1; --ink2:#b9b8b2; --good:#0ca30c; --warn:#fab219; --bad:#d03b3b; --accent:#2a78d6; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:18px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:560px; margin:0 auto; padding:20px 16px 40px; }
+  h1 { font-size:22px; margin:4px 0 2px; }
+  .sub { color:var(--ink2); font-size:15px; margin:0 0 18px; }
+  .card { background:var(--card); border-radius:16px; padding:18px; margin:14px 0; }
+  button { width:100%; border:0; border-radius:14px; padding:20px; font-size:22px; font-weight:700; color:#fff; cursor:pointer; margin:8px 0; }
+  .call { background:var(--good); } .hang { background:var(--bad); } .pick { background:var(--accent); }
+  button:disabled { opacity:.4; }
+  #status { font-size:20px; font-weight:600; }
+  #timer { color:var(--ink2); font-variant-numeric:tabular-nums; }
+  .light { display:flex; align-items:center; gap:14px; font-size:24px; font-weight:700; }
+  .dot { width:40px; height:40px; border-radius:50%; background:var(--good); flex:none; }
+  .meter { height:12px; background:#2c2c2a; border-radius:6px; overflow:hidden; margin-top:12px; }
+  .meter > div { height:100%; width:0; background:var(--good); transition:width .4s, background .4s; }
+  #alerts .a { border-radius:12px; padding:14px; margin:10px 0; font-size:19px; }
+  #alerts .medium { background:#4a3a10; } #alerts .high { background:#5a1d1d; }
+  #banner { display:none; position:fixed; inset:0; background:var(--bad); color:#fff; z-index:10; padding:28px 20px;
+            flex-direction:column; justify-content:center; text-align:center; gap:16px; }
+  #banner.show { display:flex; }
+  #banner .big { font-size:40px; font-weight:800; line-height:1.15; }
+  #banner .msg { font-size:20px; }
+  #banner a, #banner button { background:#fff; color:var(--bad); text-decoration:none; border-radius:14px; padding:18px; font-size:24px; font-weight:800; }
+  .note { color:var(--ink2); font-size:14px; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🛡️ Scam Sentinel protected line</h1>
+  <p class="sub">Prototype · calls go over the internet through the Scam Sentinel server · use for <b>simulated</b> calls only</p>
+
+  <section id="choose" class="card hidden">
+    <p>Which phone is this?</p>
+    <button class="pick" data-role="receiver">I am the person being protected</button>
+    <button class="pick" data-role="caller">I am the caller (playing the scammer)</button>
+  </section>
+
+  <section id="ready" class="card hidden">
+    <p id="who"></p>
+    <button id="start" class="call">📞 Join the call</button>
+    <p class="note">Allow the microphone when asked. Keep this screen open during the call.</p>
+  </section>
+
+  <section id="incall" class="hidden">
+    <div class="card">
+      <div id="status">Connecting…</div>
+      <div id="timer"></div>
+    </div>
+    <div id="riskcard" class="card hidden">
+      <div class="light"><div id="dot" class="dot"></div><span id="risktext">Safe so far</span></div>
+      <div class="meter"><div id="bar"></div></div>
+      <div id="alerts"></div>
+    </div>
+    <button id="hang" class="hang">Hang up</button>
+  </section>
+</main>
+
+<div id="banner" role="alert">
+  <div class="big">⚠️ SCAM CALL<br>HANG UP NOW</div>
+  <div class="msg" id="bannermsg"></div>
+  <div class="msg" id="bannervoice"></div>
+  <button id="bannerhang">Hang up</button>
+  <a id="helpline" href="tel:1930">Call 1930 (cyber crime helpline)</a>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const key = params.get("key") || "";
+let role = params.get("role");
+const $ = (id) => document.getElementById(id);
+const LEVEL = { low: ["var(--good)", "Safe so far"], medium: ["var(--warn)", "Be careful: suspicious call"], high: ["var(--bad)", "Likely scam"] };
+
+let ctx, ws, capture, player, stream, wakeLock, startedAt, timerId;
+const warnings = {};
+
+function show(id) { for (const s of ["choose", "ready", "incall"]) $(s).classList.toggle("hidden", s !== id); }
+function setStatus(t) { $("status").textContent = t; }
+
+function chooseRole(r) {
+  role = r;
+  $("who").innerHTML = r === "receiver"
+    ? "<b>You are the person being protected.</b> If the caller sounds like a scammer, this phone will warn you."
+    : "<b>You are the caller.</b> Read a simulated scam script. The other person will be warned; you will not hear it.";
+  show("ready");
+}
+
+if (role === "caller" || role === "receiver") chooseRole(role); else show("choose");
+document.querySelectorAll("[data-role]").forEach((b) => b.onclick = () => chooseRole(b.dataset.role));
+
+$("start").onclick = async () => {
+  $("start").disabled = true;
+  try {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    await ctx.resume();
+    await ctx.audioWorklet.addModule("/pcm-worklet.js");
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
+    const src = ctx.createMediaStreamSource(stream);
+    capture = new AudioWorkletNode(ctx, "capture");
+    const sink = ctx.createGain(); sink.gain.value = 0;            // keeps the capture node running, silently
+    src.connect(capture).connect(sink).connect(ctx.destination);
+    player = new AudioWorkletNode(ctx, "player", { outputChannelCount: [1] });
+    player.connect(ctx.destination);
+    try { wakeLock = await navigator.wakeLock?.request("screen"); } catch (_) {}
+  } catch (e) {
+    alertBox("Could not start audio: " + e.message + ". Use Chrome or Safari and allow the microphone.");
+    $("start").disabled = false;
+    return;
+  }
+  show("incall");
+  $("riskcard").classList.toggle("hidden", role !== "receiver");
+  const proto = location.protocol === "https:" ? "wss" : "ws";
+  ws = new WebSocket(`${proto}://${location.host}/ws/call?role=${role}&key=${encodeURIComponent(key)}`);
+  ws.binaryType = "arraybuffer";
+  capture.port.onmessage = (e) => { if (ws.readyState === 1 && startedAt) ws.send(e.data); };
+  ws.onmessage = (e) => (typeof e.data === "string" ? onControl(JSON.parse(e.data)) : player.port.postMessage(e.data, [e.data]));
+  ws.onclose = () => { if (startedAt !== null) end("Call ended"); };
+};
+
+function b64ToBuffer(b64) { const s = atob(b64); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u.buffer; }
+
+async function onControl(m) {
+  if (m.type === "waiting") setStatus(role === "receiver" ? "Waiting for the caller…" : "Waiting for the other phone…");
+  else if (m.type === "connected") {
+    startedAt = Date.now();
+    setStatus(role === "receiver" ? "🛡️ Connected · protected" : "Connected");
+    timerId = setInterval(() => { const s = Math.floor((Date.now() - startedAt) / 1000); $("timer").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 500);
+  } else if (m.type === "warnings") {
+    for (const [lvl, b64] of Object.entries(m.audio)) warnings[lvl] = await ctx.decodeAudioData(b64ToBuffer(b64));
+  } else if (m.type === "risk") setRisk(m.level, m.score);
+  else if (m.type === "alert") onAlert(m);
+  else if (m.type === "error") alertBox(m.message);
+  else if (m.type === "ended") end("Call ended: " + m.reason);
+}
+
+function setRisk(level, score) {
+  const [color, text] = LEVEL[level];
+  $("dot").style.background = color; $("bar").style.background = color;
+  $("bar").style.width = Math.min(100, score * 10) + "%";
+  $("risktext").textContent = text;
+}
+
+function onAlert(m) {
+  setRisk(m.level, m.level === "high" ? 10 : 5);
+  const div = document.createElement("div");
+  div.className = "a " + m.level;
+  div.textContent = (m.level === "high" ? "🔴 " : "🟠 ") + m.message + (m.voice ? `  (🧬 spoken in an ${m.voice})` : "");
+  $("alerts").prepend(div);
+  navigator.vibrate?.(m.level === "high" ? [400, 150, 400, 150, 400] : [300]);
+  if (m.level === "high") {
+    $("bannermsg").textContent = m.message;
+    $("bannervoice").textContent = m.voice ? "🧬 Spoken in an " + m.voice : "";
+    $("banner").classList.add("show");
+  }
+  const buf = warnings[m.level];
+  if (buf) {
+    const node = ctx.createBufferSource(); node.buffer = buf; node.connect(ctx.destination);
+    player.port.postMessage({ gain: 0.15 });                       // duck the caller while warning
+    node.onended = () => player.port.postMessage({ gain: 1 });
+    node.start();
+  }
+}
+
+function alertBox(text) { const d = document.createElement("div"); d.className = "a medium"; d.textContent = text; $("alerts").prepend(d); $("riskcard").classList.remove("hidden"); setStatus(text); }
+
+function hangup() { try { ws?.send(JSON.stringify({ type: "hangup" })); } catch (_) {} end("Call ended"); }
+$("hang").onclick = hangup;
+$("bannerhang").onclick = () => { $("banner").classList.remove("show"); hangup(); };
+
+function end(text) {
+  if (startedAt === null) return;
+  startedAt = null;
+  clearInterval(timerId);
+  setStatus(text);
+  $("hang").disabled = true;
+  try { ws?.close(); } catch (_) {}
+  stream?.getTracks().forEach((t) => t.stop());
+  wakeLock?.release?.();
+}
+</script>
+</body>
+</html>

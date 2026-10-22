@@ -7,3 +7,4 @@ sounddevice==0.5.1      # live mode: microphone capture
 numpy==2.5.4            # live mode: playing a simulated call aloud
 matplotlib==3.9.2       # benchmark chart
 pytest==9.1.1
+aiohttp==3.10.11       # protected calling line (phone_relay.py)
