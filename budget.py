@@ -34,9 +34,13 @@ KINDS = {
     "tts": ("chars", "tts_credits_per_1k_chars", 1000.0, "calibration_max_chars"),
     # Realtime STT: units are seconds streamed (silence included), the conservative assumption.
     "stt_stream": ("audio_seconds", "stt_stream_credits_per_audio_second", 1.0, "calibration_max_audio_seconds"),
+    # Voice cloning: prices undocumented. Until measured, enrolment is estimated like STT on the
+    # reference audio and cloned speech like standard TTS (assumptions, replaced once measured).
+    "vc_embed": ("audio_seconds", "vc_embed_credits_per_audio_second", 1.0, "calibration_max_audio_seconds"),
+    "tts_vc": ("chars", "tts_vc_credits_per_1k_chars", 1000.0, "calibration_max_chars"),
 }
 # A kind whose own rate is unmeasured borrows this one's rate.
-FALLBACK_RATE = {"stt_stream": "stt"}
+FALLBACK_RATE = {"stt_stream": "stt", "vc_embed": "stt", "tts_vc": "tts"}
 
 
 def rates_path() -> Path:

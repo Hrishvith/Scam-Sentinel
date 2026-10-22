@@ -35,6 +35,18 @@ T = {
 }
 
 
+# Phase 5a: the high-risk warning spoken in a family member's cloned voice (their own voice, with
+# their consent; always labelled as an AI clone). Gender-neutral wording. REVIEW with native speakers.
+FAMILY_WARNINGS = {
+    "kn": "ಹಲೋ, ಇದು ನಾನು. ಈ ಕರೆ ಮೋಸದ ಕರೆ. ದಯವಿಟ್ಟು ಈಗಲೇ ಫೋನ್ ಕಟ್ ಮಾಡಿ. "
+          "ಯಾರಿಗೂ ಒಟಿಪಿ ಅಥವಾ ಹಣ ಕೊಡಬೇಡಿ. ನಾನು ನಿಮಗೆ ಆಮೇಲೆ ಕರೆ ಮಾಡುತ್ತೇನೆ.",
+    "hi": "हैलो, ये मैं हूँ। ये कॉल धोखाधड़ी है। प्लीज़ अभी फ़ोन काट दीजिए। "
+          "किसी को ओटीपी या पैसे मत दीजिए। आपसे बाद में बात होगी।",
+    "en": "Hi, it's me. This call is a scam. Please hang up right now. "
+          "Don't give anyone your OTP or any money. I'll call you back.",
+}
+
+
 def lang_key(lang_code: str) -> str:
     return lang_code.split("-")[0] if lang_code.split("-")[0] in T else "en"
 

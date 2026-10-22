@@ -16,6 +16,7 @@ import streamlit as st
 from alerts import HELPLINE
 from budget import Budget
 from corpus import LANGS as CORPUS_LANGS
+from family_voice import load_profile
 from gnani_client import GnaniClient
 from live import RATES, AlertPlayer, LiveEvent, LiveSession, file_frames, mic_frames, read_wav_pcm
 
@@ -31,9 +32,11 @@ def file_language(path: Path, default: str) -> str:
 
 class LiveRunner:
     def __init__(self, api_key: str, lang: str, *, rate: int, max_seconds: float, speak: bool,
-                 wav_path: Path | None = None, play: bool = False, headphones: bool = False):
+                 wav_path: Path | None = None, play: bool = False, headphones: bool = False,
+                 family: dict | None = None):
         self.api_key, self.lang, self.rate, self.max_seconds = api_key, lang, rate, max_seconds
         self.speak, self.wav_path, self.play, self.headphones = speak, wav_path, play, headphones
+        self.family = family
         self.events: queue.Queue[LiveEvent] = queue.Queue()
         self.stop = threading.Event()
         self.thread = threading.Thread(target=lambda: asyncio.run(self._run()), daemon=True)
@@ -49,7 +52,7 @@ class LiveRunner:
                                   source_name=self.wav_path.name if self.wav_path else "microphone")
             if self.speak:
                 player = AlertPlayer(GnaniClient(self.api_key), self.lang, session,
-                                     mute_session=pcm is None and not self.headphones)
+                                     mute_session=pcm is None and not self.headphones, family=self.family)
                 for warning in player.prepare():
                     self.events.put(LiveEvent("error", {"message": warning}))
                 session.on_alert = player
@@ -98,7 +101,10 @@ def _panel() -> None:
     st.progress(min(1.0, state["score"] / 10))
     for a in state["alerts"]:
         box = st.error if a["level"] == "high" else st.warning
-        box(f"**{a['level'].upper()} at {a['at']:.1f} s** · {a['message']}  \n" + " · ".join(a["reasons"]))
+        voice = st.session_state.get("live_family")
+        label = (f"  \n🧬 *Spoken in an AI clone of {voice}'s voice (made with consent).*"
+                 if voice and a["level"] == "high" else "")
+        box(f"**{a['level'].upper()} at {a['at']:.1f} s** · {a['message']}  \n" + " · ".join(a["reasons"]) + label)
     for msg in state["errors"]:
         st.caption(f"⚠️ {msg}")
     for line in state["lines"][-12:]:
@@ -133,6 +139,12 @@ def live_tab(api_key: str, lang: str, speak: bool) -> None:
         lang = file_language(wav_path, lang)
         st.caption(f"Language for this file: **{lang}** (from its name; overrides the sidebar).")
     max_seconds = st.slider("Stop after (seconds)", 15, 300, 60, step=15)
+    profile = load_profile() if speak else None
+    family = None
+    if profile and st.checkbox(f"🧬 Speak the high-risk warning in {profile['name']}'s voice",
+                               help="An AI clone of their own voice, made with their consent (family_voice.py)."):
+        family = profile
+        st.caption(f"Labelled on screen as an AI clone of {profile['name']}'s voice.")
 
     est = Budget().check("stt_stream", max_seconds)
     st.caption(f"Up to {max_seconds} s streamed ≈ {est.credits or 0:.2f} credits at most.")
@@ -142,7 +154,8 @@ def live_tab(api_key: str, lang: str, speak: bool) -> None:
     c1, c2 = st.columns(2)
     if c1.button("▶ Start", type="primary", disabled=running or not api_key or not est.ok):
         runner = LiveRunner(api_key, lang, rate=rate, max_seconds=max_seconds, speak=speak,
-                            wav_path=wav_path, play=play, headphones=headphones)
+                            wav_path=wav_path, play=play, headphones=headphones, family=family)
+        st.session_state.live_family = profile["name"] if family else None
         st.session_state.live = {"runner": runner, "lines": [], "alerts": [], "errors": [], "level": "low",
                                  "score": 0.0, "status": "connecting…", "summary": None}
         runner.start()
