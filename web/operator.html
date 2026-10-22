@@ -37,7 +37,7 @@
     <div class="card">
       <h2>1 · Join with two phones</h2>
       <div id="joins"></div>
-      <div><span id="p-receiver" class="peer">receiver</span><span id="p-caller" class="peer">caller</span><span id="p-guardian" class="peer">guardians: 0</span></div>
+      <div><span id="p-receiver" class="peer">receiver</span><span id="p-caller" class="peer">caller</span><span id="p-listener" class="peer">speakerphone</span><span id="p-guardian" class="peer">guardians: 0</span></div>
     </div>
     <div class="card">
       <h2>2 · Live risk (caller's words)</h2>
@@ -64,7 +64,8 @@ function log(t) { const d = document.createElement("div"); d.textContent = new D
 fetch(`/info?key=${encodeURIComponent(key)}`).then((r) => r.json()).then((info) => {
   const base = info.public_url || location.origin;
   for (const [role, label] of [["receiver", "Protected person's phone"], ["caller", "Caller's phone (plays the scammer)"],
-                               ["guardian", "Family guardian's phone (optional)"]]) {
+                               ["guardian", "Family guardian's phone (optional)"],
+                               ["listener", "Speakerphone listener: a spare phone next to a REAL call on speaker"]]) {
     const url = role === "guardian" ? `${base}/guardian?key=${encodeURIComponent(key)}`
                                     : `${base}/?role=${role}&key=${encodeURIComponent(key)}`;
     const box = document.createElement("div");

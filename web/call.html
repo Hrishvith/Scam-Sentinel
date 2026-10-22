@@ -45,6 +45,13 @@
   #stop button { background:#fff; color:#7a1010; border-radius:14px; padding:16px; font-size:19px; font-weight:700; }
   #banner .type { font-size:24px; font-weight:800; background:rgba(0,0,0,.25); border-radius:12px; padding:10px; }
   .watch { color:#9be79b; font-size:16px; margin-top:6px; }
+  #after h2 { font-size:22px; margin:0 0 6px; }
+  #after .type { font-weight:700; color:var(--warn); margin:0 0 10px; }
+  .yn { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .steps a, .steps div { display:block; background:#2c2c2a; color:var(--ink); text-decoration:none; border-radius:12px;
+                         padding:14px; margin:8px 0; font-size:19px; }
+  .steps a { outline:2px solid var(--accent); }
+  .steps.urgent a:first-child { background:var(--bad); outline:none; color:#fff; font-weight:700; }
 </style>
 </head>
 <body>
@@ -56,6 +63,7 @@
     <p>Which phone is this?</p>
     <button class="pick" data-role="receiver">I am the person being protected</button>
     <button class="pick" data-role="caller">I am the caller (playing the scammer)</button>
+    <button class="pick" data-role="listener">📱 Listen to a real phone call on speaker</button>
   </section>
 
   <section id="ready" class="card hidden">
@@ -66,7 +74,7 @@
       <label class="fam hidden" id="famrow"><input type="checkbox" id="fam">
         <span>🧬 Final warning in <b id="famname"></b>'s voice <small>(AI clone, made with consent)</small></span></label>
       <label class="fam hidden" id="guardrow"><input type="checkbox" id="guard">
-        <span>✋ Stop me if I start saying an OTP or numbers to the caller</span></label>
+        <span id="guardtext">✋ Stop me if I start saying an OTP or numbers to the caller</span></label>
     </div>
     <button id="start" class="call">📞 Join the call</button>
     <p class="note">Allow the microphone when asked. Keep this screen open during the call.</p>
@@ -85,6 +93,16 @@
     </div>
     <button id="hang" class="hang">Hang up</button>
   </section>
+
+  <section id="after" class="card hidden">
+    <h2 id="a-title"></h2>
+    <p class="type" id="a-type"></p>
+    <p id="a-q"></p>
+    <div class="yn"><button id="a-yes" class="hang"></button><button id="a-no" class="call"></button></div>
+    <div id="a-steps" class="steps"></div>
+    <button id="a-copy" class="pick hidden"></button>
+    <p class="note" id="a-note"></p>
+  </section>
 </main>
 
 <div id="banner" role="alert">
@@ -100,7 +118,7 @@
 <div id="stop" role="alert">
   <div class="big">✋ STOP</div>
   <div class="msg" id="stopmsg"></div>
-  <div class="msg">🔇 The caller cannot hear you now.</div>
+  <div class="msg" id="stopcut">🔇 The caller cannot hear you now.</div>
   <button id="stopok">I understand, I will not say it</button>
   <button id="unmute">Let the caller hear me again</button>
 </div>
@@ -115,6 +133,8 @@ const LEVEL = { low: ["var(--good)", "Safe so far"], medium: ["var(--warn)", "Be
 let ctx, ws, capture, player, stream, wakeLock, startedAt, timerId;
 const warnings = {};
 let lang = "kn-IN";
+const protectedRole = () => role === "receiver" || role === "listener";
+const seen = { worst: "low", alerts: [], guard: 0, label: "", caller: [] };   // for the after-call steps
 
 fetch(`/info?key=${encodeURIComponent(key)}`).then((r) => r.json()).then((info) => {
   lang = info.lang || lang;
@@ -136,8 +156,14 @@ function chooseRole(r) {
   role = r;
   $("who").innerHTML = r === "receiver"
     ? "<b>You are the person being protected.</b> If the caller sounds like a scammer, this phone will warn you."
+    : r === "listener"
+    ? "<b>Put your phone call on speaker, next to this device.</b> This device listens and warns you out loud while the call is going on."
     : "<b>You are the caller.</b> Read a simulated scam script. The other person will be warned; you will not hear it.";
-  $("options").classList.toggle("hidden", r !== "receiver");
+  $("options").classList.toggle("hidden", !protectedRole());
+  if (r === "listener") {
+    $("guardtext").textContent = "✋ Warn me if I start saying an OTP or numbers";
+    $("start").textContent = "🎧 Start listening";
+  }
   show("ready");
 }
 
@@ -164,9 +190,10 @@ $("start").onclick = async () => {
     return;
   }
   show("incall");
-  $("riskcard").classList.toggle("hidden", role !== "receiver");
+  $("riskcard").classList.toggle("hidden", !protectedRole());
+  if (role === "listener") $("hang").textContent = "Stop listening (the call is over)";
   const proto = location.protocol === "https:" ? "wss" : "ws";
-  const extra = role === "receiver" ? `&lang=${lang}&family=${$("fam").checked ? 1 : 0}&guard=${$("guard").checked ? 1 : 0}` : "";
+  const extra = protectedRole() ? `&lang=${lang}&family=${$("fam").checked ? 1 : 0}&guard=${$("guard").checked ? 1 : 0}` : "";
   ws = new WebSocket(`${proto}://${location.host}/ws/call?role=${role}&key=${encodeURIComponent(key)}${extra}`);
   ws.binaryType = "arraybuffer";
   capture.port.onmessage = (e) => { if (ws.readyState === 1 && startedAt) ws.send(e.data); };
@@ -177,11 +204,11 @@ $("start").onclick = async () => {
 function b64ToBuffer(b64) { const s = atob(b64); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u.buffer; }
 
 async function onControl(m) {
-  if (m.type === "waiting") setStatus(role === "receiver" ? "Waiting for the caller…" : "Waiting for the other phone…");
+  if (m.type === "waiting") setStatus(role === "receiver" ? "Waiting for the caller…" : role === "listener" ? "Starting…" : "Waiting for the other phone…");
   else if (m.type === "connected") {
     startedAt = Date.now();
-    setStatus(role === "receiver" ? "🛡️ Connected · protected" : "Connected");
-    if (role === "receiver") showWatch(m.guardians);
+    setStatus(role === "receiver" ? "🛡️ Connected · protected" : role === "listener" ? "🛡️ Listening · keep the call on speaker near this device" : "Connected");
+    if (protectedRole()) showWatch(m.guardians);
     timerId = setInterval(() => { const s = Math.floor((Date.now() - startedAt) / 1000); $("timer").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 500);
   } else if (m.type === "warnings") {
     for (const [lvl, b64] of Object.entries(m.audio)) warnings[lvl] = await ctx.decodeAudioData(b64ToBuffer(b64));
@@ -200,7 +227,7 @@ function setRisk(level, score) {
   $("risktext").textContent = text;
 }
 
-function showWatch(n) { if (role === "receiver") $("watch").classList.toggle("hidden", !n); }
+function showWatch(n) { if (protectedRole()) $("watch").classList.toggle("hidden", !n); }
 
 function playWarning(level) {
   const buf = warnings[level];
@@ -212,7 +239,10 @@ function playWarning(level) {
 }
 
 function onGuard(m) {
+  seen.guard += 1;
   $("stopmsg").textContent = m.message;
+  $("stopcut").classList.toggle("hidden", !m.cut);                   // a speakerphone cannot cut anyone off
+  $("unmute").classList.toggle("hidden", !m.cut);
   $("stop").classList.add("show");
   navigator.vibrate?.([600, 100, 600]);
   playWarning("guard");
@@ -222,6 +252,10 @@ $("unmute").onclick = () => { try { ws?.send(JSON.stringify({ type: "unmute" }))
 
 function onAlert(m) {
   setRisk(m.level, m.level === "high" ? 10 : 5);
+  seen.alerts.push(`${m.level} at ${m.at.toFixed(1)} s`);
+  if (m.level === "high" || seen.worst === "low") seen.worst = m.level;
+  seen.label = m.scam_label || seen.label; seen.labelEn = m.scam_label_en || seen.labelEn;
+  seen.caller = m.caller_said || seen.caller;
   const div = document.createElement("div");
   div.className = "a " + m.level;
   div.textContent = (m.level === "high" ? "🔴 " : "🟠 ") + (m.scam_label ? m.scam_label + ": " : "") + m.message +
@@ -246,6 +280,7 @@ $("bannerhang").onclick = () => { $("banner").classList.remove("show"); hangup()
 
 function end(text) {
   if (startedAt === null) return;
+  seen.seconds = startedAt ? Math.round((Date.now() - startedAt) / 1000) : 0;
   startedAt = null;
   clearInterval(timerId);
   setStatus(text);
@@ -253,6 +288,87 @@ function end(text) {
   try { ws?.close(); } catch (_) {}
   stream?.getTracks().forEach((t) => t.stop());
   wakeLock?.release?.();
+  if (protectedRole() && (seen.worst !== "low" || seen.guard)) showAfter();
+}
+
+// ---- after a risky call: what to do now (REVIEW kn/hi with native speakers) ----
+const AFTER = {
+  en: { title: "This call looked like a scam", q: "Did you share an OTP, PIN or bank details, or send money?",
+        yes: "Yes, I did", no: "No, I didn't",
+        yesSteps: [["tel:1930", "📞 Call 1930 now. The first hour matters: they can try to stop the money."],
+                   ["", "🏦 Call your bank (the number on the back of your card) and block your card and UPI."],
+                   ["https://cybercrime.gov.in", "🌐 File a complaint at cybercrime.gov.in"],
+                   ["", "👪 Tell your family now."]],
+        noSteps: [["", "👍 Well done. Do not call that number back."],
+                  ["https://sancharsaathi.gov.in", "🚫 Report the number on Sanchar Saathi (Chakshu)"],
+                  ["", "👪 Tell your family about this call."]],
+        copy: "📋 Copy the call details for the complaint", copied: "Copied. Paste it into the complaint form." },
+  kn: { title: "ಈ ಕರೆ ಮೋಸದ ಕರೆಯಂತೆ ಕಂಡಿತು", q: "ನೀವು ಒಟಿಪಿ, ಪಿನ್ ಅಥವಾ ಬ್ಯಾಂಕ್ ವಿವರ ಹೇಳಿದಿರಾ, ಅಥವಾ ಹಣ ಕಳುಹಿಸಿದಿರಾ?",
+        yes: "ಹೌದು", no: "ಇಲ್ಲ",
+        yesSteps: [["tel:1930", "📞 ಈಗಲೇ 1930 ಗೆ ಕರೆ ಮಾಡಿ. ಮೊದಲ ಒಂದು ಗಂಟೆ ಬಹಳ ಮುಖ್ಯ: ಹಣವನ್ನು ತಡೆಯಲು ಪ್ರಯತ್ನಿಸುತ್ತಾರೆ."],
+                   ["", "🏦 ನಿಮ್ಮ ಬ್ಯಾಂಕ್‌ಗೆ ಕರೆ ಮಾಡಿ (ಕಾರ್ಡ್ ಹಿಂದೆ ಇರುವ ಸಂಖ್ಯೆ), ಕಾರ್ಡ್ ಮತ್ತು ಯುಪಿಐ ಬ್ಲಾಕ್ ಮಾಡಿಸಿ."],
+                   ["https://cybercrime.gov.in", "🌐 cybercrime.gov.in ನಲ್ಲಿ ದೂರು ನೀಡಿ"],
+                   ["", "👪 ಈಗಲೇ ಮನೆಯವರಿಗೆ ತಿಳಿಸಿ."]],
+        noSteps: [["", "👍 ಒಳ್ಳೆಯದು. ಆ ಸಂಖ್ಯೆಗೆ ಮತ್ತೆ ಕರೆ ಮಾಡಬೇಡಿ."],
+                  ["https://sancharsaathi.gov.in", "🚫 ಸಂಚಾರ್ ಸಾಥಿ (ಚಕ್ಷು) ನಲ್ಲಿ ಆ ಸಂಖ್ಯೆಯನ್ನು ವರದಿ ಮಾಡಿ"],
+                  ["", "👪 ಈ ಕರೆಯ ಬಗ್ಗೆ ಮನೆಯವರಿಗೆ ತಿಳಿಸಿ."]],
+        copy: "📋 ದೂರಿಗಾಗಿ ಕರೆಯ ವಿವರ ಕಾಪಿ ಮಾಡಿ", copied: "ಕಾಪಿ ಆಯಿತು. ದೂರಿನ ಫಾರ್ಮ್‌ನಲ್ಲಿ ಪೇಸ್ಟ್ ಮಾಡಿ." },
+  hi: { title: "यह कॉल धोखाधड़ी जैसी लगी", q: "क्या आपने ओटीपी, पिन या बैंक की जानकारी बताई, या पैसे भेजे?",
+        yes: "हाँ", no: "नहीं",
+        yesSteps: [["tel:1930", "📞 अभी 1930 पर कॉल करें। पहला एक घंटा बहुत ज़रूरी है: पैसे रोकने की कोशिश की जाती है।"],
+                   ["", "🏦 अपने बैंक को कॉल करें (कार्ड के पीछे लिखा नंबर) और कार्ड व यूपीआई ब्लॉक कराएँ।"],
+                   ["https://cybercrime.gov.in", "🌐 cybercrime.gov.in पर शिकायत दर्ज करें"],
+                   ["", "👪 अभी घरवालों को बताएँ।"]],
+        noSteps: [["", "👍 बहुत अच्छा। उस नंबर पर वापस कॉल न करें।"],
+                  ["https://sancharsaathi.gov.in", "🚫 संचार साथी (चक्षु) पर उस नंबर की शिकायत करें"],
+                  ["", "👪 इस कॉल के बारे में घरवालों को बताएँ।"]],
+        copy: "📋 शिकायत के लिए कॉल की जानकारी कॉपी करें", copied: "कॉपी हो गया। शिकायत फ़ॉर्म में पेस्ट करें।" },
+};
+
+function showAfter() {
+  const t = AFTER[lang.split("-")[0]] || AFTER.en;
+  $("banner").classList.remove("show"); $("stop").classList.remove("show");
+  $("a-title").textContent = "⚠️ " + t.title;
+  $("a-type").textContent = seen.label;
+  $("a-q").textContent = t.q;
+  $("a-yes").textContent = t.yes; $("a-no").textContent = t.no;
+  $("a-copy").textContent = t.copy;
+  $("after").classList.remove("hidden");
+  $("after").scrollIntoView({ behavior: "smooth" });
+  const answer = (shared) => {
+    seen.shared = shared;
+    const steps = shared ? t.yesSteps : t.noSteps;
+    $("a-steps").className = "steps" + (shared ? " urgent" : "");
+    $("a-steps").innerHTML = "";
+    for (const [href, text] of steps) {
+      const el = document.createElement(href ? "a" : "div");
+      el.textContent = text;
+      if (href) { el.href = href; if (href.startsWith("http")) { el.target = "_blank"; el.rel = "noopener"; } }
+      $("a-steps").append(el);
+    }
+    $("a-copy").classList.remove("hidden");
+  };
+  $("a-yes").onclick = () => answer(true);
+  $("a-no").onclick = () => answer(false);
+  $("a-copy").onclick = async () => {
+    try { await navigator.clipboard.writeText(report()); $("a-note").textContent = t.copied; }
+    catch (_) { try { await navigator.share({ text: report() }); } catch (_) { $("a-note").textContent = report(); } }
+  };
+}
+
+function report() {
+  const m = Math.floor(seen.seconds / 60), s = String(seen.seconds % 60).padStart(2, "0");
+  return [
+    "Suspected fraud call: Scam Sentinel call report (prototype; simulated test call)",
+    `Date and time: ${new Date().toLocaleString("en-IN")}`,
+    `Call length: about ${m}:${s}`,
+    `Scam type: ${seen.labelEn || "Suspicious call"}`,
+    `Warnings given during the call: ${seen.alerts.join(", ") || "none"}`,
+    seen.guard ? "The person started saying numbers; Scam Sentinel told them to stop." : "",
+    seen.caller.length ? "What the caller said: " + seen.caller.map((c) => `"${c}"`).join(" / ") : "",
+    `Shared an OTP, PIN or money: ${seen.shared === undefined ? "not answered" : seen.shared ? "YES" : "no"}`,
+    "Caller's number: not captured by this prototype",
+  ].filter(Boolean).join("\n");
 }
 </script>
 </body>
