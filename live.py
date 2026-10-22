@@ -34,7 +34,7 @@ from typing import AsyncIterator, Callable
 from websockets.asyncio.client import connect
 from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
 
-from alerts import FAMILY_WARNINGS, HELPLINE, alert_text, lang_key, top_reasons
+from alerts import FAMILY_WARNINGS, GUARD_WARNINGS, HELPLINE, alert_text, lang_key, scam_label, top_reasons
 from budget import Budget
 from detector import Detection, detect_rules
 from text_norm import normalize
@@ -326,7 +326,8 @@ class LiveSession:
         if new:
             text, voice = self.spoken.get(new, (alert_text(self.lang, det), None))
             self._emit("alert", level=new, at=at, message=text, voice=voice,
-                       reasons=top_reasons(self.lang, det))
+                       reasons=top_reasons(self.lang, det), tactics=sorted(det.tactics),
+                       scam_type=det.scam_type, scam_label=scam_label(self.lang, det.scam_type))
             if self.on_alert:
                 self.on_alert(new, det)
 
@@ -349,9 +350,10 @@ class AlertPlayer:
     """
 
     def __init__(self, client: GnaniClient, lang: str, session: LiveSession | None = None,
-                 mute_session: bool = False, family: dict | None = None):
+                 mute_session: bool = False, family: dict | None = None, guard: bool = False):
         self.client, self.lang, self.session, self.mute_session = client, lang, session, mute_session
         self.family = family          # voice profile: the high warning is spoken in that cloned voice
+        self.guard = guard            # also prepare "Stop! Don't say the numbers" (otp_guard.py)
         self.family_used = False
         self.audio: dict[str, bytes] = {}
         self._threads: list[threading.Thread] = []
@@ -368,11 +370,19 @@ class AlertPlayer:
                                                    f"AI clone of {self.family['name']}'s voice (made with consent)")
             except GnaniError as exc:
                 warnings.append(f"Family voice unavailable ({exc}); using the standard voice.")
-        for level in ("medium", "high"):
+            if self.guard and self.family_used:
+                try:
+                    self.audio["guard"] = self.client.synthesize_cloned(
+                        GUARD_WARNINGS[lang_key(self.lang)], self.family, container="wav", sample_rate=16000)
+                except GnaniError as exc:
+                    warnings.append(f"Family voice unavailable for the stop warning ({exc}).")
+        texts = {level: alert_text(self.lang, Detection(level=level)) for level in ("medium", "high")}
+        if self.guard:
+            texts["guard"] = GUARD_WARNINGS[lang_key(self.lang)]
+        for level, text in texts.items():
             if level in self.audio:
                 continue
-            audio, warn = speak_alert(self.client, alert_text(self.lang, Detection(level=level)), self.lang,
-                                      container="wav", sample_rate=16000)
+            audio, warn = speak_alert(self.client, text, self.lang, container="wav", sample_rate=16000)
             if audio:
                 self.audio[level] = audio
             if warn:

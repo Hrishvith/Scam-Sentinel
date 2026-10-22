@@ -36,6 +36,15 @@
   .langs button.on { background:var(--accent); outline:3px solid #fff; }
   label.fam { display:flex; gap:12px; align-items:center; font-size:19px; padding:12px; background:#2c2c2a; border-radius:12px; }
   label.fam input { width:28px; height:28px; }
+  label.fam + label.fam { margin-top:8px; }
+  #stop { display:none; position:fixed; inset:0; background:#7a1010; color:#fff; z-index:11; padding:28px 20px;
+          flex-direction:column; justify-content:center; text-align:center; gap:16px; }
+  #stop.show { display:flex; }
+  #stop .big { font-size:48px; font-weight:800; line-height:1.1; }
+  #stop .msg { font-size:21px; }
+  #stop button { background:#fff; color:#7a1010; border-radius:14px; padding:16px; font-size:19px; font-weight:700; }
+  #banner .type { font-size:24px; font-weight:800; background:rgba(0,0,0,.25); border-radius:12px; padding:10px; }
+  .watch { color:#9be79b; font-size:16px; margin-top:6px; }
 </style>
 </head>
 <body>
@@ -56,6 +65,8 @@
       <div class="langs" id="langs"></div>
       <label class="fam hidden" id="famrow"><input type="checkbox" id="fam">
         <span>🧬 Final warning in <b id="famname"></b>'s voice <small>(AI clone, made with consent)</small></span></label>
+      <label class="fam hidden" id="guardrow"><input type="checkbox" id="guard">
+        <span>✋ Stop me if I start saying an OTP or numbers to the caller</span></label>
     </div>
     <button id="start" class="call">📞 Join the call</button>
     <p class="note">Allow the microphone when asked. Keep this screen open during the call.</p>
@@ -65,6 +76,7 @@
     <div class="card">
       <div id="status">Connecting…</div>
       <div id="timer"></div>
+      <div id="watch" class="watch hidden">👪 A family guardian is watching over this call</div>
     </div>
     <div id="riskcard" class="card hidden">
       <div class="light"><div id="dot" class="dot"></div><span id="risktext">Safe so far</span></div>
@@ -77,10 +89,20 @@
 
 <div id="banner" role="alert">
   <div class="big">⚠️ SCAM CALL<br>HANG UP NOW</div>
+  <div class="type" id="bannertype"></div>
   <div class="msg" id="bannermsg"></div>
   <div class="msg" id="bannervoice"></div>
+  <div class="msg" id="bannerfamily"></div>
   <button id="bannerhang">Hang up</button>
   <a id="helpline" href="tel:1930">Call 1930 (cyber crime helpline)</a>
+</div>
+
+<div id="stop" role="alert">
+  <div class="big">✋ STOP</div>
+  <div class="msg" id="stopmsg"></div>
+  <div class="msg">🔇 The caller cannot hear you now.</div>
+  <button id="stopok">I understand, I will not say it</button>
+  <button id="unmute">Let the caller hear me again</button>
 </div>
 
 <script>
@@ -104,6 +126,7 @@ fetch(`/info?key=${encodeURIComponent(key)}`).then((r) => r.json()).then((info) 
   }
   document.querySelectorAll("#langs button").forEach((x) => x.classList.toggle("on", x.dataset.lang === lang));
   if (info.family) { $("famname").textContent = info.family; $("famrow").classList.remove("hidden"); $("fam").checked = true; }
+  if (info.guard) { $("guardrow").classList.remove("hidden"); $("guard").checked = true; }
 }).catch(() => {});
 
 function show(id) { for (const s of ["choose", "ready", "incall"]) $(s).classList.toggle("hidden", s !== id); }
@@ -143,7 +166,7 @@ $("start").onclick = async () => {
   show("incall");
   $("riskcard").classList.toggle("hidden", role !== "receiver");
   const proto = location.protocol === "https:" ? "wss" : "ws";
-  const extra = role === "receiver" ? `&lang=${lang}&family=${$("fam").checked ? 1 : 0}` : "";
+  const extra = role === "receiver" ? `&lang=${lang}&family=${$("fam").checked ? 1 : 0}&guard=${$("guard").checked ? 1 : 0}` : "";
   ws = new WebSocket(`${proto}://${location.host}/ws/call?role=${role}&key=${encodeURIComponent(key)}${extra}`);
   ws.binaryType = "arraybuffer";
   capture.port.onmessage = (e) => { if (ws.readyState === 1 && startedAt) ws.send(e.data); };
@@ -158,10 +181,13 @@ async function onControl(m) {
   else if (m.type === "connected") {
     startedAt = Date.now();
     setStatus(role === "receiver" ? "🛡️ Connected · protected" : "Connected");
+    if (role === "receiver") showWatch(m.guardians);
     timerId = setInterval(() => { const s = Math.floor((Date.now() - startedAt) / 1000); $("timer").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 500);
   } else if (m.type === "warnings") {
     for (const [lvl, b64] of Object.entries(m.audio)) warnings[lvl] = await ctx.decodeAudioData(b64ToBuffer(b64));
   } else if (m.type === "risk") setRisk(m.level, m.score);
+  else if (m.type === "guardians") showWatch(m.count);
+  else if (m.type === "guard") onGuard(m);
   else if (m.type === "alert") onAlert(m);
   else if (m.type === "error") alertBox(m.message);
   else if (m.type === "ended") end("Call ended: " + m.reason);
@@ -174,25 +200,42 @@ function setRisk(level, score) {
   $("risktext").textContent = text;
 }
 
+function showWatch(n) { if (role === "receiver") $("watch").classList.toggle("hidden", !n); }
+
+function playWarning(level) {
+  const buf = warnings[level];
+  if (!buf) return;
+  const node = ctx.createBufferSource(); node.buffer = buf; node.connect(ctx.destination);
+  player.port.postMessage({ gain: 0.15 });                         // duck the caller while warning
+  node.onended = () => player.port.postMessage({ gain: 1 });
+  node.start();
+}
+
+function onGuard(m) {
+  $("stopmsg").textContent = m.message;
+  $("stop").classList.add("show");
+  navigator.vibrate?.([600, 100, 600]);
+  playWarning("guard");
+}
+$("stopok").onclick = () => $("stop").classList.remove("show");
+$("unmute").onclick = () => { try { ws?.send(JSON.stringify({ type: "unmute" })); } catch (_) {} $("stop").classList.remove("show"); };
+
 function onAlert(m) {
   setRisk(m.level, m.level === "high" ? 10 : 5);
   const div = document.createElement("div");
   div.className = "a " + m.level;
-  div.textContent = (m.level === "high" ? "🔴 " : "🟠 ") + m.message + (m.voice ? `  (🧬 spoken in an ${m.voice})` : "");
+  div.textContent = (m.level === "high" ? "🔴 " : "🟠 ") + (m.scam_label ? m.scam_label + ": " : "") + m.message +
+    (m.voice ? `  (🧬 spoken in an ${m.voice})` : "");
   $("alerts").prepend(div);
   navigator.vibrate?.(m.level === "high" ? [400, 150, 400, 150, 400] : [300]);
   if (m.level === "high") {
     $("bannermsg").textContent = m.message;
     $("bannervoice").textContent = m.voice ? "🧬 Spoken in an " + m.voice : "";
+    $("bannertype").textContent = m.scam_label || "";
+    $("bannerfamily").textContent = m.family_told ? "👪 Your family has been told" : "";
     $("banner").classList.add("show");
   }
-  const buf = warnings[m.level];
-  if (buf) {
-    const node = ctx.createBufferSource(); node.buffer = buf; node.connect(ctx.destination);
-    player.port.postMessage({ gain: 0.15 });                       // duck the caller while warning
-    node.onended = () => player.port.postMessage({ gain: 1 });
-    node.start();
-  }
+  playWarning(m.level);
 }
 
 function alertBox(text) { const d = document.createElement("div"); d.className = "a medium"; d.textContent = text; $("alerts").prepend(d); $("riskcard").classList.remove("hidden"); setStatus(text); }

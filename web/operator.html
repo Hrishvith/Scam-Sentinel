@@ -37,7 +37,7 @@
     <div class="card">
       <h2>1 · Join with two phones</h2>
       <div id="joins"></div>
-      <div><span id="p-receiver" class="peer">receiver</span><span id="p-caller" class="peer">caller</span></div>
+      <div><span id="p-receiver" class="peer">receiver</span><span id="p-caller" class="peer">caller</span><span id="p-guardian" class="peer">guardians: 0</span></div>
     </div>
     <div class="card">
       <h2>2 · Live risk (caller's words)</h2>
@@ -63,8 +63,10 @@ function log(t) { const d = document.createElement("div"); d.textContent = new D
 
 fetch(`/info?key=${encodeURIComponent(key)}`).then((r) => r.json()).then((info) => {
   const base = info.public_url || location.origin;
-  for (const [role, label] of [["receiver", "Protected person's phone"], ["caller", "Caller's phone (plays the scammer)"]]) {
-    const url = `${base}/?role=${role}&key=${encodeURIComponent(key)}`;
+  for (const [role, label] of [["receiver", "Protected person's phone"], ["caller", "Caller's phone (plays the scammer)"],
+                               ["guardian", "Family guardian's phone (optional)"]]) {
+    const url = role === "guardian" ? `${base}/guardian?key=${encodeURIComponent(key)}`
+                                    : `${base}/?role=${role}&key=${encodeURIComponent(key)}`;
     const box = document.createElement("div");
     box.innerHTML = `<b>${label}</b><div class="qr" id="qr-${role}"></div><div class="link">${esc(url)}</div>`;
     $("joins").append(box);
@@ -85,8 +87,19 @@ function connect() {
   ws.onmessage = (e) => {
     const m = JSON.parse(e.data);
     if (m.type === "peer") { $("p-" + m.role).classList.toggle("on", m.joined); log(`${m.role} ${m.joined ? "joined" : "left"}`); }
+    else if (m.type === "guardians") { $("p-guardian").textContent = `guardians: ${m.count}`; $("p-guardian").classList.toggle("on", m.count > 0); }
+    else if (m.type === "heard") {
+      if (m.digits) log(`protected person: ${m.digits} digit(s) heard${m.armed ? " (guard armed)" : ""}`);
+    } else if (m.type === "guard") {
+      const d = document.createElement("div");
+      d.className = "alert high";
+      d.innerHTML = `<b>✋ OTP GUARD at ${m.at.toFixed(1)} s</b> · the protected person started saying ${m.digits} digits` +
+        `<br>"Stop" warning played on their phone; their voice is no longer sent to the caller.`;
+      $("alerts").prepend(d);
+    } else if (m.type === "unmuted") log("protected person chose to let the caller hear them again");
+    else if (m.type === "guard_done") log(`OTP guard: ${m.seconds_streamed} s listened, fired ${m.fired} time(s); their words were not kept`);
     else if (m.type === "call") {
-      log(`call ${m.state}${m.lang ? ` · language ${m.lang}` : ""}${m.family ? ` · family voice: ${m.family}` : ""}`);
+      log(`call ${m.state}${m.lang ? ` · language ${m.lang}` : ""}${m.family ? ` · family voice: ${m.family}` : ""}${m.guard ? " · OTP guard on" : ""}`);
       if (m.state === "connected") { $("lines").innerHTML = ""; $("alerts").innerHTML = ""; $("summary").innerHTML = ""; setRisk("low", 0); }
     } else if (m.type === "transcript") {
       const d = document.createElement("div");
@@ -96,7 +109,8 @@ function connect() {
     } else if (m.type === "alert") {
       const d = document.createElement("div");
       d.className = "alert " + m.level;
-      d.innerHTML = `<b>${m.level.toUpperCase()} at ${m.at.toFixed(1)} s</b> · warning sent to the protected phone only<br>${esc(m.message)}` +
+      d.innerHTML = `<b>${m.level.toUpperCase()} at ${m.at.toFixed(1)} s · ${esc(m.scam_label || "")}</b> · warning sent to the protected phone only` +
+        (m.family_told ? " · 👪 guardian alerted" : "") + `<br>${esc(m.message)}` +
         (m.voice ? `<br>🧬 <i>spoken in an ${esc(m.voice)}</i>` : "") + `<br><small>${esc(m.reasons.join(" · "))}</small>`;
       $("alerts").prepend(d);
     } else if (m.type === "done") {

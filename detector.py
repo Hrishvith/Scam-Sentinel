@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 import requests
 
-from tactics import ASK_PHRASES, DELIVERY_PHRASES, ESCALATION, SAFETY_PHRASES, TACTICS
+from tactics import ASK_PHRASES, DELIVERY_PHRASES, ESCALATION, SAFETY_PHRASES, SCAM_TYPES, TACTICS
 from text_norm import normalize
 
 LEVELS = ["low", "medium", "high"]
@@ -60,6 +60,27 @@ def _otp_requests(plain: str) -> list[str]:
     return hits
 
 
+_TYPE_WORDS = {name: [_compile(w) for w in spec.get("words", [])] for name, spec in SCAM_TYPES.items()}
+
+
+def scam_type(found: dict[str, list[str]], plain: str) -> str | None:
+    """Which kind of scam the evidence points to (the first SCAM_TYPES entry that fits)."""
+    if not found:
+        return None
+    evidence = {kw for hits in found.values() for kw in hits}
+    for name, spec in SCAM_TYPES.items():
+        if "needs" in spec and not found.keys() & spec["needs"]:
+            continue
+        if not spec.get("all", set()) <= found.keys():
+            continue
+        if "evidence" in spec and not evidence & spec["evidence"]:
+            continue
+        if _TYPE_WORDS[name] and not any(rx.search(plain) for rx in _TYPE_WORDS[name]):
+            continue
+        return name
+    return None
+
+
 @dataclass
 class Detection:
     score: float = 0.0
@@ -67,10 +88,11 @@ class Detection:
     tactics: dict[str, list[str]] = field(default_factory=dict)  # tactic -> matched evidence
     notes: list[str] = field(default_factory=list)
     source: str = "rules"
+    scam_type: str | None = None             # a SCAM_TYPES key, e.g. "digital_arrest"
 
     def to_dict(self) -> dict:
         return {"score": round(self.score, 2), "level": self.level, "tactics": self.tactics,
-                "notes": self.notes, "source": self.source}
+                "notes": self.notes, "source": self.source, "scam_type": self.scam_type}
 
 
 def level_for(score: float) -> str:
@@ -113,7 +135,8 @@ def detect_rules(text: str) -> Detection:
     if "secrecy" in found and found.keys() & _DANGEROUS_ASK:
         score += 1.0
         notes.append("Told to keep it secret while being asked for something sensitive.")
-    return Detection(score=score, level=level_for(score), tactics=found, notes=notes)
+    return Detection(score=score, level=level_for(score), tactics=found, notes=notes,
+                     scam_type=scam_type(found, plain))
 
 
 _SYSTEM = (

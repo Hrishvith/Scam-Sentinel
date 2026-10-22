@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Family guardian</title>
+<style>
+  :root { --bg:#0f1115; --card:#1a1d24; --ink:#f3f3f1; --ink2:#b9b8b2; --good:#0ca30c; --warn:#fab219; --bad:#d03b3b; --accent:#2a78d6; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:18px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:560px; margin:0 auto; padding:20px 16px 40px; }
+  h1 { font-size:22px; margin:4px 0 2px; }
+  .sub { color:var(--ink2); font-size:15px; margin:0 0 18px; }
+  .card { background:var(--card); border-radius:16px; padding:18px; margin:14px 0; }
+  button, a.btn { display:block; width:100%; border:0; border-radius:14px; padding:18px; font-size:21px; font-weight:700;
+                  color:#fff; cursor:pointer; margin:8px 0; text-align:center; text-decoration:none; }
+  .go { background:var(--good); }
+  input { width:100%; padding:14px; font-size:19px; border-radius:12px; border:1px solid #3a3a38; background:#111; color:var(--ink); }
+  .note { color:var(--ink2); font-size:14px; }
+  .hidden { display:none !important; }
+  .light { display:flex; align-items:center; gap:14px; font-size:22px; font-weight:700; }
+  .dot { width:34px; height:34px; border-radius:50%; background:#5f5e5a; flex:none; }
+  #events .e { border-radius:12px; padding:12px; margin:10px 0; }
+  #events .medium { background:#4a3a10; } #events .high, #events .guard { background:#5a1d1d; } #events .info { background:#22262e; }
+  #alarm { display:none; position:fixed; inset:0; background:var(--bad); color:#fff; z-index:10; padding:24px 18px;
+           flex-direction:column; justify-content:center; text-align:center; gap:14px; overflow:auto; }
+  #alarm.show { display:flex; }
+  #alarm .big { font-size:34px; font-weight:800; line-height:1.15; }
+  #alarm .type { font-size:24px; font-weight:800; background:rgba(0,0,0,.25); border-radius:12px; padding:10px; }
+  #alarm .said { font-size:16px; background:rgba(0,0,0,.2); border-radius:12px; padding:10px; text-align:left; }
+  #alarm a.btn, #alarm button { background:#fff; color:var(--bad); }
+</style>
+</head>
+<body>
+<main>
+  <h1>👪 Family guardian</h1>
+  <p class="sub">Prototype · this phone rings if someone in your family gets a likely scam call on the Scam Sentinel line · simulated calls only</p>
+
+  <section id="setup" class="card">
+    <p>Keep this page open. You will be alerted the moment a call to your family member looks like a scam.</p>
+    <label for="num" class="note">Their phone number, for a one-tap call back (optional, saved only on this phone)</label>
+    <input id="num" type="tel" inputmode="tel" autocomplete="off">
+    <button id="start" class="go">👁️ Start watching</button>
+  </section>
+
+  <section id="watching" class="hidden">
+    <div class="card">
+      <div class="light"><div id="dot" class="dot"></div><span id="status">Connecting…</span></div>
+      <p class="note" id="sub"></p>
+    </div>
+    <div id="events"></div>
+  </section>
+</main>
+
+<div id="alarm" role="alert">
+  <div class="big">🚨 Your family member is on a likely SCAM call</div>
+  <div class="type" id="atype"></div>
+  <div id="areasons"></div>
+  <div class="said hidden" id="asaid"></div>
+  <a id="callback" class="btn hidden" href="#">📞 Call them now</a>
+  <button id="ack">I've seen it</button>
+</div>
+
+<script>
+const key = new URLSearchParams(location.search).get("key") || "";
+const $ = (id) => document.getElementById(id);
+const LANGS = { "kn-IN": "Kannada", "hi-IN": "Hindi", "en-IN": "English" };
+let ctx, alarmTimer, wakeLock;
+
+function stored(k, v) {               // browser storage can be unavailable: never rely on it
+  try { if (v === undefined) return localStorage.getItem(k) || ""; localStorage.setItem(k, v); } catch (_) { return ""; }
+}
+$("num").value = stored("sentinel-guardian-number");
+
+function setStatus(text, color, sub) { $("status").textContent = text; $("dot").style.background = color; $("sub").textContent = sub || ""; }
+function add(cls, html) { const d = document.createElement("div"); d.className = "e " + cls; d.innerHTML = html; $("events").prepend(d); }
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const now = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+function beep(freq, ms) {
+  if (!ctx) return;
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.frequency.value = freq; o.type = "square"; g.gain.value = 0.25;
+  o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime + ms / 1000);
+}
+function ring(seconds) {             // loud repeating alarm until acknowledged (or `seconds` pass)
+  stopRing();
+  const until = Date.now() + seconds * 1000;
+  const tick = () => { beep(880, 250); setTimeout(() => beep(660, 250), 300); navigator.vibrate?.([300, 100, 300]); };
+  tick();
+  alarmTimer = setInterval(() => (Date.now() > until ? stopRing() : tick()), 1200);
+}
+function stopRing() { clearInterval(alarmTimer); alarmTimer = null; }
+
+$("start").onclick = async () => {
+  stored("sentinel-guardian-number", $("num").value.trim());
+  ctx = new (window.AudioContext || window.webkitAudioContext)();   // unlocked by this tap
+  await ctx.resume();
+  try { wakeLock = await navigator.wakeLock?.request("screen"); } catch (_) {}
+  $("setup").classList.add("hidden"); $("watching").classList.remove("hidden");
+  beep(660, 120);
+  connect();
+};
+
+$("ack").onclick = () => { stopRing(); $("alarm").classList.remove("show"); };
+
+function onAlert(m) {
+  const lines = (m.reasons || []).map((r) => "• " + esc(r)).join("<br>");
+  if (m.level === "medium") {
+    setStatus("Suspicious call in progress", "var(--warn)", m.scam_label);
+    add("medium", `<b>🟠 ${now()} · Suspicious call</b> · ${esc(m.scam_label)}<br>${lines}`);
+    beep(660, 300);
+    return;
+  }
+  setStatus("Likely SCAM call in progress", "var(--bad)", m.scam_label);
+  add("high", `<b>🔴 ${now()} · Likely scam</b> · ${esc(m.scam_label)}<br>${lines}<br><small>Their phone already warned them.</small>`);
+  $("atype").textContent = m.scam_label;
+  $("areasons").innerHTML = lines;
+  const said = (m.caller_said || []).map((t) => "“" + esc(t) + "”").join("<br>");
+  $("asaid").innerHTML = said ? "<b>The caller said:</b><br>" + said : "";
+  $("asaid").classList.toggle("hidden", !said);
+  const num = $("num").value.trim();
+  $("callback").classList.toggle("hidden", !num);
+  if (num) $("callback").href = "tel:" + num.replace(/[^0-9+]/g, "");
+  $("alarm").classList.add("show");
+  ring(60);
+}
+
+function connect() {
+  const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/guardian?key=${encodeURIComponent(key)}`);
+  ws.onmessage = (e) => {
+    const m = JSON.parse(e.data);
+    if (m.type === "call" && m.state === "connected") {
+      setStatus("On a call · protected", "var(--good)", `Language: ${LANGS[m.lang] || m.lang}${m.guard ? " · OTP guard on" : ""}`);
+      add("info", `📞 ${now()} · A call started. Scam Sentinel is listening for scam tricks.`);
+    } else if (m.type === "call" && m.state === "idle") setStatus("No call right now", "#5f5e5a", "You will be alerted if a call looks like a scam.");
+    else if (m.type === "call" && m.state === "ended") {
+      setStatus("No call right now", "#5f5e5a", "The last call has ended.");
+      add("info", `☎️ ${now()} · The call ended.`);
+    } else if (m.type === "alert") onAlert(m);
+    else if (m.type === "guard") {
+      add("guard", `<b>✋ ${now()} · They started saying numbers</b><br>Scam Sentinel told them to stop and blocked their voice to the caller.`);
+      beep(880, 400);
+    } else if (m.type === "unmuted") add("info", `🔊 ${now()} · They chose to let the caller hear them again.`);
+    else if (m.type === "done" && m.level === "high") add("info", `Call summary: likely scam, ${Math.round(m.seconds)} s. Consider reporting it at 1930 / cybercrime.gov.in.`);
+  };
+  ws.onclose = () => { setStatus("Reconnecting…", "#5f5e5a"); setTimeout(connect, 2000); };
+}
+
+if (!key) { $("setup").innerHTML = "<p>This link is missing its key. Scan the guardian QR code again.</p>"; }
+</script>
+</body>
+</html>
