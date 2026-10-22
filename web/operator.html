@@ -26,6 +26,8 @@
   #lines .t { color:var(--muted); font-variant-numeric:tabular-nums; margin-right:8px; }
   #lines .echo { color:var(--muted); font-style:italic; }
   .alert { border-radius:10px; padding:10px; margin:8px 0; } .alert.medium { background:#4a3a10; } .alert.high { background:#5a1d1d; }
+  .listen { display:block; background:#2a78d6; color:#fff; text-decoration:none; border-radius:10px; padding:12px;
+            margin:10px 0; font-weight:600; text-align:center; }
   #log { color:var(--muted); font-size:13px; max-height:140px; overflow:auto; }
 </style>
 </head>
@@ -37,6 +39,7 @@
     <div class="card">
       <h2>1 · Join with two phones</h2>
       <div id="joins"></div>
+      <a class="listen" target="_blank" id="listen">🎧 Real phone call? Put it on speaker and listen with this laptop</a>
       <div><span id="p-receiver" class="peer">receiver</span><span id="p-caller" class="peer">caller</span><span id="p-listener" class="peer">speakerphone</span><span id="p-guardian" class="peer">guardians: 0</span></div>
     </div>
     <div class="card">
@@ -58,14 +61,14 @@ const key = new URLSearchParams(location.search).get("key") || "";
 const $ = (id) => document.getElementById(id);
 const COLORS = { low: "var(--good)", medium: "var(--warn)", high: "var(--bad)" };
 const NAMES = { low: "Safe so far", medium: "Suspicious", high: "Likely scam" };
+$("listen").href = `/?role=listener&key=${encodeURIComponent(key)}`;   // this laptop (localhost may use the mic)
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 function log(t) { const d = document.createElement("div"); d.textContent = new Date().toLocaleTimeString() + "  " + t; $("log").prepend(d); }
 
 fetch(`/info?key=${encodeURIComponent(key)}`).then((r) => r.json()).then((info) => {
   const base = info.public_url || location.origin;
   for (const [role, label] of [["receiver", "Protected person's phone"], ["caller", "Caller's phone (plays the scammer)"],
-                               ["guardian", "Family guardian's phone (optional)"],
-                               ["listener", "Speakerphone listener: a spare phone next to a REAL call on speaker"]]) {
+                               ["guardian", "Family guardian's phone (optional)"]]) {
     const url = role === "guardian" ? `${base}/guardian?key=${encodeURIComponent(key)}`
                                     : `${base}/?role=${role}&key=${encodeURIComponent(key)}`;
     const box = document.createElement("div");
