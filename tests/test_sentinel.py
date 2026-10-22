@@ -83,6 +83,10 @@ def test_direct_otp_request_is_high_even_after_dont_share(text):
     "किसी को भी ओटीपी मत बताइए। बैंक कभी ओटीपी नहीं माँगता।",
     "ಡೆಲಿವರಿ ಒಟಿಪಿ ತಿಳಿಸಿ ಸರ್, ಪಾರ್ಸೆಲ್ ಕೊಡ್ತೀನಿ",
     "Please tell me the delivery OTP when you collect the parcel.",
+    # From a test call: an RBI-style safety message in English, heard by the kn-IN model.
+    "ವೀ ಅರೆ ಕಾಲಿಂಗ್ ಫ್ರಮ್ ಆರ್ ಬಿಐ ರಿಗಾರ್ಡಿಂಗ್ ಪ್ರಿಕಾಶನರಿ ಮೆಜರ್ಸ್ ಇಫ್ ಎನಿಬಡಿ ಕಾಲ್ಸ್ ರಿಗಾರ್ಡಿಂಗ್ ದಿ ಕೆವೈಸಿ ಆಪರೇಷನ್ ಅಂಡ್ ಎನಿ "
+    "ಅದರ ಓ ಟಿ ಪಿ ಥಿಂಗ್ ಯು ಶುಡ್ ಯು ಶುಡ್ಡಂಟ್ ಶೇರ್ ಯುವರ್ ಒಟಿಪಿ ಟು ಎನಿವನ್ ಹೂ ಆಸ್ಕ್ ಬೈ ದಿ ಕಾಲ್",
+    "We are calling from RBI. You shouldn't share your OTP or KYC details with anyone who calls.",
 ])
 def test_negated_or_delivery_otp_asks_stay_low(text):
     assert detect_rules(text).level == "low"
