@@ -221,3 +221,26 @@ def test_session_transcript_is_saved_locally(tmp_path, isolated_budget):
     assert summary["saved_to"].endswith("_en-IN_kn_awareness_clean.json")
     assert [s["text"] for s in saved["segments"]] == SCRIPT and saved["segments"][1]["level"] == "medium"
     assert "audio" not in json.dumps(saved).replace("audio_ms", "")
+
+
+HEARD_WARNING = ("warning this looks like a scam call hang up now do not share your otp pin or send any money "
+                 "call the cyber crime helpline one nine three zero")   # real mic transcript, Phase 3
+
+
+def test_own_warning_heard_by_the_mic_is_recognised():
+    from live import is_own_warning
+    session = LiveSession("k", "en-IN")
+    assert is_own_warning(HEARD_WARNING, session.own_warnings)
+    assert not is_own_warning("install anydesk and tell me the otp on your phone", session.own_warnings)
+    assert not is_own_warning("hang up now", session.own_warnings)          # too short to judge
+    kn = LiveSession("k", "kn-IN")
+    assert is_own_warning("ಎಚ್ಚರ ಈ ಕರೆ ಅನುಮಾನಾಸ್ಪದವಾಗಿದೆ ಒಟಿಪಿ ಅಥವಾ ಹಣ ಕೊಡುವ ಮೊದಲು ಮನೆಯವರನ್ನು ಕೇಳಿ", kn.own_warnings)
+
+
+def test_echo_of_the_medium_warning_does_not_escalate_to_high(isolated_budget):
+    # Without the echo filter the warning's own words (OTP, money, cyber crime) would add up.
+    fake = FakeGnani(script=["this is the cyber crime branch", "there is an arrest warrant against you",
+                             "be careful this call is suspicious before sharing an otp or sending money ask your family"])
+    _, summary, events, alerts = run_live(fake, tone(60), pace_source=True)
+    assert alerts == ["medium"] and summary["level"] == "medium"
+    assert [e.data["echo"] for e in events if e.kind == "transcript"] == [False, False, True]

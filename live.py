@@ -21,6 +21,7 @@ import asyncio
 import contextlib
 import json
 import os
+import re
 import sys
 import threading
 import time
@@ -36,6 +37,7 @@ from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
 from alerts import HELPLINE, alert_text, top_reasons
 from budget import Budget
 from detector import Detection, detect_rules
+from taxonomy import normalize
 from gnani_client import BudgetExceeded, GnaniClient, GnaniError
 from pipeline import speak_alert
 from tactics import BIAS_WORDS
@@ -56,6 +58,23 @@ def frame_seconds(rate: int) -> float:
 class LiveEvent:
     kind: str                        # info | connected | transcript | alert | error | done
     data: dict = field(default_factory=dict)
+
+
+def _words(text: str) -> list[str]:
+    return re.sub(r"[.,!?।:;\"'()\-]", " ", normalize(text)).split()
+
+
+def is_own_warning(text: str, warnings: list[str], threshold: float = 0.7) -> bool:
+    """True when a transcript is mostly the words of our own spoken warning (the mic heard it).
+
+    The warning wording is known exactly, so this needs no muting and drops none of the caller's
+    words. Short segments are never treated as echo.
+    """
+    words = _words(text)
+    if len(words) < 4:
+        return False
+    return any(sum(w in vocab for w in words) / len(words) >= threshold
+               for vocab in (set(_words(w)) for w in warnings))
 
 
 class RiskTracker:
@@ -153,6 +172,7 @@ class LiveSession:
         self.dt = frame_seconds(rate)
         self.muted = threading.Event()       # set while our own warning plays: send silence instead
         self.tracker = RiskTracker()
+        self.own_warnings = [alert_text(lang, Detection(level=lvl)) for lvl in ("medium", "high")]
         self.sent_s = 0.0                     # audio seconds streamed (the billing unit we assume)
         self.segments: list[dict] = []
         self.connections = 0
@@ -292,13 +312,14 @@ class LiveSession:
 
     def _on_transcript(self, msg: dict) -> None:
         text, at = (msg.get("text") or "").strip(), round(self.sent_s, 2)
-        new = self.tracker.add(text, at)
+        echo = is_own_warning(text, self.own_warnings)
+        new = None if echo else self.tracker.add(text, at)   # our own warning never raises the risk
         det = self.tracker.det
         self.segments.append({"at": at, "text": text, "level": det.level, "score": round(det.score, 2),
                               "tactics": sorted(det.tactics), "latency_ms": msg.get("latency"),
-                              "audio_ms": msg.get("audio_duration_ms")})
+                              "audio_ms": msg.get("audio_duration_ms"), "echo": echo})
         self._emit("transcript", text=text, at=at, level=det.level, score=round(det.score, 2),
-                   tactics=sorted(det.tactics), latency_ms=msg.get("latency"))
+                   tactics=sorted(det.tactics), latency_ms=msg.get("latency"), echo=echo)
         if new:
             self._emit("alert", level=new, at=at, message=alert_text(self.lang, det),
                        reasons=top_reasons(self.lang, det))
@@ -378,7 +399,8 @@ def print_event(e: LiveEvent) -> None:
     d = e.data
     if e.kind == "transcript":
         bar = "#" * min(20, int(d["score"] * 2))
-        print(f"[{d['at']:6.1f}s] {d['level']:<6} {d['score']:5.1f} |{bar:<20}| {d['text']}")
+        note = "  (our own warning, ignored)" if d.get("echo") else ""
+        print(f"[{d['at']:6.1f}s] {d['level']:<6} {d['score']:5.1f} |{bar:<20}| {d['text']}{note}")
     elif e.kind == "alert":
         print(f"\n!!! {d['level'].upper()} RISK at {d['at']:.1f} s of audio: {d['message']}")
         for r in d["reasons"]:
