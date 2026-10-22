@@ -6,8 +6,11 @@ network sits. The server listens to the CALLER's side with Gnani Prisma realtime
 tactics as they build up, and sends the Gnani Timbre warning (or the family-voice warning) into the
 RECEIVER's ear only, mid-call. The caller never hears it.
 
-  python phone_relay.py --lang kn-IN --tunnel             # public https link via cloudflared + QR codes
-  python phone_relay.py --lang kn-IN --family-voice       # high warning in your cloned voice (labelled)
+  python phone_relay.py --tunnel             # public https link via cloudflared + QR codes
+  python phone_relay.py --tunnel --prewarm   # also prepare every warning up front (instant first call)
+
+The protected person chooses on their phone: the language (Kannada, Hindi, English) and whether the
+high-risk warning comes in the family voice (needs a profile from family_voice.py; always labelled).
 
 Then open http://localhost:8765/operator?key=... on the laptop (printed at start) and scan the two QR
 codes with two phones. SPENDS CREDITS while a call is connected (~0.44 credits per minute).
@@ -42,6 +45,7 @@ HERE = Path(__file__).resolve().parent
 WEB = HERE / "web"
 RATE = 16000                      # browsers send 16 kHz mono s16le, 20 ms per message
 ROLES = ("caller", "receiver")
+LANGS = {"kn-IN": "ಕನ್ನಡ", "hi-IN": "हिन्दी", "en-IN": "English"}
 
 
 class Call:
@@ -54,6 +58,8 @@ class Call:
         self.session: LiveSession | None = None
         self.connected_at: float | None = None
         self.ended = False
+        self.lang = "kn-IN"                        # chosen by the protected person when they join
+        self.use_family = False
 
 
 class Relay:
@@ -93,7 +99,7 @@ class Relay:
     async def info(self, request: web.Request) -> web.Response:
         if not self.authorised(request):
             raise web.HTTPForbidden(text="bad key")
-        return web.json_response({"public_url": self.public_url, "lang": self.lang,
+        return web.json_response({"public_url": self.public_url, "lang": self.lang, "langs": LANGS,
                                   "family": self.family["name"] if self.family else None,
                                   "max_seconds": self.max_seconds})
 
@@ -104,6 +110,9 @@ class Relay:
         role = request.query.get("role")
         if role not in ROLES:
             raise web.HTTPBadRequest(text="role must be caller or receiver")
+        lang = request.query.get("lang", self.lang)
+        if role == "receiver" and lang not in LANGS:
+            raise web.HTTPBadRequest(text=f"lang must be one of {', '.join(LANGS)}")
         ws = web.WebSocketResponse(heartbeat=20, max_msg_size=4 * 1024 * 1024)
         await ws.prepare(request)
         call = self.call
@@ -112,6 +121,9 @@ class Relay:
             await ws.close()
             return ws
         call.peers[role] = ws
+        if role == "receiver":
+            call.lang = lang
+            call.use_family = request.query.get("family") == "1" and self.family is not None
         await self.broadcast_ops({"type": "peer", "role": role, "joined": True})
         await ws.send_json({"type": "waiting", "role": role})
         if len(call.peers) == 2:
@@ -139,22 +151,22 @@ class Relay:
         def on_event(e: LiveEvent) -> None:   # LiveSession runs on this loop: schedule the sends
             loop.create_task(self.forward(call, e))
 
-        session = LiveSession(self.api_key, self.lang, RATE, on_event=on_event, max_seconds=self.max_seconds,
+        session = LiveSession(self.api_key, call.lang, RATE, on_event=on_event, max_seconds=self.max_seconds,
                               url=self.gnani_url, save_dir=self.save_dir, source_name="phone-relay",
                               pace=self.pace, **self.session_opts)
         call.session = session
-        player = AlertPlayer(self.client, self.lang, session, family=self.family)
+        player = AlertPlayer(self.client, call.lang, session, family=self.family if call.use_family else None)
         problems = await asyncio.to_thread(player.prepare)   # cached after the first call: instant
         warnings = {lvl: base64.b64encode(a).decode() for lvl, a in player.audio.items()}
         for role, ws in call.peers.items():
-            await ws.send_json({"type": "connected", "role": role, "lang": self.lang,
+            await ws.send_json({"type": "connected", "role": role, "lang": call.lang,
                                 "max_seconds": self.max_seconds})
         receiver = call.peers.get("receiver")
         if receiver is not None:
             await receiver.send_json({"type": "warnings", "audio": warnings, "helpline": HELPLINE})
         for p in problems:
             await self.broadcast_ops({"type": "info", "message": p})
-        await self.broadcast_ops({"type": "call", "state": "connected", "lang": self.lang,
+        await self.broadcast_ops({"type": "call", "state": "connected", "lang": call.lang,
                                   "family": self.family["name"] if player.family_used else None})
         call.task = asyncio.create_task(self.listen(call, session))
 
@@ -273,21 +285,33 @@ def start_tunnel(port: int, timeout: float = 40.0) -> tuple[subprocess.Popen, st
     raise SystemExit("cloudflared did not give a public address in time; check the internet connection.")
 
 
+def prewarm(client: GnaniClient, family: dict | None) -> None:
+    """Synthesize (and cache) every warning the phones could need; later calls cost nothing for TTS."""
+    for lang in LANGS:
+        for fam in ([None, family] if family else [None]):
+            player = AlertPlayer(client, lang, family=fam)
+            for problem in player.prepare():
+                print(problem)
+            print(f"warnings ready: {lang}{' + family voice' if player.family_used else ''}")
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--lang", default="kn-IN", help="the protected person's language: kn-IN, hi-IN, en-IN")
+    ap.add_argument("--lang", default="kn-IN", choices=list(LANGS), help="default language on the phone page")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--max-seconds", type=float, default=300.0, help="longest protected call (credit cap)")
-    ap.add_argument("--family-voice", action="store_true", help="high warning in your cloned voice (labelled)")
+    ap.add_argument("--no-family", action="store_true", help="hide the family-voice option even if a profile exists")
+    ap.add_argument("--prewarm", action="store_true",
+                    help="synthesize every warning (3 languages, standard + family) now, so calls start instantly")
     ap.add_argument("--tunnel", action="store_true", help="public https link via cloudflared (for phones)")
     args = ap.parse_args(argv)
 
     api_key = os.getenv("GNANI_API_KEY")
     if not api_key:
         raise SystemExit("Set GNANI_API_KEY (or put it in .env).")
-    family = load_profile() if args.family_voice else None
-    if args.family_voice and not family:
-        raise SystemExit("No voice profile: run family_voice.py record and enroll first.")
+    family = None if args.no_family else load_profile()
+    if args.prewarm:
+        prewarm(GnaniClient(api_key), family)
     est = Budget().check("stt_stream", args.max_seconds)
     print(est.line())
     if not est.ok:

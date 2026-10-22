@@ -31,6 +31,11 @@
   #banner a, #banner button { background:#fff; color:var(--bad); text-decoration:none; border-radius:14px; padding:18px; font-size:24px; font-weight:800; }
   .note { color:var(--ink2); font-size:14px; }
   .hidden { display:none; }
+  .langs { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:10px 0 14px; }
+  .langs button { padding:16px 6px; font-size:20px; background:#2c2c2a; margin:0; }
+  .langs button.on { background:var(--accent); outline:3px solid #fff; }
+  label.fam { display:flex; gap:12px; align-items:center; font-size:19px; padding:12px; background:#2c2c2a; border-radius:12px; }
+  label.fam input { width:28px; height:28px; }
 </style>
 </head>
 <body>
@@ -46,6 +51,12 @@
 
   <section id="ready" class="card hidden">
     <p id="who"></p>
+    <div id="options" class="hidden">
+      <p style="margin:6px 0 0">Warning language / ಭಾಷೆ / भाषा</p>
+      <div class="langs" id="langs"></div>
+      <label class="fam hidden" id="famrow"><input type="checkbox" id="fam">
+        <span>🧬 Final warning in <b id="famname"></b>'s voice <small>(AI clone, made with consent)</small></span></label>
+    </div>
     <button id="start" class="call">📞 Join the call</button>
     <p class="note">Allow the microphone when asked. Keep this screen open during the call.</p>
   </section>
@@ -81,6 +92,19 @@ const LEVEL = { low: ["var(--good)", "Safe so far"], medium: ["var(--warn)", "Be
 
 let ctx, ws, capture, player, stream, wakeLock, startedAt, timerId;
 const warnings = {};
+let lang = "kn-IN";
+
+fetch(`/info?key=${encodeURIComponent(key)}`).then((r) => r.json()).then((info) => {
+  lang = info.lang || lang;
+  for (const [code, name] of Object.entries(info.langs || {})) {
+    const b = document.createElement("button");
+    b.textContent = name; b.dataset.lang = code; b.type = "button";
+    b.onclick = () => { lang = code; document.querySelectorAll("#langs button").forEach((x) => x.classList.toggle("on", x.dataset.lang === lang)); };
+    $("langs").append(b);
+  }
+  document.querySelectorAll("#langs button").forEach((x) => x.classList.toggle("on", x.dataset.lang === lang));
+  if (info.family) { $("famname").textContent = info.family; $("famrow").classList.remove("hidden"); $("fam").checked = true; }
+}).catch(() => {});
 
 function show(id) { for (const s of ["choose", "ready", "incall"]) $(s).classList.toggle("hidden", s !== id); }
 function setStatus(t) { $("status").textContent = t; }
@@ -90,6 +114,7 @@ function chooseRole(r) {
   $("who").innerHTML = r === "receiver"
     ? "<b>You are the person being protected.</b> If the caller sounds like a scammer, this phone will warn you."
     : "<b>You are the caller.</b> Read a simulated scam script. The other person will be warned; you will not hear it.";
+  $("options").classList.toggle("hidden", r !== "receiver");
   show("ready");
 }
 
@@ -118,7 +143,8 @@ $("start").onclick = async () => {
   show("incall");
   $("riskcard").classList.toggle("hidden", role !== "receiver");
   const proto = location.protocol === "https:" ? "wss" : "ws";
-  ws = new WebSocket(`${proto}://${location.host}/ws/call?role=${role}&key=${encodeURIComponent(key)}`);
+  const extra = role === "receiver" ? `&lang=${lang}&family=${$("fam").checked ? 1 : 0}` : "";
+  ws = new WebSocket(`${proto}://${location.host}/ws/call?role=${role}&key=${encodeURIComponent(key)}${extra}`);
   ws.binaryType = "arraybuffer";
   capture.port.onmessage = (e) => { if (ws.readyState === 1 && startedAt) ws.send(e.data); };
   ws.onmessage = (e) => (typeof e.data === "string" ? onControl(JSON.parse(e.data)) : player.port.postMessage(e.data, [e.data]));

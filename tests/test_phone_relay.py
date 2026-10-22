@@ -1,12 +1,14 @@
 """Protected calling line, end to end on localhost: two fake phones, a fake Gnani STT server,
 a fake Timbre client. No network, no credits."""
 import asyncio
+import base64
 import json
 
 from aiohttp import WSMsgType
 from aiohttp.test_utils import TestClient, TestServer
 from websockets.asyncio.server import serve
 
+from alerts import FAMILY_WARNINGS
 from budget import read_ledger
 from phone_relay import Relay
 from test_live import FakeGnani
@@ -63,14 +65,20 @@ async def drain(ws):
         return out
 
 
-def run(body, tmp_path, script=SCRIPT):
+def tts_server(url, kw, n):
+    cloned = kw["json"].get("model") == "vachana-vc-v1"
+    return FakeResp(content=(b"RIFFcloned" if cloned else b"RIFFstandard") + bytes(40))
+
+
+def run(body, tmp_path, script=SCRIPT, family=None):
     async def main():
         fake = FakeGnani(script=list(script), frames_per_segment=10)
         async with serve(fake.handler, "127.0.0.1", 0) as gnani:
             port = gnani.sockets[0].getsockname()[1]
-            client, tts_calls = make_client(tmp_path, lambda url, kw, n: FakeResp(content=b"RIFF" + bytes(40)))
+            client, tts_calls = make_client(tmp_path, tts_server)
             relay = Relay("test-key", key=KEY, lang="en-IN", gnani_url=f"ws://127.0.0.1:{port}", client=client,
-                          save_dir=None, pace=False, flush_seconds=0.1, drain_timeout=2, settle_seconds=0.1)
+                          family=family, save_dir=None, pace=False, flush_seconds=0.1, drain_timeout=2,
+                          settle_seconds=0.1)
             async with TestClient(TestServer(relay.app())) as http:
                 return await body(http, fake, tts_calls)
     return asyncio.run(main())
@@ -145,4 +153,65 @@ def test_a_second_phone_cannot_take_an_occupied_role(tmp_path):
         second = await http.ws_connect(f"/ws/call?role=receiver&key={KEY}")
         msgs, _ = await receive_until(second, "error")
         assert "already connected" in msgs[-1]["message"] and fake.connections == []
+    run(body, tmp_path)
+
+
+FAMILY = {"name": "Asha", "embedding": "QUJD", "shape": [1, 768], "dtype": "torch.bfloat16"}
+
+
+async def connect_and_speak(http, receiver_query):
+    receiver = await http.ws_connect(f"/ws/call?role=receiver&key={KEY}{receiver_query}")
+    caller = await http.ws_connect(f"/ws/call?role=caller&key={KEY}")
+    msgs, _ = await receive_until(receiver, "warnings")
+    await receive_until(caller, "connected")
+    for n in range(60):
+        await caller.send_bytes(frame(n))
+        await asyncio.sleep(0.005)
+    alerts = []
+    while not any(a["level"] == "high" for a in alerts):
+        more, _ = await receive_until(receiver, "alert", timeout=10)
+        alerts += [m for m in more if m["type"] == "alert"]
+    return receiver, caller, msgs, alerts
+
+
+def test_the_protected_person_chooses_hindi_and_the_family_voice(tmp_path):
+    async def body(http, fake, _):
+        info = await (await http.get(f"/info?key={KEY}")).json()
+        assert info["family"] == "Asha" and set(info["langs"]) == {"kn-IN", "hi-IN", "en-IN"}
+        receiver, caller, msgs, alerts = await connect_and_speak(http, "&lang=hi-IN&family=1")
+        connected = next(m for m in msgs if m["type"] == "connected")
+        assert connected["lang"] == "hi-IN" and fake.connections[0]["headers"]["lang_code"] == "hi-IN"
+        audio = next(m for m in msgs if m["type"] == "warnings")["audio"]
+        assert base64.b64decode(audio["high"]).startswith(b"RIFFcloned")        # family voice for "high"
+        assert base64.b64decode(audio["medium"]).startswith(b"RIFFstandard")
+        high = next(a for a in alerts if a["level"] == "high")
+        assert high["voice"] == "AI clone of Asha's voice (made with consent)"
+        assert high["message"] == FAMILY_WARNINGS["hi"]
+        await caller.send_str(json.dumps({"type": "hangup"}))
+    run(body, tmp_path, family=FAMILY)
+
+
+def test_family_voice_is_off_unless_the_receiver_asks(tmp_path):
+    async def body(http, fake, _):
+        receiver, caller, msgs, alerts = await connect_and_speak(http, "&lang=kn-IN")
+        audio = next(m for m in msgs if m["type"] == "warnings")["audio"]
+        assert base64.b64decode(audio["high"]).startswith(b"RIFFstandard")
+        assert all(a.get("voice") is None for a in alerts)
+        await caller.send_str(json.dumps({"type": "hangup"}))
+    run(body, tmp_path, family=FAMILY)
+
+
+def test_family_voice_request_without_a_profile_falls_back(tmp_path):
+    async def body(http, fake, _):
+        info = await (await http.get(f"/info?key={KEY}")).json()
+        assert info["family"] is None
+        receiver, caller, msgs, alerts = await connect_and_speak(http, "&lang=en-IN&family=1")
+        assert all(a.get("voice") is None for a in alerts)
+        await caller.send_str(json.dumps({"type": "hangup"}))
+    run(body, tmp_path)
+
+
+def test_unknown_language_is_rejected(tmp_path):
+    async def body(http, fake, _):
+        assert (await http.get(f"/ws/call?role=receiver&key={KEY}&lang=ta-IN")).status == 400
     run(body, tmp_path)
