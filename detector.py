@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 import requests
 
 from tactics import DELIVERY_PHRASES, ESCALATION, SAFETY_PHRASES, TACTICS
-from taxonomy import normalize
+from text_norm import normalize
 
 LEVELS = ["low", "medium", "high"]
 MEDIUM_AT, HIGH_AT = 3.5, 6.0

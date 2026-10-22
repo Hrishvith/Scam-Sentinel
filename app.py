@@ -30,6 +30,8 @@ with st.sidebar:
     lang = LANGS[st.selectbox("Language of the call", list(LANGS))]
     speak = st.toggle("Speak the warning", value=True)
     st.caption("Use simulated calls or recordings you have consent for. Audio is sent to Gnani for transcription.")
+    st.caption(f"Scam Sentinel is a decision aid, not a guarantee. If in doubt, hang up and call the "
+               f"national cyber crime helpline {HELPLINE} or report at {SITE}.")
     _rates = load_rates()
     _spent, _ = Budget().totals()
     st.caption(f"Credits (estimate): {_rates['starting_credits'] - _spent:.0f} left, "
