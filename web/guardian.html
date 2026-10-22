@@ -66,6 +66,7 @@ const key = new URLSearchParams(location.search).get("key") || "";
 const $ = (id) => document.getElementById(id);
 const LANGS = { "kn-IN": "Kannada", "hi-IN": "Hindi", "en-IN": "English" };
 let ctx, alarmTimer, wakeLock;
+let risky = null;                     // the worst alert of the current call, for the after-call steps
 
 function stored(k, v) {               // browser storage can be unavailable: never rely on it
   try { if (v === undefined) return localStorage.getItem(k) || ""; localStorage.setItem(k, v); } catch (_) { return ""; }
@@ -105,6 +106,7 @@ $("start").onclick = async () => {
 $("ack").onclick = () => { stopRing(); $("alarm").classList.remove("show"); };
 
 function onAlert(m) {
+  if (!risky || m.level === "high") risky = m;
   const lines = (m.reasons || []).map((r) => "• " + esc(r)).join("<br>");
   if (m.level === "medium") {
     setStatus("Suspicious call in progress", "var(--warn)", m.scam_label);
@@ -126,6 +128,15 @@ function onAlert(m) {
   ring(60);
 }
 
+function afterSteps(m) {
+  const num = $("num").value.trim().replace(/[^0-9+]/g, "");
+  add("high", `<b>What to do now · ${esc(m.scam_label)}</b><br>Call them and ask: <i>did you share an OTP, PIN or bank details, or send money?</i>` +
+    `<br><br><b>If yes:</b> call <a href="tel:1930" style="color:#fff">1930</a> together right away (the first hour matters, the money can sometimes be stopped), ` +
+    `call their bank to block the card and UPI, then file at <a href="https://cybercrime.gov.in" target="_blank" rel="noopener" style="color:#fff">cybercrime.gov.in</a>.` +
+    `<br><b>If no:</b> report the number on <a href="https://sancharsaathi.gov.in" target="_blank" rel="noopener" style="color:#fff">Sanchar Saathi (Chakshu)</a> and remind them never to call it back.` +
+    (num ? `<br><br><a class="btn go" href="tel:${num}">📞 Call them now</a>` : ""));
+}
+
 function connect() {
   const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/guardian?key=${encodeURIComponent(key)}`);
   ws.onmessage = (e) => {
@@ -133,12 +144,16 @@ function connect() {
     if (m.type === "call" && m.state === "connected") {
       setStatus("On a call · protected", "var(--good)", `Language: ${LANGS[m.lang] || m.lang}${m.guard ? " · OTP guard on" : ""}`);
       add("info", `📞 ${now()} · A call started. Scam Sentinel is listening for scam tricks.`);
+      risky = null;
     } else if (m.type === "call" && m.state === "idle") setStatus("No call right now", "#5f5e5a", "You will be alerted if a call looks like a scam.");
     else if (m.type === "call" && m.state === "ended") {
       setStatus("No call right now", "#5f5e5a", "The last call has ended.");
       add("info", `☎️ ${now()} · The call ended.`);
+      if (risky) afterSteps(risky);
+      risky = null;
     } else if (m.type === "alert") onAlert(m);
     else if (m.type === "guard") {
+      risky = risky || { level: "medium", scam_label: "Suspicious call", reasons: [] };
       add("guard", `<b>✋ ${now()} · They started saying numbers</b><br>Scam Sentinel told them to stop and blocked their voice to the caller.`);
       beep(880, 400);
     } else if (m.type === "unmuted") add("info", `🔊 ${now()} · They chose to let the caller hear them again.`);

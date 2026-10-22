@@ -335,7 +335,8 @@ class LiveSession:
         det = self.tracker.det
         return {"seconds_streamed": round(self.sent_s, 1), "connections": self.connections,
                 "segments": len(self.segments), "level": det.level, "score": round(det.score, 2),
-                "tactics": sorted(det.tactics), "time_to_alert": dict(self.tracker.first_at),
+                "tactics": sorted(det.tactics), "scam_type": det.scam_type,
+                "time_to_alert": dict(self.tracker.first_at),
                 "transcript": " ".join(self.tracker.texts)}
 
 

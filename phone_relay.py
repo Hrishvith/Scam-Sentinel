@@ -14,6 +14,10 @@ high-risk warning comes in the family voice (needs a profile from family_voice.p
 and the OTP guard: if they start reading digits out after the caller asked for an OTP or money, their
 phone says "Stop! Don't say the numbers" and the line stops sending their voice to the caller.
 
+Speakerphone listener (/?role=listener): for a REAL mobile call. Any laptop, tablet or spare phone placed
+next to a phone call on speaker listens through its own microphone and warns out loud during the call
+(both voices are heard, so the OTP guard there can only warn, not cut anyone off).
+
 A family guardian can open a third page (/guardian) on their own phone: it rings when a call to the
 protected person turns into a likely scam, names the kind of scam, and offers to call them.
 
@@ -47,12 +51,12 @@ from detector import Detection
 from family_voice import load_profile
 from gnani_client import BudgetExceeded, GnaniClient
 from live import FRAME_BYTES, SESSIONS_DIR, WS_URL, AlertPlayer, LiveEvent, LiveSession
-from otp_guard import ARMING_TACTICS, GuardSession
+from otp_guard import ARMING_TACTICS, DigitWatch, GuardSession, spoken_digits
 
 HERE = Path(__file__).resolve().parent
 WEB = HERE / "web"
 RATE = 16000                      # browsers send 16 kHz mono s16le, 20 ms per message
-ROLES = ("caller", "receiver")
+ROLES = ("caller", "receiver", "listener")   # listener: a device next to a real call on speaker
 LANGS = {"kn-IN": "ಕನ್ನಡ", "hi-IN": "हिन्दी", "en-IN": "English"}
 
 
@@ -73,6 +77,13 @@ class Call:
         self.guard_task: asyncio.Task | None = None
         self.receiver_muted = False                # set by the guard: their voice no longer reaches the caller
         self.caller_lines: list[str] = []          # last few things the caller said (for the guardian)
+        self.digit_watch: DigitWatch | None = None # speakerphone listener: the OTP guard on the mixed audio
+
+    def protected(self) -> web.WebSocketResponse | None:
+        """The phone that gets the warnings: the receiver, or the speakerphone listener."""
+        # not `a or b`: an aiohttp response is a mapping and an empty one is falsy
+        receiver = self.peers.get("receiver")
+        return receiver if receiver is not None else self.peers.get("listener")
 
 
 class Relay:
@@ -126,25 +137,28 @@ class Relay:
             raise web.HTTPForbidden(text="bad key")
         role = request.query.get("role")
         if role not in ROLES:
-            raise web.HTTPBadRequest(text="role must be caller or receiver")
+            raise web.HTTPBadRequest(text="role must be caller, receiver or listener")
         lang = request.query.get("lang", self.lang)
-        if role == "receiver" and lang not in LANGS:
+        if role in ("receiver", "listener") and lang not in LANGS:
             raise web.HTTPBadRequest(text=f"lang must be one of {', '.join(LANGS)}")
         ws = web.WebSocketResponse(heartbeat=20, max_msg_size=4 * 1024 * 1024)
         await ws.prepare(request)
         call = self.call
-        if role in call.peers:
-            await ws.send_json({"type": "error", "message": f"Someone is already connected as the {role}."})
+        busy = (f"Someone is already connected as the {role}." if role in call.peers else
+                "The line is busy with another call." if call.peers and (role == "listener" or "listener" in call.peers)
+                else None)
+        if busy:
+            await ws.send_json({"type": "error", "message": busy})
             await ws.close()
             return ws
         call.peers[role] = ws
-        if role == "receiver":
+        if role in ("receiver", "listener"):
             call.lang = lang
             call.use_family = request.query.get("family") == "1" and self.family is not None
             call.use_guard = request.query.get("guard") == "1" and self.guard
         await self.broadcast_ops({"type": "peer", "role": role, "joined": True})
         await ws.send_json({"type": "waiting", "role": role})
-        if len(call.peers) == 2:
+        if len(call.peers) == 2 or role == "listener":
             await self.start(call)
         other = "receiver" if role == "caller" else "caller"
         try:
@@ -154,7 +168,7 @@ class Relay:
                     blocked = role == "receiver" and call.receiver_muted
                     if peer is not None and not peer.closed and call.connected_at and not blocked:
                         await peer.send_bytes(msg.data)              # the call itself
-                    if role == "caller" and call.connected_at:
+                    if role in ("caller", "listener") and call.connected_at:
                         call.caller_audio.put_nowait(msg.data)       # the network's ear on the caller
                     elif role == "receiver" and call.connected_at and call.use_guard:
                         call.receiver_audio.put_nowait(msg.data)     # only counted for digits
@@ -190,7 +204,7 @@ class Relay:
             await ws.send_json({"type": "connected", "role": role, "lang": call.lang,
                                 "max_seconds": self.max_seconds, "guard": call.use_guard,
                                 "guardians": len(self.guardians)})
-        receiver = call.peers.get("receiver")
+        receiver = call.protected()
         if receiver is not None:
             await receiver.send_json({"type": "warnings", "audio": warnings, "helpline": HELPLINE})
         for p in problems:
@@ -200,7 +214,9 @@ class Relay:
         await self.broadcast_ops(state)
         await self.broadcast(self.guardians, state)
         call.task = asyncio.create_task(self.listen(call, session, call.caller_audio))
-        if call.use_guard:
+        if call.use_guard and "listener" in call.peers:
+            call.digit_watch = DigitWatch()        # one microphone hears both people: count digits in it
+        elif call.use_guard:
             def on_guard(e: LiveEvent) -> None:
                 loop.create_task(self.forward_guard(call, e))
 
@@ -240,8 +256,15 @@ class Relay:
         msg = {"type": e.kind, **e.data}
         if e.kind == "transcript" and not e.data.get("echo") and e.data["text"]:
             call.caller_lines = (call.caller_lines + [e.data["text"]])[-3:]
+            if call.digit_watch:
+                armed = bool(set(e.data["tactics"]) & ARMING_TACTICS)
+                total = call.digit_watch.add(e.data["at"], spoken_digits(e.data["text"]), armed)
+                if total:
+                    await self.forward_guard(call, LiveEvent("guard", {"at": e.data["at"], "digits": total}))
         if e.kind == "alert":
             msg["family_told"] = bool(self.guardians)
+            msg["scam_label_en"] = scam_label("en-IN", e.data.get("scam_type"))
+            msg["caller_said"] = call.caller_lines
             await self.broadcast(self.guardians, {
                 "type": "alert", "level": e.data["level"], "at": e.data["at"], "lang": call.lang,
                 "scam_type": e.data.get("scam_type"), "scam_label": scam_label("en-IN", e.data.get("scam_type")),
@@ -252,7 +275,7 @@ class Relay:
                                                   "seconds": e.data["seconds_streamed"]})
         self.history.append(msg)
         await self.broadcast_ops(msg)
-        receiver = call.peers.get("receiver")
+        receiver = call.protected()
         if receiver is None:
             return
         if e.kind == "alert":                 # only the protected person hears and sees the warning
@@ -272,9 +295,10 @@ class Relay:
         else:
             return
         if e.kind == "guard":
-            call.receiver_muted = True        # the caller stops hearing them at once
+            call.receiver_muted = True        # the caller stops hearing them at once (relayed calls)
+            msg["cut"] = "receiver" in call.peers
             await self.broadcast(self.guardians, msg)
-            receiver = call.peers.get("receiver")
+            receiver = call.protected()
             if receiver is not None:
                 await self.safe_send(receiver, {**msg, "message": GUARD_WARNINGS[lang_key(call.lang)]})
         self.history.append(msg)
@@ -351,7 +375,7 @@ class Relay:
     async def guardians_changed(self) -> None:
         msg = {"type": "guardians", "count": len(self.guardians)}
         await self.broadcast_ops(msg)
-        receiver = self.call.peers.get("receiver")
+        receiver = self.call.protected()
         if receiver is not None:
             await self.safe_send(receiver, msg)
 
@@ -435,6 +459,7 @@ def main(argv: list[str] | None = None) -> None:
     print(f"Receiver phone (protected): {base}/?role=receiver&key={key}")
     print(f"Caller phone (simulated scammer): {base}/?role=caller&key={key}")
     print(f"Family guardian's phone: {base}/guardian?key={key}")
+    print(f"Speakerphone listener (real calls; on this laptop): http://localhost:{args.port}/?role=listener&key={key}")
     if not public:
         print("(No --tunnel: phones cannot reach localhost and need https for the microphone.)")
     print("Ctrl+C to stop.\n")

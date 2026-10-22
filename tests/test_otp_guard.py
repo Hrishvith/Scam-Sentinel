@@ -161,6 +161,37 @@ def test_digits_before_any_otp_request_do_not_trigger_the_guard(tmp_path):
     run_split(body, tmp_path, ["hello how are you"], ["my flat number is 4 2 1"])
 
 
+def test_speakerphone_listener_warns_during_a_real_call_and_tells_the_guardian(tmp_path):
+    """One device next to a phone call on speaker: one stream hears both people."""
+    async def body(http, fake, _):
+        guardian = await http.ws_connect(f"/ws/guardian?key={KEY}")
+        await receive_until(guardian, "call")
+        listener = await http.ws_connect(f"/ws/call?role=listener&key={KEY}&lang=en-IN&guard=1")
+        msgs, _ = await receive_until(listener, "warnings")                    # starts alone, at once
+        assert set(msgs[-1]["audio"]) == {"medium", "high", "guard"}
+        busy = await http.ws_connect(f"/ws/call?role=caller&key={KEY}")
+        b_msgs, _ = await receive_until(busy, "error")
+        assert "busy" in b_msgs[-1]["message"]
+
+        await speak(listener, [frame(n) for n in range(80)])
+        got, alerts = [], []
+        while not any(m["type"] == "guard" for m in got):
+            more, _ = await receive_until(listener, "guard", timeout=10)
+            got += more
+        alerts = [m for m in got if m["type"] == "alert"]
+        assert [a["level"] for a in alerts] == ["medium", "high"]
+        high = alerts[-1]
+        assert high["scam_label_en"] == "Fake police / digital arrest" and high["caller_said"]
+        guard = next(m for m in got if m["type"] == "guard")
+        assert guard["cut"] is False                                            # nothing to cut on a speakerphone
+        g_msgs, _ = await receive_until(guardian, "guard", timeout=10)
+        assert any(m["type"] == "alert" and m["level"] == "high" for m in g_msgs)
+        await listener.send_str(json.dumps({"type": "hangup"}))
+        assert len(fake.connections) == 1                                       # one stream: ~0.44 credits/min
+    from test_phone_relay import run
+    run(body, tmp_path, script=SCRIPT + ["four seven nine one"])
+
+
 def test_guard_is_off_unless_the_protected_person_asks(tmp_path):
     async def body(http, fake):
         receiver = await http.ws_connect(f"/ws/call?role=receiver&key={KEY}&lang=en-IN")
