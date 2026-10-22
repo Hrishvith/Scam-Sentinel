@@ -62,6 +62,32 @@ def test_awareness_message_not_flagged_high():
     assert any("awareness" in n for n in det.notes)
 
 
+# Transcripts from a two-phone test call (the developer playing the scammer). The second was English
+# heard by the kn-IN model, so it is in Kannada script.
+@pytest.mark.parametrize("text", [
+    "ನಿಮ್ಮ ಒ ಟಿ ಪಿ ಆಗಲಿ ಯಾವುದೇ ಕರೆಯೊಂದಿಗೆ ಹಂಚಿಕೊಳ್ಳಬಾರದು ಹಲೋ ನಿಮ್ಮ ಮೊಬೈಲಿಗೆ ಒಂದು ಒ ಟಿ ಪಿ ಯು ಬಂದಿದೆ ದಯವಿಟ್ಟು ತಿಳಿಸುವಿರಾ",
+    "ಯುವರ್ ಅಕೌಂಟ್ ಡೀಟೇಲ್ಸ್ ಕೆನ್ ಯು ಪ್ಲೀಸ್ ಶೇರ್ ಯುವರ್ ಅಕೌಂಟ್ ಡೀಟೇಲ್ಸ್ ಪ್ಲೀಸ್ ವಿಥ್ ಓ ಟಿ ಪಿ",
+    "ಇಫ್ ಯು ಗಿವ ದ ಒ ಟಿ ಪಿ ಟು ಅಸ್ ವಿಲ್ ಬಿ ಮೂವಿಂಗ್ ಫಾರ್ವರ್ಡ್",
+    "सर आपके फ़ोन पर एक ओटीपी आया है, वो बता दीजिए",
+    "Sir, an OTP has come to your phone, can you tell me the number?",
+])
+def test_direct_otp_request_is_high_even_after_dont_share(text):
+    det = detect_rules(text)
+    assert det.level == "high" and "otp_request" in det.tactics
+
+
+@pytest.mark.parametrize("text", [
+    "Your bank will never ask you to share your OTP. Do not share your PIN with anyone.",
+    "ಯಾರಿಗೂ ನಿಮ್ಮ ಒಟಿಪಿ ಹೇಳಬೇಡಿ. ಬ್ಯಾಂಕ್ ಒಟಿಪಿ ಕೇಳುವುದಿಲ್ಲ.",
+    "ನಾನು ಒಟಿಪಿ ಬಗ್ಗೆ ಹೇಳಿದ್ದೇನೆ",
+    "किसी को भी ओटीपी मत बताइए। बैंक कभी ओटीपी नहीं माँगता।",
+    "ಡೆಲಿವರಿ ಒಟಿಪಿ ತಿಳಿಸಿ ಸರ್, ಪಾರ್ಸೆಲ್ ಕೊಡ್ತೀನಿ",
+    "Please tell me the delivery OTP when you collect the parcel.",
+])
+def test_negated_or_delivery_otp_asks_stay_low(text):
+    assert detect_rules(text).level == "low"
+
+
 def test_pressure_alone_is_not_enough():
     assert detect_rules("This is the police. Please come to the station.").level == "low"
 
