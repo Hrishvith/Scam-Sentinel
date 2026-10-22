@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operator view</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root { --bg:#0f1115; --card:#1a1d24; --ink:#f3f3f1; --ink2:#b9b8b2; --muted:#898781; --good:#0ca30c; --warn:#fab219; --bad:#d03b3b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:20px 16px 40px; }
+  h1 { font-size:22px; margin:0 0 4px; } .sub { color:var(--ink2); margin:0 0 16px; font-size:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; }
+  .card { background:var(--card); border-radius:14px; padding:16px; }
+  h2 { font-size:15px; color:var(--ink2); margin:0 0 10px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .qr { background:#fff; padding:10px; border-radius:10px; width:max-content; margin:8px 0; }
+  .link { font-size:12px; color:var(--muted); word-break:break-all; }
+  .peer { display:inline-block; padding:4px 10px; border-radius:20px; background:#2c2c2a; margin-right:6px; font-size:14px; }
+  .peer.on { background:#0d3d0d; color:#9be79b; }
+  .light { display:flex; align-items:center; gap:12px; font-size:22px; font-weight:700; }
+  .dot { width:28px; height:28px; border-radius:50%; background:var(--good); }
+  .meter { height:10px; background:#2c2c2a; border-radius:5px; overflow:hidden; margin:10px 0; }
+  .meter > div { height:100%; width:0; background:var(--good); transition:width .4s; }
+  #lines div { padding:6px 0; border-bottom:1px solid #2c2c2a; }
+  #lines .t { color:var(--muted); font-variant-numeric:tabular-nums; margin-right:8px; }
+  #lines .echo { color:var(--muted); font-style:italic; }
+  .alert { border-radius:10px; padding:10px; margin:8px 0; } .alert.medium { background:#4a3a10; } .alert.high { background:#5a1d1d; }
+  #log { color:var(--muted); font-size:13px; max-height:140px; overflow:auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🛡️ Scam Sentinel · operator view</h1>
+  <p class="sub">What a telecom operator's protection system would see. Prototype: calls travel over the internet through this laptop. Simulated calls only.</p>
+  <div class="grid">
+    <div class="card">
+      <h2>1 · Join with two phones</h2>
+      <div id="joins"></div>
+      <div><span id="p-receiver" class="peer">receiver</span><span id="p-caller" class="peer">caller</span></div>
+    </div>
+    <div class="card">
+      <h2>2 · Live risk (caller's words)</h2>
+      <div class="light"><div id="dot" class="dot"></div><span id="risk">Waiting for a call</span></div>
+      <div class="meter"><div id="bar"></div></div>
+      <div id="alerts"></div>
+      <div id="summary"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h2>3 · Live transcript of the caller (Gnani Prisma)</h2>
+    <div id="lines"></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h2>Events</h2><div id="log"></div></div>
+</main>
+<script>
+const key = new URLSearchParams(location.search).get("key") || "";
+const $ = (id) => document.getElementById(id);
+const COLORS = { low: "var(--good)", medium: "var(--warn)", high: "var(--bad)" };
+const NAMES = { low: "Safe so far", medium: "Suspicious", high: "Likely scam" };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function log(t) { const d = document.createElement("div"); d.textContent = new Date().toLocaleTimeString() + "  " + t; $("log").prepend(d); }
+
+fetch(`/info?key=${encodeURIComponent(key)}`).then((r) => r.json()).then((info) => {
+  const base = info.public_url || location.origin;
+  for (const [role, label] of [["receiver", "Protected person's phone"], ["caller", "Caller's phone (plays the scammer)"]]) {
+    const url = `${base}/?role=${role}&key=${encodeURIComponent(key)}`;
+    const box = document.createElement("div");
+    box.innerHTML = `<b>${label}</b><div class="qr" id="qr-${role}"></div><div class="link">${esc(url)}</div>`;
+    $("joins").append(box);
+    if (window.QRCode) new QRCode($(`qr-${role}`), { text: url, width: 150, height: 150 });
+  }
+  if (!info.public_url) log("No public link: start with --tunnel so phones can join (they need https for the microphone).");
+  log(`Language ${info.lang}${info.family ? ` · high warning in an AI clone of ${info.family}'s voice` : ""} · max ${info.max_seconds} s per call`);
+}).catch(() => log("Wrong or missing key in the address."));
+
+function setRisk(level, score) {
+  $("dot").style.background = COLORS[level]; $("bar").style.background = COLORS[level];
+  $("bar").style.width = Math.min(100, score * 10) + "%";
+  $("risk").textContent = `${NAMES[level]} · ${score.toFixed(1)}`;
+}
+
+function connect() {
+  const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/ops?key=${encodeURIComponent(key)}`);
+  ws.onmessage = (e) => {
+    const m = JSON.parse(e.data);
+    if (m.type === "peer") { $("p-" + m.role).classList.toggle("on", m.joined); log(`${m.role} ${m.joined ? "joined" : "left"}`); }
+    else if (m.type === "call") {
+      log(`call ${m.state}${m.family ? ` (family voice: ${m.family})` : ""}`);
+      if (m.state === "connected") { $("lines").innerHTML = ""; $("alerts").innerHTML = ""; $("summary").innerHTML = ""; setRisk("low", 0); }
+    } else if (m.type === "transcript") {
+      const d = document.createElement("div");
+      d.innerHTML = `<span class="t">${m.at.toFixed(1)}s</span>` + (m.echo ? `<span class="echo">(our own warning, ignored) ${esc(m.text)}</span>` : `${esc(m.text) || "<i>…</i>"}`);
+      $("lines").prepend(d);
+      if (!m.echo) setRisk(m.level, m.score);
+    } else if (m.type === "alert") {
+      const d = document.createElement("div");
+      d.className = "alert " + m.level;
+      d.innerHTML = `<b>${m.level.toUpperCase()} at ${m.at.toFixed(1)} s</b> · warning sent to the protected phone only<br>${esc(m.message)}` +
+        (m.voice ? `<br>🧬 <i>spoken in an ${esc(m.voice)}</i>` : "") + `<br><small>${esc(m.reasons.join(" · "))}</small>`;
+      $("alerts").prepend(d);
+    } else if (m.type === "done") {
+      const tta = Object.entries(m.time_to_alert || {}).map(([l, s]) => `${l} after ${s.toFixed(1)} s`).join(", ") || "no alert";
+      $("summary").innerHTML = `<p>Call summary: ${m.seconds_streamed} s, final <b>${m.level}</b>. Time to alert: ${tta}.</p>`;
+    } else if (m.type === "error" || m.type === "info") log(m.message);
+  };
+  ws.onclose = () => { log("dashboard disconnected, retrying…"); setTimeout(connect, 2000); };
+}
+connect();
+</script>
+</body>
+</html>
