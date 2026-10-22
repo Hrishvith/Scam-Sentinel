@@ -69,6 +69,14 @@ TACTICS: dict[str, dict] = {
                      "otp", "o t p", "pin", "cvv", "c v v", "password", "aadhaar number", "aadhar number",
                      "card number"],
     },
+    "otp_request": {
+        "weight": 3.0,
+        # REVIEW kn/hi labels with a native speaker.
+        "labels": {"kn": "ಒಟಿಪಿಯನ್ನು ನೇರವಾಗಿ ಹೇಳಿ ಎಂದು ಕೇಳುವುದು", "hi": "सीधे ओटीपी बताने को कहना",
+                   "en": "directly asking you to tell them the OTP"},
+        # Found by the detector, not by keywords: an ASK_PHRASES match close to a credentials word.
+        "keywords": [],
+    },
     "payment": {
         "weight": 3.0,
         "labels": {"kn": "ಹಣ ವರ್ಗಾಯಿಸಲು ಒತ್ತಾಯ", "hi": "पैसे ट्रांसफ़र करने का दबाव",
@@ -113,6 +121,27 @@ DELIVERY_PHRASES = [
     "delivery otp", "delivery o t p", "delivery code", "otp for delivery", "otp for the delivery",
     "डिलीवरी ओटीपी", "डिलीवरी वाला ओटीपी", "डिलीवरी का ओटीपी", "डिलीवरी ओ टी पी", "डिलीवरी वाला ओ टी पी",
     "ಡೆಲಿವರಿ ಒಟಿಪಿ", "ಡೆಲಿವರಿ ಓಟಿಪಿ", "ಡೆಲಿವರಿ ಒ ಟಿ ಪಿ", "ಡೆಲಿವರಿ ಓ ಟಿ ಪಿ",
+]
+
+# "Tell me / give / share" said right next to an OTP or PIN word is a direct request for it, even when the
+# caller said "don't share" earlier (seen in a real test call). Kannada/Hindi entries match whole words
+# only, so "ಹೇಳಿ" does not fire inside "ಹೇಳಿದ್ದೇನೆ". REVIEW kn/hi entries with a native speaker.
+ASK_PHRASES = [
+    "tell me", "tell us", "give me", "give us", "give the", "give your", "share the", "share your",
+    "share it", "read out", "read the", "send me", "send the", "send your", "provide", "please tell",
+    "can you tell", "forward the",
+    # English as the kn-IN / hi-IN models write it
+    "ಟೆಲ್ ಮಿ", "ಟೆಲ್ ಮೀ", "re:ಗಿ\\s?ವ", "ಶೇರ್ ಯುವರ್", "ಶೇರ್ ದ", "ಸೆಂಡ್", "ರೀಡ್ ಔಟ್",
+    "टेल मी", "re:गि\\s?व", "शेयर योर", "सेंड",
+    # Kannada
+    "ತಿಳಿಸಿ", "ತಿಳಿಸುವಿರಾ", "ತಿಳಿಸ್ತೀರಾ", "ಹೇಳಿ", "ಹೇಳ್ತೀರಾ", "ಹೇಳುವಿರಾ", "ಹೇಳ್ಬಿಡಿ", "ಕೊಡಿ", "ಕೊಡ್ತೀರಾ",
+    "ಕೊಡುವಿರಾ", "ಕಳುಹಿಸಿ", "ಕಳಿಸಿ", "ಓದಿ", "ಹಂಚಿಕೊಳ್ಳಿ", "ಶೇರ್ ಮಾಡಿ", "ಶೇರ್ ಮಾಡ್ತೀರಾ",
+    # Hindi
+    "बताइए", "बताइये", "बताओ", "बता दीजिए", "बता दो", "बता दें", "दीजिए", "दे दो", "भेजिए", "भेज दो",
+    "शेयर करो", "शेयर कीजिए", "शेयर कर दो", "पढ़कर सुनाइए",
+    # Hinglish
+    "batao", "bataiye", "bata do", "bata dijiye", "de do", "dijiye", "share karo", "share kijiye",
+    "share kar do", "bhej do",
 ]
 
 # Awareness messages ("never share your OTP") should not read as a request for the OTP.

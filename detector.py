@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 import requests
 
-from tactics import DELIVERY_PHRASES, ESCALATION, SAFETY_PHRASES, TACTICS
+from tactics import ASK_PHRASES, DELIVERY_PHRASES, ESCALATION, SAFETY_PHRASES, TACTICS
 from text_norm import normalize
 
 LEVELS = ["low", "medium", "high"]
@@ -36,6 +36,26 @@ def _compile(keyword: str) -> re.Pattern:
 _PATTERNS = {name: [(kw, _compile(kw)) for kw in spec["keywords"]] for name, spec in TACTICS.items()}
 _SAFETY = [_compile(p) for p in SAFETY_PHRASES]
 _DELIVERY = [_compile(p) for p in DELIVERY_PHRASES]
+_INDIC = "ऀ-ॿಀ-೿"
+_ASK = [(p, _compile(p) if p.isascii() or p.startswith("re:") else re.compile(_compile(p).pattern + f"(?![{_INDIC}])"))
+        for p in ASK_PHRASES]
+_NEGATION = re.compile(r"(?<!\S)(not|never|dont|don't|mat|na|nahi|nahin|मत|न|ना|नहीं|कभी|डोंट|नॉट|नेवर|"
+                       r"ಡೋಂಟ್|ನಾಟ್|ನೆವರ್)(?!\S)")
+NEAR = 60  # characters between the ask and the OTP word
+
+
+def _otp_requests(plain: str) -> list[str]:
+    """Ask phrases ("tell me", ತಿಳಿಸಿ, बताइए) that sit next to an OTP/PIN word and are not negated."""
+    spans = [m.span() for _, rx in _PATTERNS["credentials"] for m in rx.finditer(plain)]
+    hits = []
+    for phrase, rx in _ASK:
+        for m in rx.finditer(plain):
+            if _NEGATION.search(plain[max(0, m.start() - 25):m.start()]):
+                continue      # "don't share your OTP", "never tell", "मत बताइए"
+            if any(s - NEAR <= m.end() and m.start() <= e + NEAR for s, e in spans):
+                hits.append(phrase)
+                break
+    return hits
 
 
 @dataclass
@@ -62,18 +82,23 @@ def detect_rules(text: str) -> Detection:
         hits = [kw for kw, rx in pats if rx.search(plain)]
         if hits:
             found[name] = hits
+    if "credentials" in found and (asked := _otp_requests(plain)):
+        found["otp_request"] = asked
 
     notes: list[str] = []
     weights = {name: TACTICS[name]["weight"] for name in found}
-    # An OTP mention is only discounted when nothing else escalates (scammers also say "don't share").
+    # An OTP mention is only discounted when nothing else escalates (scammers also say "don't share"),
+    # and a direct "tell me the OTP" is never excused by an earlier "don't share".
     context = None
     if "credentials" in weights and not found.keys() & ESCALATION:
-        if any(rx.search(plain) for rx in _SAFETY):
+        if "otp_request" not in found and any(rx.search(plain) for rx in _SAFETY):
             context = "Sounds like an awareness message (\"never share\"), so OTP/PIN weight was reduced."
         elif any(rx.search(plain) for rx in _DELIVERY):
             context = "Sounds like a delivery hand-over OTP, so OTP weight was reduced."
     if context:
         weights["credentials"] *= 0.3
+        if "otp_request" in weights:
+            weights["otp_request"] = 0.0     # asking for the delivery OTP is the normal hand-over
         notes.append(context)
 
     score = sum(weights.values())
