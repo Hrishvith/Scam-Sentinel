@@ -13,7 +13,7 @@ import argparse
 import json
 import sys
 
-from budget import KINDS, Budget, cost, load_rates, rates_path, read_ledger
+from budget import FALLBACK_RATE, KINDS, Budget, cost, load_rates, rates_path, read_ledger
 
 
 def report(budget: Budget) -> str:
@@ -37,7 +37,11 @@ def report(budget: Budget) -> str:
               f"estimated balance  {start - spent:10.1f}",
               f"reserve ({rates['reserve_fraction']:.0%})      {reserve:10.1f}",
               f"spendable now      {max(0.0, start - spent - reserve):10.1f}"]
-    missing = [k for k in KINDS if rates.get(KINDS[k][1]) is None]
+    borrowed = [k for k in KINDS if rates.get(KINDS[k][1]) is None and k in FALLBACK_RATE]
+    if borrowed:
+        lines.append("\nEstimated with a stand-in rate until measured: "
+                     + ", ".join(f"{k} (uses the {FALLBACK_RATE[k]} rate)" for k in borrowed) + ".")
+    missing = [k for k in KINDS if rates.get(KINDS[k][1]) is None and k not in FALLBACK_RATE]
     if missing:
         lines.append(f"\nUnmeasured rates: {', '.join(missing)}. Spend on these is NOT in the estimate "
                      f"({', '.join(f'{k}: {unmeasured[k]:.1f}' for k in missing)} units so far).")

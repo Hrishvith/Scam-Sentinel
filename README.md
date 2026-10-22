@@ -63,6 +63,10 @@ flowchart LR
    recognised and discounted, but only if nothing else is escalating.
 3. **Warn.** The first time the running score crosses *medium* and *high*, Timbre speaks a pre-generated
    warning (cached, so it plays instantly) with the helpline number read digit by digit.
+4. **Family voice (optional).** An elderly parent is far more likely to hang up when their son or
+   daughter says "this is a scam, cut the call" than when an app does. A family member records 20 s of
+   their *own* voice once; the high-risk warning is then spoken in an AI clone of that voice (Gnani voice
+   cloning), always labelled as a clone. Only your own voice, with consent; the data stays local in `voice/`.
 
 ## Gnani models and APIs used
 
@@ -72,6 +76,7 @@ flowchart LR
 | **Prisma STT, REST** (`POST /stt/v3`) | Uploaded calls, benchmark | verbatim mode + `bias_list` word boosting on scam keywords |
 | **Timbre TTS** (`POST /api/v1/tts/inference`) | Spoken warnings | v3.0 voice *Chetana* (all languages), falling back to v2.5 |
 | **Timbre TTS** | Simulated calls | v2.5 voices Kavin/Saanvi (kn), Deepak/Nalini (hi), Pranav/Kaveri (en), Deepak/Poorvi (Hinglish), 8 kHz WAV |
+| **Voice cloning** (`POST /api/v1/tts/voice-clone/embeddings`, model `vachana-vc-v1`) | Family-voice warning | one 20 s reference of the developer's own voice; works in Kannada and English (verified: Prisma transcribed both cloned warnings back with 0% character error) |
 | Evon 30B (optional) | Second opinion on a full call | any OpenAI-compatible server via `EVON_BASE_URL`; can only raise the level |
 
 ## Run it
@@ -99,7 +104,11 @@ Command line:
 .\.venv\Scripts\python.exe eval_detector.py --details   # detector accuracy on saved transcripts (free)
 .\.venv\Scripts\python.exe benchmark.py             # noise benchmark (plan; --yes to spend; --report from cache)
 .\.venv\Scripts\python.exe usage_report.py          # credits used, from the local ledger
-powershell -ExecutionPolicy Bypass -File .\run.ps1 -Test   # 102 offline tests, no credits
+.\.venv\Scripts\python.exe family_voice.py record --lang kn      # family voice: record 20 s of YOUR voice (free)
+.\.venv\Scripts\python.exe family_voice.py enroll --name "Your name" --i-am-the-speaker
+.\.venv\Scripts\python.exe live.py --lang kn-IN --family-voice    # high warning in that voice (labelled)
+.\.venv\Scripts\python.exe family_voice.py delete               # remove the recording, profile, clones
+powershell -ExecutionPolicy Bypass -File .\run.ps1 -Test   # 118 offline tests, no credits
 ```
 
 ## Credits: measured, logged, guarded
@@ -111,6 +120,7 @@ Gnani does not publish per-unit prices, so they were measured against the dashbo
 | Prisma STT, REST | ≈0.0097 credits / s | ≈0.58 per minute |
 | Prisma STT, realtime | ≈0.0073 credits / s streamed | ≈0.44 per minute |
 | Timbre TTS | ≈2.9 credits / 1000 characters | ≈0.5 per spoken warning |
+| Voice-cloned TTS | ≈2.8 credits / 1000 characters | same as standard TTS; enrolment ~free |
 
 Every real call is appended to `usage_ledger.jsonl`; results are cached by content hash, so reruns are
 free; and a **budget guard** prints the estimated cost before each call and refuses anything that would
@@ -143,6 +153,7 @@ about 30 of 5,000 programme credits.
 | `budget.py`, `rates.json`, `usage_report.py`, `calibrate.py` | Credit ledger, rates, guard |
 | `corpus.py`, `make_transcripts.py`, `eval_detector.py` | Simulated calls, transcripts, detector evaluation |
 | `benchmark.py`, `results/` | Noise benchmark and its outputs |
+| `family_voice.py` | Family-voice warning: record, enrol, preview, delete (own voice only) |
 | `audio_utils.py`, `text_norm.py` | WAV helpers, text normalisation |
 | `docs/` | Demo storyboard, post drafts, submission text, native-speaker review checklist |
 
@@ -156,5 +167,9 @@ about 30 of 5,000 programme credits.
   message. In medium noise "parcel" was heard as "password" and caused a brief false alert.
 - **Keyword rules, not understanding.** A scam that avoids every listed tactic will not be caught;
   Evon (optional) can add a second opinion.
+- **Voice cloning is powerful and misusable.** This project only clones the developer's own voice, asks
+  for explicit confirmation (`--i-am-the-speaker`), labels every cloned warning on screen, keeps the
+  recording and embedding local (never committed) and can delete them. The warning text is fixed, so the
+  clone cannot be made to say anything else from the app.
 - **Native-speaker review pending** for the Kannada and Hindi text: see `docs/review_checklist.md`.
 - Not a replacement for judgement: it is a decision aid. Helpline **1930**, **cybercrime.gov.in**.

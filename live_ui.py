@@ -101,9 +101,7 @@ def _panel() -> None:
     st.progress(min(1.0, state["score"] / 10))
     for a in state["alerts"]:
         box = st.error if a["level"] == "high" else st.warning
-        voice = st.session_state.get("live_family")
-        label = (f"  \n🧬 *Spoken in an AI clone of {voice}'s voice (made with consent).*"
-                 if voice and a["level"] == "high" else "")
+        label = f"  \n🧬 *Spoken in an {a['voice']}.*" if a.get("voice") else ""
         box(f"**{a['level'].upper()} at {a['at']:.1f} s** · {a['message']}  \n" + " · ".join(a["reasons"]) + label)
     for msg in state["errors"]:
         st.caption(f"⚠️ {msg}")
@@ -155,7 +153,6 @@ def live_tab(api_key: str, lang: str, speak: bool) -> None:
     if c1.button("▶ Start", type="primary", disabled=running or not api_key or not est.ok):
         runner = LiveRunner(api_key, lang, rate=rate, max_seconds=max_seconds, speak=speak,
                             wav_path=wav_path, play=play, headphones=headphones, family=family)
-        st.session_state.live_family = profile["name"] if family else None
         st.session_state.live = {"runner": runner, "lines": [], "alerts": [], "errors": [], "level": "low",
                                  "score": 0.0, "status": "connecting…", "summary": None}
         runner.start()
