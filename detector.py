@@ -39,8 +39,10 @@ _DELIVERY = [_compile(p) for p in DELIVERY_PHRASES]
 _INDIC = "ऀ-ॿಀ-೿"
 _ASK = [(p, _compile(p) if p.isascii() or p.startswith("re:") else re.compile(_compile(p).pattern + f"(?![{_INDIC}])"))
         for p in ASK_PHRASES]
-_NEGATION = re.compile(r"(?<!\S)(not|never|dont|don't|mat|na|nahi|nahin|मत|न|ना|नहीं|कभी|डोंट|नॉट|नेवर|"
-                       r"ಡೋಂಟ್|ನಾಟ್|ನೆವರ್)(?!\S)")
+# English negatives also appear in Kannada/Devanagari script when the kn-IN/hi-IN model hears English.
+_NEGATION = re.compile(r"(?<!\S)(not|never|dont|don['’]t|shouldn['’]t|shouldnt|mustn['’]t|won['’]t|mat|na|nahi|"
+                       r"nahin|मत|न|ना|नहीं|कभी|डोंट|नॉट|नेवर|शुडंट|शुडेंट|वोंट|"
+                       r"ಡೋಂಟ್|ಡೊಂಟ್|ನಾಟ್|ನೆವರ್|ಶುಡ್ಡಂಟ್|ಶುಡಂಟ್|ಶುಡೆಂಟ್|ಶುಡ್ಡೆಂಟ್|ವೋಂಟ್|ಮಸ್ಟಂಟ್)(?!\S)")
 NEAR = 60  # characters between the ask and the OTP word
 
 
@@ -99,6 +101,9 @@ def detect_rules(text: str) -> Detection:
         weights["credentials"] *= 0.3
         if "otp_request" in weights:
             weights["otp_request"] = 0.0     # asking for the delivery OTP is the normal hand-over
+        for name in ("authority", "lure"):   # safety messages name RBI, the bank and KYC too
+            if name in weights:
+                weights[name] *= 0.5
         notes.append(context)
 
     score = sum(weights.values())

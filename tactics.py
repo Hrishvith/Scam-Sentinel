@@ -146,11 +146,13 @@ ASK_PHRASES = [
 
 # Awareness messages ("never share your OTP") should not read as a request for the OTP.
 SAFETY_PHRASES = [
-    "never share", "do not share", "don't share", "dont share", "never ask for",
+    "never share", "do not share", "don't share", "dont share", "never ask for", "shouldn't share",
+    "should not share", "must not share",
     "ಹಂಚಿಕೊಳ್ಳಬೇಡಿ", "ಹಂಚಿಕೊಳ್ಳಬಾರದು",
     # Code-mixed: the English word "share" in Kannada script (everyday speech, and what the kn-IN
     # model writes when it hears English). REVIEW with a native speaker.
     "ಶೇರ್ ಮಾಡಬೇಡಿ", "ಶೇರ್ ಮಾಡ್ಬೇಡಿ", "ಶೇರ್ ಮಾಡಬಾರದು", "ನೆವರ್ ಶೇರ್", "ಡೋಂಟ್ ಶೇರ್", "ಡು ನಾಟ್ ಶೇರ್",
+    "ಶುಡ್ಡಂಟ್ ಶೇರ್", "ಶುಡಂಟ್ ಶೇರ್", "ಶುಡ್ ನಾಟ್ ಶೇರ್",
     "साझा न करें", "साझा ना करें", "कभी न बताएं", "किसी को न दें",
     # Code-mixed Hindi: "share" in Devanagari. REVIEW with a native speaker.
     "शेयर न करें", "शेयर ना करें", "शेयर मत करें", "शेयर मत कीजिए", "शेयर मत करना", "नेवर शेयर", "डोंट शेयर",
