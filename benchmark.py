@@ -33,7 +33,7 @@ from gnani_client import CacheMiss, GnaniClient, wav_duration_seconds
 from live import RiskTracker
 from make_transcripts import speak_call
 from tactics import BIAS_WORDS
-from taxonomy import normalize
+from text_norm import normalize
 
 HERE = Path(__file__).resolve().parent
 RESULTS = HERE / "results"

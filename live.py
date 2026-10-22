@@ -37,7 +37,7 @@ from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
 from alerts import HELPLINE, alert_text, top_reasons
 from budget import Budget
 from detector import Detection, detect_rules
-from taxonomy import normalize
+from text_norm import normalize
 from gnani_client import BudgetExceeded, GnaniClient, GnaniError
 from pipeline import speak_alert
 from tactics import BIAS_WORDS

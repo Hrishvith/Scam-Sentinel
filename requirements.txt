@@ -1,7 +1,9 @@
-streamlit>=1.40
-requests>=2.31
-pytest>=8.0
-truststore>=0.10
-websockets==15.0.1
-sounddevice==0.5.1
-matplotlib==3.9.2
+# Pinned versions the project was built and tested with (Python 3.12, Windows 10).
+streamlit==1.66.1
+requests==2.34.2
+truststore==0.10.5      # TLS via the Windows certificate store (works behind antivirus HTTPS scanning)
+websockets==15.0.1      # live mode: Prisma realtime STT
+sounddevice==0.5.1      # live mode: microphone capture
+numpy==2.5.4            # live mode: playing a simulated call aloud
+matplotlib==3.9.2       # benchmark chart
+pytest==9.1.1
