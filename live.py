@@ -34,7 +34,7 @@ from typing import AsyncIterator, Callable
 from websockets.asyncio.client import connect
 from websockets.exceptions import ConnectionClosed, ConnectionClosedOK
 
-from alerts import HELPLINE, alert_text, top_reasons
+from alerts import FAMILY_WARNINGS, HELPLINE, alert_text, lang_key, top_reasons
 from budget import Budget
 from detector import Detection, detect_rules
 from text_norm import normalize
@@ -173,6 +173,7 @@ class LiveSession:
         self.muted = threading.Event()       # set while our own warning plays: send silence instead
         self.tracker = RiskTracker()
         self.own_warnings = [alert_text(lang, Detection(level=lvl)) for lvl in ("medium", "high")]
+        self.own_warnings.append(FAMILY_WARNINGS[lang_key(lang)])   # in case the family voice is on
         self.sent_s = 0.0                     # audio seconds streamed (the billing unit we assume)
         self.segments: list[dict] = []
         self.connections = 0
@@ -345,14 +346,25 @@ class AlertPlayer:
     """
 
     def __init__(self, client: GnaniClient, lang: str, session: LiveSession | None = None,
-                 mute_session: bool = False):
+                 mute_session: bool = False, family: dict | None = None):
         self.client, self.lang, self.session, self.mute_session = client, lang, session, mute_session
+        self.family = family          # voice profile: the high warning is spoken in that cloned voice
+        self.family_used = False
         self.audio: dict[str, bytes] = {}
         self._threads: list[threading.Thread] = []
 
     def prepare(self) -> list[str]:
         warnings = []
+        if self.family:
+            try:
+                self.audio["high"] = self.client.synthesize_cloned(
+                    FAMILY_WARNINGS[lang_key(self.lang)], self.family, container="wav", sample_rate=16000)
+                self.family_used = True
+            except GnaniError as exc:
+                warnings.append(f"Family voice unavailable ({exc}); using the standard voice.")
         for level in ("medium", "high"):
+            if level in self.audio:
+                continue
             audio, warn = speak_alert(self.client, alert_text(self.lang, Detection(level=level)), self.lang,
                                       container="wav", sample_rate=16000)
             if audio:
@@ -434,10 +446,18 @@ async def _main(args) -> None:
                           stop=stop, source_name=args.file or "microphone")
     player = None
     if args.speak:
+        family = None
+        if args.family_voice:
+            from family_voice import load_profile
+            family = load_profile()
+            if not family:
+                raise SystemExit("No voice profile: run family_voice.py record and enroll first.")
         player = AlertPlayer(GnaniClient(api_key), args.lang, session,
-                             mute_session=pcm is None and not args.headphones)
+                             mute_session=pcm is None and not args.headphones, family=family)
         for w in player.prepare():
             print(w, file=sys.stderr)
+        if player.family_used:
+            print(f"High-risk warning will be spoken in an AI clone of {family['name']}'s voice (made with consent).")
         session.on_alert = player
     if pcm is not None:
         if args.play:
@@ -465,6 +485,8 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--play", action="store_true", help="play the --file aloud while streaming it")
     ap.add_argument("--max-seconds", type=float, default=300.0, help="hard cap on streamed audio")
     ap.add_argument("--no-speak", dest="speak", action="store_false", help="text alerts only (no TTS)")
+    ap.add_argument("--family-voice", action="store_true",
+                    help="speak the high-risk warning in your cloned voice (see family_voice.py)")
     ap.add_argument("--headphones", action="store_true",
                     help="keep listening while the warning plays (no speaker echo to block)")
     args = ap.parse_args(argv)

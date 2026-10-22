@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
 import os
 import sys
 import time
@@ -45,6 +46,8 @@ _load_dotenv()
 BASE_URL = os.getenv("GNANI_BASE_URL", "https://api.vachana.ai")
 STT_PATH = "/stt/v3"
 TTS_PATH = "/api/v1/tts/inference"
+VC_EMBED_PATH = "/api/v1/tts/voice-clone/embeddings"
+VC_MODEL = "vachana-vc-v1"
 MAX_STT_SECONDS = 60  # REST limit; ideal <= 30
 RETRY_STATUS = {429, 500, 503}
 
@@ -227,6 +230,71 @@ class GnaniClient:
         audio = fix_wav_sizes(resp.content)
         if not audio:
             raise GnaniError("TTS returned empty audio.")
+        if self.use_cache:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            cache.write_bytes(audio)
+        return audio
+
+    # -- voice cloning (docs.gnani.ai/api/VC/*). Only ever with the speaker's own, consented voice. --
+    def voice_embedding(self, audio: bytes, *, filename: str = "reference.wav") -> dict:
+        """Speaker embedding from 5-30 s of clean reference speech: {embedding, shape, dtype}.
+
+        The docs say to generate it once and cache it; there is no server-side voice id, so the
+        caller stores it and sends it with every cloned synthesis.
+        """
+        seconds = wav_duration_seconds(audio)
+        if seconds is None or not 5 <= seconds <= 30:
+            raise GnaniError("The reference must be a WAV of 5-30 seconds of clean speech.")
+        cache = self._cache_file("vcemb", audio, ext="json")
+        if self.use_cache and cache.exists():
+            self.stats["cache_hits"] += 1
+            return json.loads(cache.read_text(encoding="utf-8"))
+        if self.offline:
+            raise CacheMiss("vc_embed", seconds)
+        self._guard("vc_embed", seconds)
+        resp = self._post(VC_EMBED_PATH, files={"audio_file": (filename, audio)})
+        self.stats["vc_calls"] = self.stats.get("vc_calls", 0) + 1
+        self.budget.record("vc_embed", seconds, language="-", model=VC_MODEL, cache_hit=False)
+        body = resp.json()
+        emb = (body.get("data") or {}).get("voice_clone_embedding") or {}
+        if not all(k in emb for k in ("embedding", "shape", "dtype")):
+            raise GnaniError(f"Unexpected voice-clone response: {str(body)[:200]}")
+        emb = {k: emb[k] for k in ("embedding", "shape", "dtype")}
+        if self.use_cache:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            cache.write_text(json.dumps(emb), encoding="utf-8")
+        return emb
+
+    def synthesize_cloned(self, text: str, embedding: dict, *, container: str = "wav",
+                          sample_rate: int = 16000) -> bytes:
+        """Speak `text` in a cloned voice (model vachana-vc-v1). The VC API takes no language field."""
+        if not text.strip():
+            raise GnaniError("Nothing to synthesize.")
+        if container not in {"mp3", "wav"}:
+            raise GnaniError("container must be 'mp3' or 'wav'.")
+        cache = self._cache_file("vctts", text, embedding["embedding"], container, str(sample_rate), ext=container)
+        log = dict(language="-", model=VC_MODEL)
+        if self.use_cache and cache.exists():
+            self.stats["cache_hits"] += 1
+            if not self.offline:
+                self.budget.record("tts_vc", len(text), cache_hit=True, **log)
+            return fix_wav_sizes(cache.read_bytes())
+        if self.offline:
+            raise CacheMiss("tts_vc", len(text))
+        self._guard("tts_vc", len(text))
+        audio_config = {"container": container, "sample_rate": sample_rate, "num_channels": 1}
+        if container == "mp3":
+            audio_config["bitrate"] = "96k"          # VC docs: 96k / 128k / 192k
+        else:
+            audio_config.update({"encoding": "linear_pcm", "sample_width": 2})
+        payload = {"text": text, "model": VC_MODEL, "audio_config": audio_config,
+                   "speaker_embedding": {k: embedding[k] for k in ("embedding", "shape", "dtype")}}
+        resp = self._post(TTS_PATH, json=payload)
+        self.stats["vc_calls"] = self.stats.get("vc_calls", 0) + 1
+        self.budget.record("tts_vc", len(text), cache_hit=False, **log)
+        audio = fix_wav_sizes(resp.content)
+        if not audio:
+            raise GnaniError("Voice-clone TTS returned empty audio.")
         if self.use_cache:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
             cache.write_bytes(audio)
