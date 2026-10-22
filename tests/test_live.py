@@ -55,6 +55,7 @@ def run_live(fake, pcm, rate=16000, pace_source=False, **kw):
     async def main():
         async with serve(fake.handler, "127.0.0.1", 0) as server:
             port = server.sockets[0].getsockname()[1]
+            kw.setdefault("save_dir", None)
             session = LiveSession("test-key", "en-IN", rate, url=f"ws://127.0.0.1:{port}", pace=False,
                                   on_event=events.append, on_alert=lambda lvl, det: alerts.append(lvl),
                                   flush_seconds=0.2, drain_timeout=2.0, settle_seconds=0.1, **kw)
@@ -211,3 +212,12 @@ def test_alerts_queue_without_blocking_the_caller(monkeypatch):
     gate.set()
     player.wait()
     assert order == [b"medium", b"high"]         # played in order, never over each other
+
+
+def test_session_transcript_is_saved_locally(tmp_path, isolated_budget):
+    fake = FakeGnani()
+    _, summary, _, _ = run_live(fake, tone(60), save_dir=tmp_path / "sessions", source_name="kn_awareness_clean.wav")
+    saved = json.loads(open(summary["saved_to"], encoding="utf-8").read())
+    assert summary["saved_to"].endswith("_en-IN_kn_awareness_clean.json")
+    assert [s["text"] for s in saved["segments"]] == SCRIPT and saved["segments"][1]["level"] == "medium"
+    assert "audio" not in json.dumps(saved).replace("audio_ms", "")

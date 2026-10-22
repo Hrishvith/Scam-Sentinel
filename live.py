@@ -26,6 +26,8 @@ import threading
 import time
 import wave
 from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
 from typing import AsyncIterator, Callable
 
 from websockets.asyncio.client import connect
@@ -39,6 +41,7 @@ from pipeline import speak_alert
 from tactics import BIAS_WORDS
 
 WS_URL = os.getenv("GNANI_STT_WS_URL", "wss://api.vachana.ai/stt/v3/stream")
+SESSIONS_DIR = Path(__file__).resolve().parent / "data" / "live_sessions"   # local only, gitignored
 FRAME_BYTES = 1024                  # exactly 512 samples of s16le mono (docs)
 RATES = (8000, 16000, 44100, 48000)
 RECONNECT_AFTER_S = 14 * 60         # the server caps a session at 15 minutes
@@ -135,7 +138,7 @@ class LiveSession:
                  bias_words: list[str] | None = BIAS_WORDS, budget: Budget | None = None,
                  stop: threading.Event | None = None, pace: bool = True,
                  flush_seconds: float = 1.2, drain_timeout: float = 6.0, settle_seconds: float = 0.8,
-                 max_reconnects: int = 3):
+                 max_reconnects: int = 3, save_dir: Path | None = SESSIONS_DIR, source_name: str = "microphone"):
         if rate not in RATES:
             raise ValueError(f"rate must be one of {RATES}")
         self.api_key, self.lang, self.rate, self.url = api_key, lang, rate, url
@@ -146,6 +149,7 @@ class LiveSession:
         self.pace, self.flush_seconds, self.drain_timeout = pace, flush_seconds, drain_timeout
         self.settle_seconds = settle_seconds
         self.max_reconnects = max_reconnects
+        self.save_dir, self.source_name = save_dir, source_name
         self.dt = frame_seconds(rate)
         self.muted = threading.Event()       # set while our own warning plays: send silence instead
         self.tracker = RiskTracker()
@@ -184,8 +188,21 @@ class LiveSession:
                     break
                 await asyncio.sleep(min(2 ** failures, 8) if self.pace else 0)
         summary = self.summary()
+        if self.save_dir and self.segments:
+            summary["saved_to"] = str(self._save(summary))
         self._emit("done", **summary)
         return summary
+
+    def _save(self, summary: dict) -> Path:
+        """Keep what was heard (text only, never audio) so a surprising alert can be explained later."""
+        self.save_dir.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        path = self.save_dir / f"{stamp}_{self.lang}_{Path(self.source_name).stem}.json"
+        record = {"lang": self.lang, "source": self.source_name, "sample_rate": self.rate,
+                  **{k: v for k, v in summary.items() if k not in ("transcript", "segments")},
+                  "segments": self.segments}
+        path.write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        return path
 
     async def _one_connection(self, it) -> bool:
         """Stream until the source ends (True) or it is time for a fresh session (False)."""
@@ -278,7 +295,8 @@ class LiveSession:
         new = self.tracker.add(text, at)
         det = self.tracker.det
         self.segments.append({"at": at, "text": text, "level": det.level, "score": round(det.score, 2),
-                              "latency_ms": msg.get("latency"), "audio_ms": msg.get("audio_duration_ms")})
+                              "tactics": sorted(det.tactics), "latency_ms": msg.get("latency"),
+                              "audio_ms": msg.get("audio_duration_ms")})
         self._emit("transcript", text=text, at=at, level=det.level, score=round(det.score, 2),
                    tactics=sorted(det.tactics), latency_ms=msg.get("latency"))
         if new:
@@ -377,6 +395,8 @@ def print_event(e: LiveEvent) -> None:
             print(f"  time to {level} alert: {at:.1f} s")
         if d["level"] == "high":
             print(f"  Hang up and call {HELPLINE} (national cyber crime helpline).")
+        if d.get("saved_to"):
+            print(f"  transcript saved to {d['saved_to']}")
 
 
 async def _main(args) -> None:
@@ -389,7 +409,7 @@ async def _main(args) -> None:
     if args.file:
         rate, pcm = read_wav_pcm(args.file)
     session = LiveSession(api_key, args.lang, rate, on_event=print_event, max_seconds=args.max_seconds,
-                          stop=stop)
+                          stop=stop, source_name=args.file or "microphone")
     player = None
     if args.speak:
         player = AlertPlayer(GnaniClient(api_key), args.lang, session,

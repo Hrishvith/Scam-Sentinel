@@ -39,7 +39,8 @@ class LiveRunner:
         try:
             rate, pcm = read_wav_pcm(self.wav_path) if self.wav_path else (self.rate, None)
             session = LiveSession(self.api_key, self.lang, rate, on_event=self.events.put,
-                                  max_seconds=self.max_seconds, stop=self.stop)
+                                  max_seconds=self.max_seconds, stop=self.stop,
+                                  source_name=self.wav_path.name if self.wav_path else "microphone")
             if self.speak:
                 player = AlertPlayer(GnaniClient(self.api_key), self.lang, session,
                                      mute_session=pcm is None and not self.headphones)
