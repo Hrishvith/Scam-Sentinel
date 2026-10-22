@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from detector import Detection
-from tactics import TACTICS
+from tactics import SCAM_TYPES, SUSPICIOUS, TACTICS
 
 HELPLINE = "1930"  # India's national cyber crime helpline
 SITE = "cybercrime.gov.in"
@@ -47,6 +47,15 @@ FAMILY_WARNINGS = {
 }
 
 
+# Feature: "Stop! Don't say the numbers." Played when the protected person starts reading digits out
+# after the caller asked for an OTP or money. REVIEW with native speakers.
+GUARD_WARNINGS = {
+    "kn": "ನಿಲ್ಲಿಸಿ! ಸಂಖ್ಯೆಗಳನ್ನು ಹೇಳಬೇಡಿ. ಒಟಿಪಿಯನ್ನು ಯಾರಿಗೂ ಹೇಳಬಾರದು.",
+    "hi": "रुकिए! नंबर मत बोलिए। ओटीपी किसी को नहीं बताना है।",
+    "en": "Stop! Don't say the numbers. Never tell anyone your OTP.",
+}
+
+
 def lang_key(lang_code: str) -> str:
     return lang_code.split("-")[0] if lang_code.split("-")[0] in T else "en"
 
@@ -61,3 +70,9 @@ def top_reasons(lang_code: str, det: Detection, limit: int = 3) -> list[str]:
     lang = lang_key(lang_code)
     ranked = sorted(det.tactics, key=lambda n: -TACTICS[n]["weight"])[:limit]
     return [TACTICS[n]["labels"][lang] for n in ranked]
+
+
+def scam_label(lang_code: str, kind: str | None) -> str:
+    """Name of the scam type in the listener's language ("Fake police / digital arrest")."""
+    lang = lang_key(lang_code)
+    return SCAM_TYPES[kind]["labels"][lang] if kind in SCAM_TYPES else SUSPICIOUS[lang]

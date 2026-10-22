@@ -28,9 +28,11 @@ TACTICS: dict[str, dict] = {
         "labels": {"kn": "ಬಂಧನ ಅಥವಾ ಕೇಸ್‌ನ ಬೆದರಿಕೆ", "hi": "गिरफ़्तारी या केस की धमकी",
                    "en": "threat of arrest or legal case"},
         "keywords": ["ಅರೆಸ್ಟ್", "ಬಂಧನ", "ವಾರೆಂಟ್", "ಜೈಲು", "ಕೇಸ್ ದಾಖಲ", "ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್", "ಖಾತೆ ಬ್ಲಾಕ್", "ಬ್ಲಾಕ್ ಆಗುತ್ತ",
+                     "ಕಸ್ಟಡಿ",
                      "गिरफ्तार", "गिरफ़्तार", "अरेस्ट", "वारंट", "जेल", "केस दर्ज", "डिजिटल अरेस्ट", "खाता बंद",
-                     "ब्लॉक हो जाएगा",
+                     "ब्लॉक हो जाएगा", "हिरासत", "कस्टडी",
                      "arrest", "arrested", "warrant", "jail", "digital arrest", "case registered", "case has been",
+                     "custody",
                      "account will be blocked", "sim will be blocked", "legal action",
                      # Hinglish (Latin-script Hindi)
                      "account block", "block ho jayega", "block ho jaega", "giraftar", "giraftari"],
@@ -111,6 +113,57 @@ TACTICS: dict[str, dict] = {
                      "electricity will be disconnected"],
     },
 }
+
+# The kind of scam, named on the warning screens ("Fake police / digital arrest"): people trust a
+# warning that names the trick. Checked in order; the first match wins. `needs`: at least one of these
+# tactics; `evidence`: at least one of these matched keywords (or `words`, matched on their own).
+# REVIEW kn/hi labels and words with a native speaker.
+SCAM_TYPES: dict[str, dict] = {
+    "family_emergency": {
+        "labels": {"kn": "ಕುಟುಂಬದವರ ಹೆಸರಿನಲ್ಲಿ ಸುಳ್ಳು ತುರ್ತು", "hi": "परिवार के नाम पर झूठी इमरजेंसी",
+                   "en": "Fake family emergency"},
+        "needs": {"payment", "threat", "authority", "credentials"},
+        "words": ["ನಿಮ್ಮ ಮಗ", "ನಿಮ್ಮ ಮಗಳ", "ನಿಮ್ಮ ಗಂಡ", "ನಿಮ್ಮ ಹೆಂಡತಿ", "ಆಕ್ಸಿಡೆಂಟ್", "ಅಪಘಾತ", "ಆಸ್ಪತ್ರೆ",
+                  "आपका बेटा", "आपके बेटे", "आपकी बेटी", "आपके पति", "आपकी पत्नी", "एक्सीडेंट", "अस्पताल",
+                  "हॉस्पिटल",
+                  "your son", "your daughter", "your husband", "your wife", "your grandson", "accident",
+                  "hospital", "aapka beta", "aapki beti"],
+    },
+    "digital_arrest": {
+        "labels": {"kn": "ನಕಲಿ ಪೊಲೀಸ್ / ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್", "hi": "नकली पुलिस / डिजिटल अरेस्ट",
+                   "en": "Fake police / digital arrest"},
+        "needs": {"threat"},
+        "all": {"authority"},
+    },
+    "remote_access": {
+        "labels": {"kn": "ರಿಮೋಟ್ ಆ್ಯಪ್ ಮೋಸ", "hi": "रिमोट ऐप वाला धोखा", "en": "Remote-control app scam"},
+        "needs": {"remote_access"},
+    },
+    "courier": {
+        "labels": {"kn": "ನಕಲಿ ಕೊರಿಯರ್ / ಪಾರ್ಸೆಲ್ ಮೋಸ", "hi": "नकली कूरियर / पार्सल धोखा",
+                   "en": "Fake courier / customs parcel"},
+        "evidence": {"ಪಾರ್ಸೆಲ್", "ಕೊರಿಯರ್", "ಕಸ್ಟಮ್ಸ್", "पार्सल", "कूरियर", "कस्टम", "parcel", "courier", "fedex",
+                     "customs"},
+    },
+    "kyc_bank": {
+        "labels": {"kn": "ನಕಲಿ ಬ್ಯಾಂಕ್ / ಕೆವೈಸಿ ಮೋಸ", "hi": "नकली बैंक / केवाईसी धोखा", "en": "Fake bank / KYC update"},
+        "evidence": {"ಕೆವೈಸಿ", "ಕೆ ವೈ ಸಿ", "ಆರ್ಬಿಐ", "ಆರ್ ಬಿ ಐ", "केवाईसी", "के वाई सी", "आरबीआई", "आर बी आई",
+                     "kyc", "k y c", "rbi", "r b i"},
+    },
+    "prize": {
+        "labels": {"kn": "ನಕಲಿ ಬಹುಮಾನ / ರಿಫಂಡ್", "hi": "नकली इनाम / रिफंड", "en": "Fake prize / refund"},
+        "evidence": {"ಲಾಟರಿ", "ಬಹುಮಾನ", "ರಿಫಂಡ್", "लॉटरी", "इनाम", "रिफंड", "lottery", "prize", "refund"},
+    },
+    "otp_theft": {
+        "labels": {"kn": "ಒಟಿಪಿ ಕಳ್ಳತನ", "hi": "ओटीपी चोरी", "en": "OTP theft"},
+        "needs": {"credentials", "otp_request"},
+    },
+    "money": {
+        "labels": {"kn": "ಹಣ ವರ್ಗಾವಣೆ ಒತ್ತಡ", "hi": "पैसे भेजने का दबाव", "en": "Money transfer pressure"},
+        "needs": {"payment"},
+    },
+}
+SUSPICIOUS = {"kn": "ಅನುಮಾನಾಸ್ಪದ ಕರೆ", "hi": "संदिग्ध कॉल", "en": "Suspicious call"}
 
 # Tactics that turn a request into pressure. When none of them is present, an OTP mention in an
 # awareness message or a delivery hand-over is treated as context, not as an attack.

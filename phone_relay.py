@@ -9,11 +9,17 @@ RECEIVER's ear only, mid-call. The caller never hears it.
   python phone_relay.py --tunnel             # public https link via cloudflared + QR codes
   python phone_relay.py --tunnel --prewarm   # also prepare every warning up front (instant first call)
 
-The protected person chooses on their phone: the language (Kannada, Hindi, English) and whether the
-high-risk warning comes in the family voice (needs a profile from family_voice.py; always labelled).
+The protected person chooses on their phone: the language (Kannada, Hindi, English), whether the
+high-risk warning comes in the family voice (needs a profile from family_voice.py; always labelled),
+and the OTP guard: if they start reading digits out after the caller asked for an OTP or money, their
+phone says "Stop! Don't say the numbers" and the line stops sending their voice to the caller.
 
-Then open http://localhost:8765/operator?key=... on the laptop (printed at start) and scan the two QR
-codes with two phones. SPENDS CREDITS while a call is connected (~0.44 credits per minute).
+A family guardian can open a third page (/guardian) on their own phone: it rings when a call to the
+protected person turns into a likely scam, names the kind of scam, and offers to call them.
+
+Then open http://localhost:8765/operator?key=... on the laptop (printed at start) and scan the QR
+codes. SPENDS CREDITS while a call is connected: ~0.44 credits per minute for the caller's side, and
+the same again for the protected person's side when the OTP guard is on.
 
 Use it for simulated scam calls (scripted, played by you and a friend), never to record real people
 without their knowledge. In production the telecom network would carry the call instead of the internet.
@@ -35,11 +41,13 @@ from pathlib import Path
 
 from aiohttp import WSMsgType, web
 
-from alerts import HELPLINE
+from alerts import GUARD_WARNINGS, HELPLINE, lang_key, scam_label, top_reasons
 from budget import Budget
+from detector import Detection
 from family_voice import load_profile
 from gnani_client import BudgetExceeded, GnaniClient
 from live import FRAME_BYTES, SESSIONS_DIR, WS_URL, AlertPlayer, LiveEvent, LiveSession
+from otp_guard import ARMING_TACTICS, GuardSession
 
 HERE = Path(__file__).resolve().parent
 WEB = HERE / "web"
@@ -60,20 +68,27 @@ class Call:
         self.ended = False
         self.lang = "kn-IN"                        # chosen by the protected person when they join
         self.use_family = False
+        self.use_guard = False                     # OTP guard: also listen to the protected person
+        self.receiver_audio: asyncio.Queue[bytes | None] = asyncio.Queue()
+        self.guard_task: asyncio.Task | None = None
+        self.receiver_muted = False                # set by the guard: their voice no longer reaches the caller
+        self.caller_lines: list[str] = []          # last few things the caller said (for the guardian)
 
 
 class Relay:
     def __init__(self, api_key: str, *, key: str, lang: str = "kn-IN", max_seconds: float = 300.0,
                  family: dict | None = None, gnani_url: str = WS_URL, client: GnaniClient | None = None,
                  save_dir: Path | None = SESSIONS_DIR, public_url: str | None = None, pace: bool = True,
-                 **session_opts):
+                 guard: bool = True, **session_opts):
         self.api_key, self.key, self.lang, self.max_seconds = api_key, key, lang, max_seconds
+        self.guard = guard                         # offer the OTP guard on the protected phone
         self.family, self.gnani_url, self.save_dir, self.pace = family, gnani_url, save_dir, pace
         self.client = client or GnaniClient(api_key)
         self.public_url = public_url
         self.session_opts = session_opts           # e.g. faster flush timings in tests
         self.call = Call()
         self.ops: set[web.WebSocketResponse] = set()
+        self.guardians: set[web.WebSocketResponse] = set()   # family phones watching over the receiver
         self.history: list[dict] = []           # events of the current/last call, for late operator tabs
 
     # ---- web app ----------------------------------------------------------------------------
@@ -81,10 +96,12 @@ class Relay:
         app = web.Application()
         app.router.add_get("/", self.page("call.html"))
         app.router.add_get("/operator", self.page("operator.html"))
+        app.router.add_get("/guardian", self.page("guardian.html"))
         app.router.add_get("/pcm-worklet.js", self.page("pcm-worklet.js", "application/javascript"))
         app.router.add_get("/info", self.info)
         app.router.add_get("/ws/call", self.call_ws)
         app.router.add_get("/ws/ops", self.ops_ws)
+        app.router.add_get("/ws/guardian", self.guardian_ws)
         return app
 
     def page(self, name: str, content_type: str = "text/html"):
@@ -101,7 +118,7 @@ class Relay:
             raise web.HTTPForbidden(text="bad key")
         return web.json_response({"public_url": self.public_url, "lang": self.lang, "langs": LANGS,
                                   "family": self.family["name"] if self.family else None,
-                                  "max_seconds": self.max_seconds})
+                                  "max_seconds": self.max_seconds, "guard": self.guard})
 
     # ---- call websocket ---------------------------------------------------------------------
     async def call_ws(self, request: web.Request) -> web.WebSocketResponse:
@@ -124,6 +141,7 @@ class Relay:
         if role == "receiver":
             call.lang = lang
             call.use_family = request.query.get("family") == "1" and self.family is not None
+            call.use_guard = request.query.get("guard") == "1" and self.guard
         await self.broadcast_ops({"type": "peer", "role": role, "joined": True})
         await ws.send_json({"type": "waiting", "role": role})
         if len(call.peers) == 2:
@@ -133,12 +151,21 @@ class Relay:
             async for msg in ws:
                 if msg.type == WSMsgType.BINARY:
                     peer = call.peers.get(other)
-                    if peer is not None and not peer.closed and call.connected_at:
+                    blocked = role == "receiver" and call.receiver_muted
+                    if peer is not None and not peer.closed and call.connected_at and not blocked:
                         await peer.send_bytes(msg.data)              # the call itself
                     if role == "caller" and call.connected_at:
                         call.caller_audio.put_nowait(msg.data)       # the network's ear on the caller
-                elif msg.type == WSMsgType.TEXT and json.loads(msg.data).get("type") == "hangup":
-                    break
+                    elif role == "receiver" and call.connected_at and call.use_guard:
+                        call.receiver_audio.put_nowait(msg.data)     # only counted for digits
+                elif msg.type == WSMsgType.TEXT:
+                    kind = json.loads(msg.data).get("type")
+                    if kind == "hangup":
+                        break
+                    if kind == "unmute" and role == "receiver" and call.receiver_muted:
+                        call.receiver_muted = False                  # their choice: the caller hears them again
+                        await self.broadcast_ops({"type": "unmuted"})
+                        await self.broadcast(self.guardians, {"type": "unmuted"})
         finally:
             await self.hangup(call, role)
         return ws
@@ -155,39 +182,53 @@ class Relay:
                               url=self.gnani_url, save_dir=self.save_dir, source_name="phone-relay",
                               pace=self.pace, **self.session_opts)
         call.session = session
-        player = AlertPlayer(self.client, call.lang, session, family=self.family if call.use_family else None)
+        player = AlertPlayer(self.client, call.lang, session, family=self.family if call.use_family else None,
+                             guard=call.use_guard)
         problems = await asyncio.to_thread(player.prepare)   # cached after the first call: instant
         warnings = {lvl: base64.b64encode(a).decode() for lvl, a in player.audio.items()}
         for role, ws in call.peers.items():
             await ws.send_json({"type": "connected", "role": role, "lang": call.lang,
-                                "max_seconds": self.max_seconds})
+                                "max_seconds": self.max_seconds, "guard": call.use_guard,
+                                "guardians": len(self.guardians)})
         receiver = call.peers.get("receiver")
         if receiver is not None:
             await receiver.send_json({"type": "warnings", "audio": warnings, "helpline": HELPLINE})
         for p in problems:
             await self.broadcast_ops({"type": "info", "message": p})
-        await self.broadcast_ops({"type": "call", "state": "connected", "lang": call.lang,
-                                  "family": self.family["name"] if player.family_used else None})
-        call.task = asyncio.create_task(self.listen(call, session))
+        state = {"type": "call", "state": "connected", "lang": call.lang, "guard": call.use_guard,
+                 "family": self.family["name"] if player.family_used else None}
+        await self.broadcast_ops(state)
+        await self.broadcast(self.guardians, state)
+        call.task = asyncio.create_task(self.listen(call, session, call.caller_audio))
+        if call.use_guard:
+            def on_guard(e: LiveEvent) -> None:
+                loop.create_task(self.forward_guard(call, e))
 
-    async def listen(self, call: Call, session: LiveSession) -> None:
+            guard = GuardSession(self.api_key, call.lang, RATE, on_event=on_guard, max_seconds=self.max_seconds,
+                                 url=self.gnani_url, save_dir=self.save_dir, source_name="phone-relay-receiver",
+                                 pace=self.pace, armed=lambda: bool(session.tracker.det.tactics.keys() & ARMING_TACTICS),
+                                 **self.session_opts)
+            call.guard_task = asyncio.create_task(self.listen(call, guard, call.receiver_audio, main=False))
+
+    async def listen(self, call: Call, session: LiveSession, source: asyncio.Queue, main: bool = True) -> None:
         try:
-            summary = await session.run(self.frames(call))
+            summary = await session.run(self.frames(source))
         except BudgetExceeded as exc:
             await self.broadcast_ops({"type": "error", "message": str(exc)})
-            for ws in list(call.peers.values()):
-                await self.safe_send(ws, {"type": "error", "message": "Protection unavailable (credit limit)."})
+            if main:
+                for ws in list(call.peers.values()):
+                    await self.safe_send(ws, {"type": "error", "message": "Protection unavailable (credit limit)."})
             return
-        if summary["seconds_streamed"] >= self.max_seconds:
+        if main and summary["seconds_streamed"] >= self.max_seconds:
             for ws in list(call.peers.values()):
                 await self.safe_send(ws, {"type": "ended", "reason": "time limit"})
                 await ws.close()
 
-    async def frames(self, call: Call):
-        """Caller audio re-cut into the exact 1024-byte frames Prisma needs."""
+    async def frames(self, source: asyncio.Queue):
+        """Phone audio re-cut into the exact 1024-byte frames Prisma needs."""
         buf = b""
         while True:
-            chunk = await call.caller_audio.get()
+            chunk = await source.get()
             if chunk is None:
                 return
             buf += chunk
@@ -197,6 +238,18 @@ class Relay:
 
     async def forward(self, call: Call, e: LiveEvent) -> None:
         msg = {"type": e.kind, **e.data}
+        if e.kind == "transcript" and not e.data.get("echo") and e.data["text"]:
+            call.caller_lines = (call.caller_lines + [e.data["text"]])[-3:]
+        if e.kind == "alert":
+            msg["family_told"] = bool(self.guardians)
+            await self.broadcast(self.guardians, {
+                "type": "alert", "level": e.data["level"], "at": e.data["at"], "lang": call.lang,
+                "scam_type": e.data.get("scam_type"), "scam_label": scam_label("en-IN", e.data.get("scam_type")),
+                "reasons": top_reasons("en-IN", Detection(tactics={t: [] for t in e.data.get("tactics", [])})),
+                "caller_said": call.caller_lines})
+        elif e.kind == "done":
+            await self.broadcast(self.guardians, {"type": "done", "level": e.data["level"],
+                                                  "seconds": e.data["seconds_streamed"]})
         self.history.append(msg)
         await self.broadcast_ops(msg)
         receiver = call.peers.get("receiver")
@@ -207,6 +260,26 @@ class Relay:
         elif e.kind == "transcript" and not e.data.get("echo"):
             await self.safe_send(receiver, {"type": "risk", "level": e.data["level"], "score": e.data["score"]})
 
+    async def forward_guard(self, call: Call, e: LiveEvent) -> None:
+        """Events from the OTP guard. The protected person's words are never forwarded, only digit counts."""
+        if e.kind in ("heard", "guard"):
+            msg = {"type": e.kind, **e.data}
+        elif e.kind in ("info", "error"):
+            msg = {"type": e.kind, "message": "OTP guard: " + e.data["message"]}
+        elif e.kind == "done":
+            msg = {"type": "guard_done", "fired": e.data.get("guard_fired", 0),
+                   "seconds_streamed": e.data["seconds_streamed"]}
+        else:
+            return
+        if e.kind == "guard":
+            call.receiver_muted = True        # the caller stops hearing them at once
+            await self.broadcast(self.guardians, msg)
+            receiver = call.peers.get("receiver")
+            if receiver is not None:
+                await self.safe_send(receiver, {**msg, "message": GUARD_WARNINGS[lang_key(call.lang)]})
+        self.history.append(msg)
+        await self.broadcast_ops(msg)
+
     async def hangup(self, call: Call, role: str) -> None:
         if call.peers.pop(role, None) is None:
             return
@@ -216,13 +289,16 @@ class Relay:
             await ws.close()
         if call.connected_at and not call.ended:
             call.ended = True
-            call.caller_audio.put_nowait(None)             # let the session flush and finish
-            if call.task:
-                try:
-                    await asyncio.wait_for(asyncio.shield(call.task), 15)
-                except asyncio.TimeoutError:
-                    call.task.cancel()
+            call.caller_audio.put_nowait(None)             # let the sessions flush and finish
+            call.receiver_audio.put_nowait(None)
+            for task in (call.task, call.guard_task):
+                if task:
+                    try:
+                        await asyncio.wait_for(asyncio.shield(task), 15)
+                    except asyncio.TimeoutError:
+                        task.cancel()
             await self.broadcast_ops({"type": "call", "state": "ended"})
+            await self.broadcast(self.guardians, {"type": "call", "state": "ended"})
         if not call.peers:
             self.call = Call()
 
@@ -245,8 +321,39 @@ class Relay:
         return ws
 
     async def broadcast_ops(self, msg: dict) -> None:
-        for ws in list(self.ops):
+        await self.broadcast(self.ops, msg)
+
+    async def broadcast(self, group: set[web.WebSocketResponse], msg: dict) -> None:
+        for ws in list(group):
             await self.safe_send(ws, msg)
+
+    # ---- family guardian ----------------------------------------------------------------------
+    async def guardian_ws(self, request: web.Request) -> web.WebSocketResponse:
+        """A family member's phone: told when a call to the protected person turns into a likely scam."""
+        if not self.authorised(request):
+            raise web.HTTPForbidden(text="bad key")
+        ws = web.WebSocketResponse(heartbeat=20)
+        await ws.prepare(request)
+        self.guardians.add(ws)
+        call = self.call
+        live = call.connected_at is not None and not call.ended
+        await ws.send_json({"type": "call", "state": "connected" if live else "idle", "lang": call.lang,
+                            "guard": call.use_guard})
+        await self.guardians_changed()
+        try:
+            async for _ in ws:
+                pass
+        finally:
+            self.guardians.discard(ws)
+            await self.guardians_changed()
+        return ws
+
+    async def guardians_changed(self) -> None:
+        msg = {"type": "guardians", "count": len(self.guardians)}
+        await self.broadcast_ops(msg)
+        receiver = self.call.peers.get("receiver")
+        if receiver is not None:
+            await self.safe_send(receiver, msg)
 
     @staticmethod
     async def safe_send(ws: web.WebSocketResponse, msg: dict) -> None:
@@ -285,11 +392,11 @@ def start_tunnel(port: int, timeout: float = 40.0) -> tuple[subprocess.Popen, st
     raise SystemExit("cloudflared did not give a public address in time; check the internet connection.")
 
 
-def prewarm(client: GnaniClient, family: dict | None) -> None:
+def prewarm(client: GnaniClient, family: dict | None, guard: bool = True) -> None:
     """Synthesize (and cache) every warning the phones could need; later calls cost nothing for TTS."""
     for lang in LANGS:
         for fam in ([None, family] if family else [None]):
-            player = AlertPlayer(client, lang, family=fam)
+            player = AlertPlayer(client, lang, family=fam, guard=guard)
             for problem in player.prepare():
                 print(problem)
             print(f"warnings ready: {lang}{' + family voice' if player.family_used else ''}")
@@ -304,6 +411,8 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--prewarm", action="store_true",
                     help="synthesize every warning (3 languages, standard + family) now, so calls start instantly")
     ap.add_argument("--tunnel", action="store_true", help="public https link via cloudflared (for phones)")
+    ap.add_argument("--no-guard", action="store_true",
+                    help="do not offer the OTP guard (halves the listening cost of a call)")
     args = ap.parse_args(argv)
 
     api_key = os.getenv("GNANI_API_KEY")
@@ -311,19 +420,21 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit("Set GNANI_API_KEY (or put it in .env).")
     family = None if args.no_family else load_profile()
     if args.prewarm:
-        prewarm(GnaniClient(api_key), family)
-    est = Budget().check("stt_stream", args.max_seconds)
+        prewarm(GnaniClient(api_key), family, guard=not args.no_guard)
+    est = Budget().check("stt_stream", args.max_seconds * (1 if args.no_guard else 2))   # both sides
     print(est.line())
     if not est.ok:
         raise SystemExit(est.reason)
 
     key = secrets.token_urlsafe(9)
     tunnel, public = (start_tunnel(args.port) if args.tunnel else (None, None))
-    relay = Relay(api_key, key=key, lang=args.lang, max_seconds=args.max_seconds, family=family, public_url=public)
+    relay = Relay(api_key, key=key, lang=args.lang, max_seconds=args.max_seconds, family=family, public_url=public,
+                  guard=not args.no_guard)
     base = public or f"http://localhost:{args.port}"
     print(f"\nOperator dashboard (open on this laptop): http://localhost:{args.port}/operator?key={key}")
     print(f"Receiver phone (protected): {base}/?role=receiver&key={key}")
     print(f"Caller phone (simulated scammer): {base}/?role=caller&key={key}")
+    print(f"Family guardian's phone: {base}/guardian?key={key}")
     if not public:
         print("(No --tunnel: phones cannot reach localhost and need https for the microphone.)")
     print("Ctrl+C to stop.\n")
