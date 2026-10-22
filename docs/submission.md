@@ -17,7 +17,7 @@ Kannada or other regional languages.
 Scam Sentinel listens to a call in real time (Gnani Prisma realtime STT), tracks scam tactics as they
 build up (authority, threat, urgency, secrecy, OTP/PIN, payment, remote access, lure), and the moment
 the cumulative risk crosses *medium* and then *high* it speaks a calm warning in the listener's language
-(Gnani Timbre TTS) with the 1930 helpline. It understands Kannada, Hindi, English and code-mixed
+(Gnani Timbre TTS) with the 1930 helpline, optionally in a family member's own cloned voice. It understands Kannada, Hindi, English and code-mixed
 Hinglish, including the way Prisma actually writes them ("ಒ ಟಿ ಪಿ", "any desk", "share maadbedi"), and it
 does not panic at normal calls that mention an OTP (bank awareness messages, delivery hand-overs).
 
@@ -32,6 +32,9 @@ opt-in, on-call safety layer.
 - **Prisma speech-to-text, REST** (`/stt/v3`): uploaded calls and the benchmark; verbatim + `bias_list`.
 - **Timbre text-to-speech** (`/api/v1/tts/inference`): spoken warnings with v3.0 voice Chetana (fallback
   v2.5), and the simulated test calls with v2.5 voices (Kavin, Saanvi, Deepak, Nalini, Pranav, Kaveri, Poorvi).
+- **Voice cloning** (`/api/v1/tts/voice-clone/embeddings` + model `vachana-vc-v1`): optional "family
+  voice" high-risk warning in an AI clone of a family member's own voice (the developer's own voice in the
+  demo, with consent, labelled on screen). Verified in Kannada and English.
 - Evon (open weights) is supported as an optional second opinion but was not used in the results.
 
 ## Results

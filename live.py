@@ -174,6 +174,8 @@ class LiveSession:
         self.tracker = RiskTracker()
         self.own_warnings = [alert_text(lang, Detection(level=lvl)) for lvl in ("medium", "high")]
         self.own_warnings.append(FAMILY_WARNINGS[lang_key(lang)])   # in case the family voice is on
+        # level -> (text actually spoken, voice label); set when a warning is not the standard one
+        self.spoken: dict[str, tuple[str, str | None]] = {}
         self.sent_s = 0.0                     # audio seconds streamed (the billing unit we assume)
         self.segments: list[dict] = []
         self.connections = 0
@@ -322,7 +324,8 @@ class LiveSession:
         self._emit("transcript", text=text, at=at, level=det.level, score=round(det.score, 2),
                    tactics=sorted(det.tactics), latency_ms=msg.get("latency"), echo=echo)
         if new:
-            self._emit("alert", level=new, at=at, message=alert_text(self.lang, det),
+            text, voice = self.spoken.get(new, (alert_text(self.lang, det), None))
+            self._emit("alert", level=new, at=at, message=text, voice=voice,
                        reasons=top_reasons(self.lang, det))
             if self.on_alert:
                 self.on_alert(new, det)
@@ -360,6 +363,9 @@ class AlertPlayer:
                 self.audio["high"] = self.client.synthesize_cloned(
                     FAMILY_WARNINGS[lang_key(self.lang)], self.family, container="wav", sample_rate=16000)
                 self.family_used = True
+                if self.session:   # show exactly what will be said, and that it is a clone
+                    self.session.spoken["high"] = (FAMILY_WARNINGS[lang_key(self.lang)],
+                                                   f"AI clone of {self.family['name']}'s voice (made with consent)")
             except GnaniError as exc:
                 warnings.append(f"Family voice unavailable ({exc}); using the standard voice.")
         for level in ("medium", "high"):
@@ -415,6 +421,8 @@ def print_event(e: LiveEvent) -> None:
         print(f"[{d['at']:6.1f}s] {d['level']:<6} {d['score']:5.1f} |{bar:<20}| {d['text']}{note}")
     elif e.kind == "alert":
         print(f"\n!!! {d['level'].upper()} RISK at {d['at']:.1f} s of audio: {d['message']}")
+        if d.get("voice"):
+            print(f"    [spoken in an {d['voice']}]")
         for r in d["reasons"]:
             print(f"    - {r}")
         print()

@@ -127,3 +127,15 @@ def test_delete_removes_all_voice_data(tmp_path, monkeypatch):
     monkeypatch.setattr(family_voice, "HERE", tmp_path)
     family_voice.main(["delete"])
     assert list(voice.iterdir()) == [] and [p.name for p in cache.iterdir()] == ["tts-3.wav"]
+
+
+def test_alert_shows_the_words_actually_spoken_and_the_clone_label(tmp_path):
+    client, _ = make_client(tmp_path, vc_server)
+    session = LiveSession("k", "kn-IN", save_dir=None)
+    events = []
+    session.on_event = events.append
+    AlertPlayer(client, "kn-IN", session, family={"name": "Asha", **EMB}).prepare()
+    session._on_transcript({"text": "ಸಿಬಿಐ ಅರೆಸ್ಟ್ ವಾರೆಂಟ್ ಎನಿಡೆಸ್ಕ್ ಒಟಿಪಿ ಹೇಳಿ"})
+    (alert,) = [e.data for e in events if e.kind == "alert"]
+    assert alert["level"] == "high" and alert["message"] == FAMILY_WARNINGS["kn"]
+    assert alert["voice"] == "AI clone of Asha's voice (made with consent)"

@@ -16,8 +16,10 @@ swaps (they disqualify). Replace the `[brackets]`. Say "simulated" for the demo 
 > the moment the risk crosses a line it **speaks a calm warning in the listener's language** with Gnani's
 > Timbre voices.
 >
-> In the demo (a **simulated** Kannada call), the first warning comes 12 seconds in and the second one
-> before the OTP is ever shared.
+> In the demo (a **simulated** Kannada call), the first warning comes 12 seconds in, and the final one
+> before the OTP is ever shared, **in my own voice**: "ಹಲೋ, ಇದು ನಾನು. ಈ ಕರೆ ಮೋಸದ ಕರೆ" ("Hi, it's me. This call
+> is a scam."). It's an AI clone of my voice (Gnani voice cloning, my own voice, with consent, clearly
+> labelled), because a parent hangs up faster for their child than for an app.
 >
 > Because real calls are noisy, I benchmarked it on 20 simulated calls at three noise levels:
 > ✅ 100% of scams flagged at 13 dB SNR (a noisy mobile line)
