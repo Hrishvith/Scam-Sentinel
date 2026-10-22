@@ -71,7 +71,7 @@ fetch(`/info?key=${encodeURIComponent(key)}`).then((r) => r.json()).then((info) 
     if (window.QRCode) new QRCode($(`qr-${role}`), { text: url, width: 150, height: 150 });
   }
   if (!info.public_url) log("No public link: start with --tunnel so phones can join (they need https for the microphone).");
-  log(`Language ${info.lang}${info.family ? ` · high warning in an AI clone of ${info.family}'s voice` : ""} · max ${info.max_seconds} s per call`);
+  log(`Languages: ${Object.values(info.langs).join(", ")} (chosen on the protected phone)${info.family ? ` · family voice available: ${info.family}` : ""} · max ${info.max_seconds} s per call`);
 }).catch(() => log("Wrong or missing key in the address."));
 
 function setRisk(level, score) {
@@ -86,7 +86,7 @@ function connect() {
     const m = JSON.parse(e.data);
     if (m.type === "peer") { $("p-" + m.role).classList.toggle("on", m.joined); log(`${m.role} ${m.joined ? "joined" : "left"}`); }
     else if (m.type === "call") {
-      log(`call ${m.state}${m.family ? ` (family voice: ${m.family})` : ""}`);
+      log(`call ${m.state}${m.lang ? ` · language ${m.lang}` : ""}${m.family ? ` · family voice: ${m.family}` : ""}`);
       if (m.state === "connected") { $("lines").innerHTML = ""; $("alerts").innerHTML = ""; $("summary").innerHTML = ""; setRisk("low", 0); }
     } else if (m.type === "transcript") {
       const d = document.createElement("div");
