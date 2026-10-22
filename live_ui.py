@@ -102,7 +102,10 @@ def _panel() -> None:
     for msg in state["errors"]:
         st.caption(f"⚠️ {msg}")
     for line in state["lines"][-12:]:
-        st.markdown(f"`{line['at']:5.1f}s` {LEVEL_UI[line['level']][0]} {line['text']}")
+        if line.get("echo"):
+            st.caption(f"{line['at']:5.1f}s · 🔈 our own warning, heard by the mic (ignored): {line['text']}")
+        else:
+            st.markdown(f"`{line['at']:5.1f}s` {LEVEL_UI[line['level']][0]} {line['text']}")
     if state["summary"]:
         s = state["summary"]
         if "seconds_streamed" in s:
