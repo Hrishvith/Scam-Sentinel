@@ -6,3 +6,4 @@ usage_ledger.jsonl
 __pycache__/
 *.pyc
 .pytest_cache/
+data/live_sessions/
