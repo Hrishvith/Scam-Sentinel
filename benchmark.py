@@ -52,7 +52,7 @@ def speech_rms(wav: bytes, window: int = 400, floor: float = 500.0) -> float:
 
 
 def snr_db(clean_wav: bytes, noise_amplitude: float) -> float:
-    return 20 * math.log10(max(speech_rms(clean_wav), 1.0) / max(noise_amplitude, 1.0))
+    return 20 * math.log10(max(speech_rms(clean_wav), 1.0) / max(noise_amplitude, 1.0)) + 0.0  # no "-0"
 
 
 def _chars(text: str) -> str:
@@ -200,11 +200,12 @@ def markdown(rows: list[dict], summary: list[dict]) -> str:
                      f"{_pct(x['midcall_false_alarms'], x['benign'])} | {s(x['tta_high'], '{:.1f} s')} "
                      f"({s(x['tta_high_pct'], '{:.0%}')} into the call) |")
     lines += ["", "## By language", "",
-              "| Noise | Language | Char error | Scams caught | False alarms (any point) | Median time to high |",
-              "|---|---|---|---|---|---|"]
+              "| Noise | Language | SNR | Char error | Scams caught | False alarms (any point) | Median time to high |",
+              "|---|---|---|---|---|---|---|"]
     for x in summary:
         if x["lang"] != "all":
-            lines.append(f"| {x['level']} | {LANG_NAMES[x['lang']]} | {x['cer']:.1%} | {_pct(x['caught'], x['scams'])} | "
+            lines.append(f"| {x['level']} | {LANG_NAMES[x['lang']]} | {int(round(x['snr_db']))} dB | {x['cer']:.1%} | "
+                         f"{_pct(x['caught'], x['scams'])} | "
                          f"{_pct(x['midcall_false_alarms'], x['benign'])} | {s(x['tta_high'], '{:.1f} s')} |")
     misses = [r for r in rows if (r["label"] == "scam" and not r["flagged"]) or (r["label"] == "benign" and r["alerted"])]
     lines += ["", "## Every miss and false alarm", ""]
@@ -212,7 +213,7 @@ def markdown(rows: list[dict], summary: list[dict]) -> str:
         lines.append("None.")
     for r in misses:
         what = "MISSED scam" if r["label"] == "scam" else "FALSE ALARM"
-        lines.append(f"- **{what}** `{r['id']}` at {r['level']} noise ({r['snr_db']:.0f} dB): final {r['final_level']} "
+        lines.append(f"- **{what}** `{r['id']}` at {r['level']} noise ({int(round(r['snr_db']))} dB): final {r['final_level']} "
                      f"({r['score']}), tactics: {r['tactics'] or '-'}. Heard: \"{r['transcript'][:160]}\"")
     lines += ["", "## Method", "",
               "- Same path as the app: the call is split at pauses (one utterance per request), transcribed by Gnani",
@@ -227,6 +228,9 @@ def markdown(rows: list[dict], summary: list[dict]) -> str:
               "- Small: 8 scam and 12 benign calls. Percentages move in big steps; treat them as indicative.",
               "- The detector was tuned on the clean and medium transcripts of these same scripts (Phase 2);",
               "  only the heavy level is unseen. Real scam calls are longer and less scripted.",
+              "- Noise was added at a fixed level, not a fixed SNR: quieter voices (the Kannada ones) got a harsher",
+              "  test. Both heavy-noise failures are Kannada calls at about 0 dB, where speech recognition lost",
+              "  the OTP request in one and flipped \"don't share\" into \"may share\" in the other.",
               "- White noise is a stand-in for phone-line noise; real calls add codecs, echo and background voices.",
               "- Hinglish error rates are inflated by spelling: romanised Hindi has no standard spelling",
               "  (\"main\" vs \"mein\"), so some \"errors\" are the same word written differently.",
