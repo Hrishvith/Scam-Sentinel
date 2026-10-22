@@ -115,3 +115,29 @@ def test_eval_reads_saved_and_pasted_transcripts(tmp_path):
     assert groups[("noisy", "kn")]["tp"] == 1 and groups[("pasted", "en")]["tn"] == 1
     m = eval_detector.metrics(groups[("all", "all")])
     assert m["recall"] == 1.0 and m["false_alarm_rate"] == 0.0
+
+
+@pytest.mark.parametrize("text", [
+    # Real live transcript (Phase 3 screenshot): English awareness audio through the kn-IN model.
+    "ದಿಸ್ ಐಸ್ ಎನ್ ಇಂಪಾರ್ಟೆಂಟ್ ಮೆಸೇಜ್ ಫ್ರಮ್ ಯುವರ್ ಬ್ಯಾಂಕ್ ನೆವರ್ ಶೇರ್ ಯುವರ್ ಒಟಿಪಿ ಪಿನ್ ಆರ್ ಪಾಸ್ವರ್ಡ್ ವಿಥ್ ಎನಿವನ್ "
+    "ಇನ್ಕ್ಲೂಡಿಂಗ್ ಬ್ಯಾಂಕ್ ಸ್ಟಾಫ್ ಇಫ್ ಸಮನ್ ಆಸ್ಕ್ ಫಾರ್ ಇಟ್ ರಿಪೋರ್ಟ್ ಇಡ್ ಟು ದಿ ಸೈಬರ್ ಕ್ರೈಮ್ ಹೆಲ್ಪ್ಲೈನ್",
+    "ನಿಮ್ಮ ಒಟಿಪಿ ಯಾರಿಗೂ ಶೇರ್ ಮಾಡ್ಬೇಡಿ, ಸೈಬರ್ ಕ್ರೈಂ ಸಹಾಯವಾಣಿಗೆ ದೂರು ನೀಡಿ",          # everyday code-mixed Kannada
+    "अपना ओटीपी किसी के साथ शेयर मत कीजिए, साइबर क्राइम हेल्पलाइन पर शिकायत करें",    # code-mixed Hindi
+])
+def test_code_mixed_awareness_messages_stay_low(text):
+    det = detect_rules(text)
+    assert det.level == "low" and any("awareness" in n for n in det.notes)
+
+
+def test_code_mixed_dont_share_from_a_scammer_is_still_high():
+    det = detect_rules("ನಿಮ್ಮ ಖಾತೆ ಬ್ಲಾಕ್ ಆಗುತ್ತದೆ, ಈಗಲೇ ಒಟಿಪಿ ಹೇಳಿ, ಬೇರೆ ಯಾರಿಗೂ ಶೇರ್ ಮಾಡ್ಬೇಡಿ")
+    assert det.level == "high"
+
+
+def test_simulated_call_uses_its_own_language():
+    from pathlib import Path
+    from live_ui import file_language
+    assert file_language(Path("kn_awareness_clean.wav"), "en-IN") == "kn-IN"
+    assert file_language(Path("en_awareness_clean.wav"), "kn-IN") == "en-IN"
+    assert file_language(Path("hl_scam_kyc_noisy.wav"), "kn-IN") == "en-IN"   # Hinglish -> en-IN STT
+    assert file_language(Path("my_recording.wav"), "hi-IN") == "hi-IN"

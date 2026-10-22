@@ -15,12 +15,18 @@ import streamlit as st
 
 from alerts import HELPLINE
 from budget import Budget
+from corpus import LANGS as CORPUS_LANGS
 from gnani_client import GnaniClient
 from live import RATES, AlertPlayer, LiveEvent, LiveSession, file_frames, mic_frames, read_wav_pcm
 
 HERE = Path(__file__).resolve().parent
 SIMULATED = HERE / "demo_calls" / "corpus"
 LEVEL_UI = {"low": ("🟢", "Low risk"), "medium": ("🟠", "Suspicious"), "high": ("🔴", "Likely scam")}
+
+
+def file_language(path: Path, default: str) -> str:
+    """A simulated call's own STT language (from its kn_/hi_/en_/hl_ prefix), else `default`."""
+    return CORPUS_LANGS.get(path.stem.split("_")[0], {}).get("stt", default)
 
 
 class LiveRunner:
@@ -119,6 +125,10 @@ def live_tab(api_key: str, lang: str, speak: bool) -> None:
     else:
         wav_path = st.selectbox("Simulated call", files, format_func=lambda p: p.stem)
         play = st.checkbox("Play it aloud while streaming", value=True)
+        # Use the recording's own language: Kannada STT on an English file writes English in
+        # Kannada script, which is a different (and misleading) test.
+        lang = file_language(wav_path, lang)
+        st.caption(f"Language for this file: **{lang}** (from its name; overrides the sidebar).")
     max_seconds = st.slider("Stop after (seconds)", 15, 300, 60, step=15)
 
     est = Budget().check("stt_stream", max_seconds)

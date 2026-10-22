@@ -119,7 +119,12 @@ DELIVERY_PHRASES = [
 SAFETY_PHRASES = [
     "never share", "do not share", "don't share", "dont share", "never ask for",
     "ಹಂಚಿಕೊಳ್ಳಬೇಡಿ", "ಹಂಚಿಕೊಳ್ಳಬಾರದು",
+    # Code-mixed: the English word "share" in Kannada script (everyday speech, and what the kn-IN
+    # model writes when it hears English). REVIEW with a native speaker.
+    "ಶೇರ್ ಮಾಡಬೇಡಿ", "ಶೇರ್ ಮಾಡ್ಬೇಡಿ", "ಶೇರ್ ಮಾಡಬಾರದು", "ನೆವರ್ ಶೇರ್", "ಡೋಂಟ್ ಶೇರ್", "ಡು ನಾಟ್ ಶೇರ್",
     "साझा न करें", "साझा ना करें", "कभी न बताएं", "किसी को न दें",
+    # Code-mixed Hindi: "share" in Devanagari. REVIEW with a native speaker.
+    "शेयर न करें", "शेयर ना करें", "शेयर मत करें", "शेयर मत कीजिए", "शेयर मत करना", "नेवर शेयर", "डोंट शेयर",
     "re:share\\s+(mat|matt|mark|na|nahi|nahin)\\b",   # "share mat" is often heard as "share mark"
 ]
 
