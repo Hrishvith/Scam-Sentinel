@@ -57,6 +57,14 @@ class BudgetExceeded(GnaniError):
     """The budget guard refused a call (rate unmeasured, or it would dip into the reserve)."""
 
 
+class CacheMiss(GnaniError):
+    """Offline mode: the result is not cached, so it would need a real (billed) call."""
+
+    def __init__(self, kind: str, units: float):
+        super().__init__(f"not cached: {kind} {units:.1f}")
+        self.kind, self.units = kind, units
+
+
 def wav_duration_seconds(audio: bytes) -> float | None:
     """Duration of a WAV payload, or None if it isn't a readable WAV."""
     try:
@@ -88,7 +96,7 @@ def fix_wav_sizes(audio: bytes) -> bytes:
 class GnaniClient:
     def __init__(self, api_key: str | None = None, *, timeout: int = 60, max_retries: int = 3,
                  backoff: float = 1.0, cache_dir: str | Path | None = None, use_cache: bool = True,
-                 budget: Budget | None = None):
+                 budget: Budget | None = None, offline: bool = False):
         self.api_key = api_key or os.getenv("GNANI_API_KEY")
         if not self.api_key:
             raise GnaniError("No API key. Set GNANI_API_KEY or paste it in the sidebar.")
@@ -98,6 +106,7 @@ class GnaniClient:
         self._session = requests.Session()
         self.stats = {"stt_calls": 0, "tts_calls": 0, "cache_hits": 0}
         self.budget = budget or Budget()
+        self.offline = offline   # serve the cache only; raise CacheMiss instead of calling the API
 
     # -- internals ---------------------------------------------------------
     def _guard(self, kind: str, units: float) -> None:
@@ -166,9 +175,12 @@ class GnaniClient:
         cache = self._cache_file("stt", audio, language_code, fmt, data.get("bias_list", ""), ext="txt")
         if self.use_cache and cache.exists():
             self.stats["cache_hits"] += 1
-            self.budget.record("stt", seconds, cache_hit=True, **log)
+            if not self.offline:   # planning runs read the cache; do not flood the ledger
+                self.budget.record("stt", seconds, cache_hit=True, **log)
             return cache.read_text(encoding="utf-8")
 
+        if self.offline:
+            raise CacheMiss("stt", seconds)
         self._guard("stt", seconds)
         resp = self._post(STT_PATH, files={"audio_file": (filename, audio)}, data=data)
         self.stats["stt_calls"] += 1
@@ -195,9 +207,12 @@ class GnaniClient:
         log = dict(language=language, model=model)
         if self.use_cache and cache.exists():
             self.stats["cache_hits"] += 1
-            self.budget.record("tts", len(text), cache_hit=True, **log)
+            if not self.offline:
+                self.budget.record("tts", len(text), cache_hit=True, **log)
             return fix_wav_sizes(cache.read_bytes())
 
+        if self.offline:
+            raise CacheMiss("tts", len(text))
         self._guard("tts", len(text))
         audio_config = {"container": container, "sample_rate": sample_rate, "num_channels": 1}
         if container == "mp3":
