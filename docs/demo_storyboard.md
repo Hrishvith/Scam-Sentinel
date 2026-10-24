@@ -12,7 +12,7 @@ My uncle got a call from an unknown number. The caller said he was from the poli
 son for an attempted rape, and he had to pay about ₹5 lakh to get him released. It was a false story,
 but my uncle was terrified.
 
-Still to fill in: `[how it ended: did he pay / how did the family find out it was fake]` and `[language of the call]`.
+The call was in Kannada. He did not pay, but he was frightened, and nothing on his phone helped him while it was happening.
 
 **How to tell it publicly:** say *"a serious criminal case"*, not the exact accusation. The real accusation is
 what makes this scam so cruel, but in a public post it attaches that word to your cousin, even with no names.
@@ -27,7 +27,7 @@ and he calls his father. That one shot shows the whole lie collapsing.
 | Time | Shot | Caption / voice |
 |---|---|---|
 | 0:00-0:04 | **Hook.** You, to camera, close up | *"My uncle got a call: 'We are the police. We've arrested your son. Pay ₹5 lakh to release him.'"* |
-| 0:04-0:10 | Your uncle's hands holding a phone (no face unless he agrees) | *"None of it was true. But for [N] minutes he believed it, and nobody could warn him during the call. So I built something that can."* |
+| 0:04-0:10 | Your uncle's hands holding a phone (no face unless he agrees) | *"None of it was true. He didn't pay, but while that call lasted he was terrified, and nothing could warn him. So I built something that can."* |
 | 0:10-0:13 | App icon on a phone home screen; tap it; green shield | caption: *"Re-enacted call · simulated, no real numbers"* (on screen for the whole call) |
 | 0:13-0:19 | Phone A (the "father", played by a family member or you) on a table, call running. Your friend, off-screen, reads line 1 | Call audio + English captions |
 | 0:19-0:24 | Line 2 ("we've arrested your son") → shield turns **orange**: "ಎಚ್ಚರ: ಅನುಮಾನಾಸ್ಪದ ಕರೆ"; Kannada warning plays | *"It recognises the trick as it happens: a fake police officer, a son 'in custody'…"* |
@@ -37,7 +37,6 @@ and he calls his father. That one shot shows the whole lie collapsing.
 | 0:42-0:50 | 1-second montage: ಕನ್ನಡ / हिन्दी / English buttons; benchmark chart; operator view | *"Kannada · Hindi · English · Hinglish. Gnani Prisma live speech-to-text, Timbre voice, voice cloning. 24/24 test scams caught, 0/36 false alarms."* |
 | 0:50-0:60 | You to camera | *"My uncle got lucky. Not everyone does. Telecom and banking folks, let's build this into the network."* + **#GnaniAI #GreatIndianAIInternshipChallenge** · *"Real scam call? 1930 · cybercrime.gov.in"* |
 
-If the real ending was that he paid, change the last line to *"My uncle lost [₹___]. It doesn't have to happen to anyone else."*
 
 ## Lines for the re-enacted call (Kannada; REVIEW with a native speaker)
 
