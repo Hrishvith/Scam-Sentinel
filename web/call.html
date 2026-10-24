@@ -102,6 +102,17 @@
   .role[data-role=receiver] { border:3px solid var(--good) !important; }
   .role[data-role=receiver] .i { background:var(--good) !important; }
   /* home: big vertical tiles, like an app screen (icon on top, words below) */
+  /* setup: three numbered steps and one big button; the settings are folded away */
+  .steps3 { list-style:none; counter-reset:st; padding:0; margin:6px 0 16px; display:flex; flex-direction:column; gap:10px; }
+  .steps3 li { counter-increment:st; display:flex; gap:12px; align-items:flex-start; font-size:19px; line-height:1.4;
+               background:var(--bg2); border-radius:16px; padding:12px 14px; }
+  .steps3 li::before { content:counter(st); flex:none; width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
+                       background:var(--brand, #0b5d4b); color:#fff; font-weight:800; font-size:19px; }
+  #start { font-size:24px; padding:22px; }
+  #more { margin-top:16px; border:2px solid var(--line); border-radius:16px; padding:4px 14px; background:var(--card); }
+  #more summary { cursor:pointer; font-size:17px; font-weight:700; color:var(--ink2); padding:12px 0; min-height:24px; }
+  #more[open] summary { border-bottom:1px solid var(--line); margin-bottom:6px; }
+  #status.waiting { font-size:19px !important; line-height:1.45; max-width:340px; margin:8px auto 0; }
   .tiles { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px; }
   .tile { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:8px;
           min-height:180px; margin:0; padding:18px 10px; width:auto; font:inherit; cursor:pointer; text-decoration:none;
@@ -136,21 +147,26 @@
   </section>
 
   <section id="ready" class="card hidden">
+    <h2 id="readytitle" style="margin-top:0"></h2>
+    <ol class="steps3" id="steps3"><li id="st1"></li><li id="st2"></li><li id="st3"></li></ol>
     <p id="who" style="margin-top:0"></p>
-    <div id="options" class="hidden">
-      <div class="label" data-w="warnLang"></div>
-      <div class="langs" id="langs"></div>
-      <label class="toggle hidden" id="famrow"><input type="checkbox" id="fam">
-        <span><span data-w="famA"></span><b id="famname"></b><span data-w="famB"></span><small data-w="famS"></small></span></label>
-      <label class="toggle hidden" id="guardrow"><input type="checkbox" id="guard">
-        <span id="guardtext"></span></label>
-      <div class="label" data-w="family"></div>
-      <div class="contact"><input id="cname" autocomplete="off"><input id="cnum" type="tel" inputmode="tel" autocomplete="off"></div>
-      <p class="note" style="margin:6px 0 0" data-w="saved"></p>
-    </div>
     <button id="start" class="go"></button>
+    <details id="more" class="hidden">
+      <summary data-w="more"></summary>
+      <div id="options" class="hidden">
+        <div class="label" data-w="warnLang"></div>
+        <div class="langs" id="langs"></div>
+        <label class="toggle hidden" id="guardrow"><input type="checkbox" id="guard">
+          <span id="guardtext"></span></label>
+        <label class="toggle hidden" id="famrow"><input type="checkbox" id="fam">
+          <span><span data-w="famA"></span><b id="famname"></b><span data-w="famB"></span><small data-w="famS"></small></span></label>
+        <div class="label" data-w="family"></div>
+        <div class="contact"><input id="cname" autocomplete="off"><input id="cnum" type="tel" inputmode="tel" autocomplete="off"></div>
+        <p class="note" style="margin:6px 0 0" data-w="saved"></p>
+      </div>
+    </details>
     <button id="install" class="hidden" data-w="install"></button>
-    <p class="note" data-w="mic"></p>
+    <p class="note" id="micnote" data-w="mic"></p>
     <a class="practice hidden" id="practice2" href="#" data-w="practiceFirst"></a>
   </section>
 
@@ -278,7 +294,15 @@ const HOME = {
         mic: "When the phone asks, tap Allow for the microphone. Keep this screen open during the call.",
         practiceFirst: "🎓 Practise spotting scam calls first", nokey: "This link is not complete. Please scan the QR code again.",
         noaudio: "The microphone could not start. Please open this page in Chrome and tap Allow for the microphone.",
-        pill: "Prototype · practice calls" },
+        pill: "Prototype · practice calls",
+        readyTitle: "Turn on protection", st1: "Tap the big green button below.",
+        st2: "If the phone asks about the microphone, tap “Allow”.",
+        st3: "Keep this screen open. If a caller tries to cheat you, this phone warns you out loud.",
+        protectOn: "🛡️ Turn on protection", lst1: "Put your phone call on speaker.",
+        lst2: "Keep this phone next to it and tap the big green button.",
+        lst3: "Tap “Allow” for the microphone. It warns you out loud if the call is a scam.",
+        more: "⚙️ More settings (you can skip this)", onTitle: "✅ Protection is ON",
+        onWait: "Waiting for a call. You don't need to do anything. Keep this screen open.", stopProt: "Turn off protection" },
   kn: { choose: "ಇದು ಯಾರ ಫೋನ್?", rProtect: "ಈ ಫೋನ್ ರಕ್ಷಿಸಿ", rProtectS: "ಮೋಸದ ಕರೆ ಬರಬಹುದಾದವರಿಗೆ",
         rListen: "ಸ್ಪೀಕರ್‌ನಲ್ಲಿರುವ ನಿಜವಾದ ಕರೆ ಕೇಳಿ",
         rListenS: "ಈ ಫೋನನ್ನು ಇನ್ನೊಂದು ಫೋನಿನ ಪಕ್ಕ ಇಡಿ", practice: "🎓 ಮೋಸದ ಕರೆ ಗುರುತಿಸುವ ಅಭ್ಯಾಸ",
@@ -296,7 +320,15 @@ const HOME = {
         mic: "ಫೋನ್ ಕೇಳಿದಾಗ ಮೈಕ್ರೋಫೋನ್‌ಗೆ Allow ಒತ್ತಿ. ಕರೆಯ ಸಮಯದಲ್ಲಿ ಈ ಸ್ಕ್ರೀನ್ ತೆರೆದಿರಲಿ.",
         practiceFirst: "🎓 ಮೊದಲು ಮೋಸದ ಕರೆ ಗುರುತಿಸುವ ಅಭ್ಯಾಸ ಮಾಡಿ", nokey: "ಈ ಲಿಂಕ್ ಪೂರ್ಣವಾಗಿಲ್ಲ. ದಯವಿಟ್ಟು QR ಕೋಡ್ ಮತ್ತೆ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.",
         noaudio: "ಮೈಕ್ರೋಫೋನ್ ಶುರುವಾಗಲಿಲ್ಲ. ಈ ಪುಟವನ್ನು Chrome ನಲ್ಲಿ ತೆರೆದು, ಮೈಕ್ರೋಫೋನ್‌ಗೆ Allow ಒತ್ತಿ.",
-        pill: "ಪ್ರೋಟೋಟೈಪ್ · ಅಭ್ಯಾಸ ಕರೆಗಳು" },
+        pill: "ಪ್ರೋಟೋಟೈಪ್ · ಅಭ್ಯಾಸ ಕರೆಗಳು",
+        readyTitle: "ರಕ್ಷಣೆ ಆನ್ ಮಾಡಿ", st1: "ಕೆಳಗಿನ ದೊಡ್ಡ ಹಸಿರು ಬಟನ್ ಒತ್ತಿ.",
+        st2: "ಮೈಕ್ರೋಫೋನ್ ಬಗ್ಗೆ ಫೋನ್ ಕೇಳಿದರೆ “Allow” ಒತ್ತಿ.",
+        st3: "ಈ ಸ್ಕ್ರೀನ್ ತೆರೆದಿರಲಿ. ಯಾರಾದರೂ ಕರೆಯಲ್ಲಿ ಮೋಸ ಮಾಡಲು ಪ್ರಯತ್ನಿಸಿದರೆ, ಈ ಫೋನ್ ಜೋರಾಗಿ ಎಚ್ಚರಿಸುತ್ತದೆ.",
+        protectOn: "🛡️ ರಕ್ಷಣೆ ಆನ್ ಮಾಡಿ", lst1: "ನಿಮ್ಮ ಫೋನ್ ಕರೆಯನ್ನು ಸ್ಪೀಕರ್‌ನಲ್ಲಿ ಇಡಿ.",
+        lst2: "ಈ ಫೋನನ್ನು ಅದರ ಪಕ್ಕ ಇಟ್ಟು, ದೊಡ್ಡ ಹಸಿರು ಬಟನ್ ಒತ್ತಿ.",
+        lst3: "ಮೈಕ್ರೋಫೋನ್‌ಗೆ “Allow” ಒತ್ತಿ. ಕರೆ ಮೋಸದ್ದಾದರೆ ಜೋರಾಗಿ ಎಚ್ಚರಿಸುತ್ತದೆ.",
+        more: "⚙️ ಇನ್ನಷ್ಟು ಆಯ್ಕೆಗಳು (ಬಿಟ್ಟುಬಿಡಬಹುದು)", onTitle: "✅ ರಕ್ಷಣೆ ಆನ್ ಆಗಿದೆ",
+        onWait: "ಕರೆಗಾಗಿ ಕಾಯುತ್ತಿದೆ. ನೀವು ಏನೂ ಮಾಡಬೇಕಿಲ್ಲ. ಈ ಸ್ಕ್ರೀನ್ ತೆರೆದಿರಲಿ.", stopProt: "ರಕ್ಷಣೆ ಆಫ್ ಮಾಡಿ" },
   hi: { choose: "यह किसका फ़ोन है?", rProtect: "इस फ़ोन को सुरक्षित करें", rProtectS: "जिसे धोखे की कॉल आ सकती है, उसके लिए",
         rListen: "स्पीकर पर चल रही असली कॉल सुनें",
         rListenS: "इस फ़ोन को दूसरे फ़ोन के पास रखें", practice: "🎓 धोखे की कॉल पहचानने का अभ्यास",
@@ -314,7 +346,15 @@ const HOME = {
         mic: "फ़ोन पूछे तो माइक्रोफ़ोन के लिए Allow दबाएँ। कॉल के दौरान यह स्क्रीन खुली रखें।",
         practiceFirst: "🎓 पहले धोखे की कॉल पहचानने का अभ्यास करें", nokey: "यह लिंक अधूरा है। कृपया QR कोड फिर से स्कैन करें।",
         noaudio: "माइक्रोफ़ोन शुरू नहीं हुआ। यह पेज Chrome में खोलें और माइक्रोफ़ोन के लिए Allow दबाएँ।",
-        pill: "प्रोटोटाइप · अभ्यास कॉल" },
+        pill: "प्रोटोटाइप · अभ्यास कॉल",
+        readyTitle: "सुरक्षा चालू करें", st1: "नीचे बड़ा हरा बटन दबाएँ।",
+        st2: "फ़ोन माइक्रोफ़ोन के बारे में पूछे तो “Allow” दबाएँ।",
+        st3: "यह स्क्रीन खुली रखें। कोई कॉल पर धोखा देने की कोशिश करे, तो यह फ़ोन ज़ोर से चेतावनी देगा।",
+        protectOn: "🛡️ सुरक्षा चालू करें", lst1: "अपनी फ़ोन कॉल को स्पीकर पर रखें।",
+        lst2: "इस फ़ोन को उसके पास रखकर बड़ा हरा बटन दबाएँ।",
+        lst3: "माइक्रोफ़ोन के लिए “Allow” दबाएँ। कॉल धोखे की हो तो ज़ोर से चेतावनी देगा।",
+        more: "⚙️ और सेटिंग (छोड़ सकते हैं)", onTitle: "✅ सुरक्षा चालू है",
+        onWait: "कॉल का इंतज़ार है। आपको कुछ नहीं करना है। यह स्क्रीन खुली रखें।", stopProt: "सुरक्षा बंद करें" },
 };
 const home = () => HOME[window.Sentinel?.getLang() || lang.split("-")[0]] || HOME.en;
 function applyHome() {
@@ -323,9 +363,14 @@ function applyHome() {
   $("cname").placeholder = h.name; $("cnum").placeholder = h.number;
   $("pill").textContent = h.pill;
   if (role) {
-    $("who").textContent = role === "receiver" ? h.whoReceiver : role === "listener" ? h.whoListener : h.whoCaller;
+    const prot = role === "receiver" || role === "listener";
+    $("readytitle").textContent = role === "listener" ? h.listenT : role === "receiver" ? h.readyTitle : "";
+    [["st1", "lst1"], ["st2", "lst2"], ["st3", "lst3"]].forEach(([a, b]) => { $(a).textContent = role === "listener" ? h[b] : h[a]; });
+    $("steps3").classList.toggle("hidden", !prot); $("readytitle").classList.toggle("hidden", !prot);
+    $("who").textContent = prot ? "" : h.whoCaller; $("who").classList.toggle("hidden", prot);
+    $("more").classList.toggle("hidden", !prot); $("micnote").classList.toggle("hidden", prot);
     $("guardtext").textContent = role === "listener" ? h.guardL : h.guard;
-    if (!$("start").disabled) $("start").textContent = role === "listener" ? h.listen : h.join;
+    if (!$("start").disabled) $("start").textContent = role === "listener" ? h.listen : role === "receiver" ? h.protectOn : h.join;
   }
 }
 window.addEventListener("sentinel-lang", (e) => { pickLang(e.detail + "-IN", false); applyHome(); });
@@ -420,9 +465,15 @@ $("start").onclick = async () => {
 function b64ToBuffer(b64) { const s = atob(b64); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u.buffer; }
 
 async function onControl(m) {
-  if (m.type === "waiting") setStatus(role === "listener" ? "…" : role === "receiver" ? t().waiting : "Waiting for the other phone…");
-  else if (m.type === "connected") {
+  if (m.type === "waiting") {
+    if (role === "receiver") {
+      $("risktext").textContent = home().onTitle; setStatus(home().onWait); $("status").id = "status";
+      $("status").classList.add("waiting"); $("hanglabel").textContent = home().stopProt;
+    } else setStatus(role === "listener" ? "…" : "Waiting for the other phone…");
+  } else if (m.type === "connected") {
     startedAt = Date.now();
+    $("status").classList.remove("waiting"); applyWords();
+    if (protectedRole()) setRisk("low", 0);
     setStatus(role === "receiver" ? t().protected : role === "listener" ? t().listening : "Connected");
     if (protectedRole()) showWatch(m.guardians);
     timerId = setInterval(() => { const s = Math.floor((Date.now() - startedAt) / 1000); $("timer").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 500);
