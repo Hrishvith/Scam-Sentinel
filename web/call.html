@@ -326,7 +326,13 @@ fetch(`/info?key=${encodeURIComponent(key)}`).then((r) => r.json()).then((info) 
   if (info.guard) { $("guardrow").classList.remove("hidden"); $("guard").checked = prefs.guard ?? true; }
 }).catch(() => { $("who").textContent = home().nokey; $("start").disabled = true; });
 
-function show(id) { for (const s of ["choose", "ready", "incall"]) $(s).classList.toggle("hidden", s !== id); }
+function show(id) {
+  for (const s of ["choose", "ready", "incall"]) $(s).classList.toggle("hidden", s !== id);
+  // Back: on setup it returns to the role choice; the home screen itself has nothing behind it
+  const toChoice = () => { role = null; history.replaceState(null, "", `/?key=${encodeURIComponent(key)}`); show("choose"); applyHome(); return true; };
+  const setBack = () => window.Sentinel?.setBack(id === "ready" ? toChoice : null, id !== "choose");
+  if (window.Sentinel) setBack(); else document.addEventListener("DOMContentLoaded", setBack);
+}
 function setStatus(text) { $("status").textContent = text; }
 
 function chooseRole(r) {

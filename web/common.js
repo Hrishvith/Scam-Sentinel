@@ -12,7 +12,7 @@
   function prefs() { try { return JSON.parse(stored("sentinel-prefs") || "{}"); } catch (_) { return {}; } }
 
   const WORDS = {
-    en: { home: "Home", practice: "Practice", scams: "Real scams", help: "Help", bigger: "Text size",
+    en: { back: "Back", home: "Home", practice: "Practice", scams: "Real scams", help: "Help", bigger: "Text size",
           sosTitle: "Were you cheated?", sosSub: "Don't worry. Do these now, one by one. The first hour matters most.",
           s1: "📞 Call 1930: cyber crime helpline", s1n: "They can try to stop the money. Tell them what happened.",
           s2: "🏦 Call your bank", s2n: "Use the number on the back of your card. Ask them to block your card and UPI.",
@@ -20,7 +20,7 @@
           s4: "🌐 File a complaint online", s4n: "cybercrime.gov.in",
           calm: "Got a scary call right now? Just hang up. It is always OK to hang up: real police and real banks never mind.",
           close: "Close", pick: "Choose your language" },
-    kn: { home: "ಮುಖಪುಟ", practice: "ಅಭ್ಯಾಸ", scams: "ನಿಜವಾದ ಮೋಸಗಳು", help: "ಸಹಾಯ", bigger: "ಅಕ್ಷರದ ಗಾತ್ರ",
+    kn: { back: "ಹಿಂದೆ", home: "ಮುಖಪುಟ", practice: "ಅಭ್ಯಾಸ", scams: "ನಿಜವಾದ ಮೋಸಗಳು", help: "ಸಹಾಯ", bigger: "ಅಕ್ಷರದ ಗಾತ್ರ",
           sosTitle: "ನಿಮಗೆ ಮೋಸ ಆಯಿತೇ?", sosSub: "ಗಾಬರಿ ಬೇಡ. ಈಗಲೇ ಇವುಗಳನ್ನು ಒಂದೊಂದಾಗಿ ಮಾಡಿ. ಮೊದಲ ಒಂದು ಗಂಟೆ ಬಹಳ ಮುಖ್ಯ.",
           s1: "📞 1930 ಗೆ ಕರೆ ಮಾಡಿ: ಸೈಬರ್ ಅಪರಾಧ ಸಹಾಯವಾಣಿ", s1n: "ಅವರು ಹಣವನ್ನು ತಡೆಯಲು ಪ್ರಯತ್ನಿಸುತ್ತಾರೆ. ಏನಾಯಿತು ಎಂದು ಹೇಳಿ.",
           s2: "🏦 ನಿಮ್ಮ ಬ್ಯಾಂಕಿಗೆ ಕರೆ ಮಾಡಿ", s2n: "ಕಾರ್ಡ್ ಹಿಂದಿರುವ ಸಂಖ್ಯೆಗೆ ಕರೆ ಮಾಡಿ. ಕಾರ್ಡ್ ಮತ್ತು ಯುಪಿಐ ಬ್ಲಾಕ್ ಮಾಡಲು ಹೇಳಿ.",
@@ -28,7 +28,7 @@
           s4: "🌐 ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ದೂರು ನೀಡಿ", s4n: "cybercrime.gov.in",
           calm: "ಈಗ ಹೆದರಿಸುವ ಕರೆ ಬಂದಿದೆಯೇ? ಕರೆ ಕಟ್ ಮಾಡಿ. ಕರೆ ಕಟ್ ಮಾಡುವುದು ಯಾವಾಗಲೂ ಸರಿ: ನಿಜವಾದ ಪೊಲೀಸರು, ಬ್ಯಾಂಕಿನವರು ಬೇಸರಿಸುವುದಿಲ್ಲ.",
           close: "ಮುಚ್ಚಿ", pick: "ನಿಮ್ಮ ಭಾಷೆ ಆಯ್ಕೆ ಮಾಡಿ" },
-    hi: { home: "होम", practice: "अभ्यास", scams: "असली धोखे", help: "मदद", bigger: "अक्षर का आकार",
+    hi: { back: "पीछे", home: "होम", practice: "अभ्यास", scams: "असली धोखे", help: "मदद", bigger: "अक्षर का आकार",
           sosTitle: "क्या आपके साथ धोखा हुआ?", sosSub: "घबराइए मत। अभी ये काम एक-एक करके करें। पहला एक घंटा सबसे ज़रूरी है।",
           s1: "📞 1930 पर कॉल करें: साइबर क्राइम हेल्पलाइन", s1n: "वे पैसे रोकने की कोशिश करते हैं। उन्हें बताएँ क्या हुआ।",
           s2: "🏦 अपने बैंक को कॉल करें", s2n: "कार्ड के पीछे लिखे नंबर पर कॉल करें। कार्ड और यूपीआई ब्लॉक करवाएँ।",
@@ -68,7 +68,13 @@
   css.textContent = `
     /* room for the bottom bar under the last item on every page (pages lay out a full-height <main>) */
     main { padding-bottom: calc(110px + env(safe-area-inset-bottom)) !important; }
-    body.sn-incall #sn-bar { display:none; }
+    body.sn-incall #sn-bar, body.sn-incall #sn-back, #sn-back.off { display:none; }
+    header { flex-wrap:wrap; row-gap:8px; }
+    #sn-back { width:auto !important; flex:none; margin:0 2px 0 0 !important; text-align:left; }
+    #sn-back { display:inline-flex; align-items:center; gap:4px; min-height:46px; padding:0 14px 0 10px; margin-right:2px;
+               border-radius:14px; border:2px solid rgba(255,255,255,.55); background:rgba(255,255,255,.16); color:#fff;
+               font:inherit; font-size:17px; font-weight:800; cursor:pointer; }
+    #sn-back .ar { font-size:22px; line-height:1; }
     body.sn-incall main { padding-bottom: 28px !important; }
     #sn-bar { position:fixed; left:0; right:0; bottom:0; z-index:9; background:#fff; border-top:2px solid #d3cdbf; box-shadow:0 -4px 16px -8px rgba(0,0,0,.25);
               display:grid; grid-template-columns:repeat(5,1fr);
@@ -106,8 +112,19 @@
   const bar = el("nav", { id: "sn-bar", ariaLabel: "Scam Sentinel" });
   const items = [["home", "🏠", `/?key=${k}`, "/"], ["practice", "🎓", `/practice?key=${k}`, "/practice"],
                  ["scams", "📰", `/scams?key=${k}`, "/scams"]];
+  // ---- Back button, first thing in the header ----
+  const back = el("button", { id: "sn-back", type: "button" });
+  let backHandler = null;           // a page can handle Back itself (e.g. setup screen -> role choice)
+  back.onclick = () => {
+    if (backHandler && backHandler()) return;
+    const fromHere = document.referrer && new URL(document.referrer).origin === location.origin;
+    if (fromHere && history.length > 1) history.back(); else location.href = `/?key=${k}`;
+  };
+  function setBack(handler, visible) { backHandler = handler || null; back.classList.toggle("off", visible === false); }
+
   function render() {
     const words = w();
+    back.innerHTML = ""; back.append(el("span", { className: "ar" }, "←"), el("span", {}, words.back));
     bar.innerHTML = "";
     for (const [name, icon, href, path] of items) {
       const a = el("a", { href, className: here === path ? "on" : "" });
@@ -160,6 +177,7 @@
 
   function start() {
     document.body.append(bar, help, picker);
+    document.querySelector("header")?.prepend(back);
     applySize();
     document.documentElement.lang = getLang() || "kn";
     render();
@@ -173,5 +191,5 @@
     window.onbeforeunload = on ? () => "" : null;
   }
 
-  window.Sentinel = { getLang, setLang, words: w, openHelp, askLang, inCall, stored };
+  window.Sentinel = { getLang, setLang, words: w, openHelp, askLang, inCall, stored, setBack };
 })();
