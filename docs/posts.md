@@ -16,11 +16,11 @@ swaps (they disqualify). Replace the `[brackets]`. Say "simulated" for the demo 
 >
 > In the video (a re-enacted, **simulated** call in Kannada):
 > 🟠 "Police… we've arrested your son": the screen turns orange and a calm warning plays in Kannada.
-> 🔴 "Don't tell anyone": it turns red and says *hang up now*, in a family member's voice (an AI voice clone, made with consent).
+> 🔴 "Don't tell anyone": it turns red and a calm Kannada voice tells him: this is a scam call, hang up now.
 > 👪 At the same moment, the "arrested" son's phone rings with an alert, so he can call his dad and end the lie.
 > ✋ If the father starts reading out his bank details anyway, it says **"Stop!"** and the scammer can no longer hear him.
 >
-> Built on Gnani AI's Prisma live speech-to-text, Timbre voices and voice cloning, in Kannada, Hindi, English and Hinglish. Tested on 24 simulated scam calls (24 caught) and 36 normal calls (0 false alarms); the misses on very noisy lines are published too.
+> Built on Gnani AI's Prisma live speech-to-text and Timbre voices, in Kannada, Hindi, English and Hinglish. Tested on 24 simulated scam calls (24 caught) and 36 normal calls (0 false alarms); the misses on very noisy lines are published too.
 >
 > Honest status: a working prototype on an internet calling line. A telecom operator could run the same thing inside the network, for everyone. If you work in telecom, banking or cyber safety, I'd love to talk.
 >
