@@ -31,10 +31,10 @@ and he calls his father. That one shot shows the whole lie collapsing.
 | 0:10-0:13 | App icon on a phone home screen; tap it; green shield | caption: *"Re-enacted call · simulated, no real numbers"* (on screen for the whole call) |
 | 0:13-0:19 | Phone A (the "father", played by a family member or you) on a table, call running. Your friend, off-screen, reads line 1 | Call audio + English captions |
 | 0:19-0:24 | Line 2 ("we've arrested your son") → shield turns **orange**: "ಎಚ್ಚರ: ಅನುಮಾನಾಸ್ಪದ ಕರೆ"; Kannada warning plays | *"It recognises the trick as it happens: a fake police officer, a son 'in custody'…"* |
-| 0:24-0:30 | Line 3 ("don't tell anyone") → **red**: "ಮೋಸದ ಕರೆ · ಈಗಲೇ ಕರೆ ಕಟ್ ಮಾಡಿ" + the warning **in a family voice** | *"…and the warning comes in a voice he trusts (AI voice clone, made with consent)"* |
+| 0:24-0:30 | Line 3 ("don't tell anyone") → **red**: "ಮೋಸದ ಕರೆ · ಈಗಲೇ ಕರೆ ಕಟ್ ಮಾಡಿ" + the spoken Kannada warning (Gnani Timbre voice) | *"…and tells him, in Kannada, to hang up now."* |
 | 0:30-0:36 | **Cut to phone B: the son**, at college, phone rings: "🚨 likely SCAM call · family emergency". He taps **Call them now** | *"Meanwhile, the 'arrested' son's phone rings. He's fine, and he's calling his dad."* |
 | 0:36-0:42 | Line 4 (₹5 lakh, account number); the father starts reading a made-up number: "ಎರಡು… ಏಳು… ಒಂಬತ್ತು…" → **✋ ನಿಲ್ಲಿಸಿ** | *"And if he starts giving his bank details, it says STOP, and the scammer can't hear him."* |
-| 0:42-0:50 | 1-second montage: ಕನ್ನಡ / हिन्दी / English buttons; benchmark chart; operator view | *"Kannada · Hindi · English · Hinglish. Gnani Prisma live speech-to-text, Timbre voice, voice cloning. 24/24 test scams caught, 0/36 false alarms."* |
+| 0:42-0:50 | 1-second montage: ಕನ್ನಡ / हिन्दी / English buttons; benchmark chart; operator view | *"Kannada · Hindi · English · Hinglish. Gnani Prisma live speech-to-text + Timbre voice. 24/24 test scams caught, 0/36 false alarms."* |
 | 0:50-0:60 | You to camera | *"My uncle got lucky. Not everyone does. Telecom and banking folks, let's build this into the network."* + **#GnaniAI #GreatIndianAIInternshipChallenge** · *"Real scam call? 1930 · cybercrime.gov.in"* |
 
 
@@ -50,10 +50,10 @@ Checked with the offline detector (no credits): line 1 green, line 2 **orange**,
 
 The father then says a **made-up** number slowly: "ಎರಡು… ಏಳು… ಒಂಬತ್ತು…" (the guard fires at the third digit).
 
-**Setup for this story:** phone A = the father (protected, ಕನ್ನಡ, family voice + OTP guard on). Phone B = the son
+**Setup for this story:** phone A = the father (protected, ಕನ್ನಡ, OTP guard on, family-voice switch OFF). Phone B = the son
 (guardian page, installed, "Start watching", a made-up number typed in for the call-back button). Phone C = the
-scammer, in another room. Family voice: the clone is of *your* voice today, so either caption it "my voice", or
-record a consented clone of your cousin with `family_voice.py` (about 1-2 credits).
+scammer, in another room. Every warning uses Gnani's standard Timbre voice (no voice clone in this video), so
+start the server without a family profile, or switch "Final warning in …'s voice" off on phone A.
 
 ## How to shoot it
 
@@ -70,7 +70,6 @@ record a consented clone of your cousin with `family_voice.py` (about 1-2 credit
 ## Honesty rules (contest + LinkedIn)
 
 - Keep **"Re-enacted · simulated call"** on screen during the call.
-- Keep the clone label visible: "AI voice clone of my voice, with consent".
 - Don't claim it works on normal phone calls today. Say: *working prototype on an internet calling line; a telecom
   operator would run the same thing inside the network.*
 - No real phone numbers, names, account numbers or recordings of the real scam call.
