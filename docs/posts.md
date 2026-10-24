@@ -4,47 +4,41 @@ Both must carry **#GnaniAI** and **#GreatIndianAIInternshipChallenge**, include 
 live before you submit. Organic reach only: no paid promotion, bought engagement, bots or engagement
 swaps (they disqualify). Replace the `[brackets]`. Say "simulated" for the demo call.
 
-## LinkedIn
+## LinkedIn (story first; fill the [brackets] from your real story)
 
-> **I built a scam-call shield that warns you *during* the call, in Kannada, Hindi, English and Hinglish.** 🛡️
+> **[Year], my [grandmother] got a call from "[the bank / the police]". [N] minutes later, [₹___ was gone / she had read out her OTP].**
 >
-> "Your KYC has expired... your account will be blocked today... just tell me the OTP." Calls like this
-> cost people in India their savings every day, often older family members, often in their own language.
+> Nobody could warn her *during* the call. Every app I found checks a number before, or a recording after. By then it's too late.
 >
-> **Scam Sentinel** listens to a call as it happens using Gnani AI's Prisma speech-to-text, tracks scam
-> tactics as they build up (fake officials, arrest threats, secrecy, OTP and remote-app requests), and
-> the moment the risk crosses a line it **speaks a calm warning in the listener's language** with Gnani's
-> Timbre voices.
+> So I built **Scam Sentinel** 🛡️: it listens to the call as it happens and interrupts the scam, in her language.
 >
-> In the demo (a **simulated** Kannada call), the first warning comes 12 seconds in, and the final one
-> before the OTP is ever shared, **in my own voice**: "ಹಲೋ, ಇದು ನಾನು. ಈ ಕರೆ ಮೋಸದ ಕರೆ" ("Hi, it's me. This call
-> is a scam."). It's an AI clone of my voice (Gnani voice cloning, my own voice, with consent, clearly
-> labelled), because a parent hangs up faster for their child than for an app.
+> In the video (a re-enacted, **simulated** call in Kannada):
+> 🟠 It hears the tricks building up: a fake official, "your account will be blocked today", urgency.
+> 🔴 When the caller asks for the OTP, her phone tells her to hang up, **in my voice** ("ಹಲೋ, ಇದು ನಾನು. ಈ ಕರೆ ಮೋಸದ ಕರೆ": "Hi, it's me. This call is a scam"). It's an AI clone of my own voice, made with consent, because she'd hang up for me faster than for an app.
+> ✋ When she starts reading the numbers anyway, it says **"Stop!"** and stops sending her voice to the caller.
+> 👪 And my phone rings with an alert while the call is still going on.
 >
-> Because real calls are noisy, I benchmarked it on 20 simulated calls at three noise levels:
-> ✅ 100% of scams flagged at 13 dB SNR (a noisy mobile line)
-> ✅ 88% at 5 dB, where the noise is almost as loud as the voice
-> ⚠️ and I published the misses too: at ~0 dB, speech recognition turned "don't share" into "may share".
+> Under the hood: Gnani AI's Prisma live speech-to-text, Timbre voices and voice cloning; Kannada, Hindi, English and Hinglish. Tested on 24 simulated scam calls (24 caught) and 36 normal calls (0 false alarms), and I published the misses on noisy lines too.
 >
-> Things I learned building it:
-> • Indian phone speech is code-mixed: "OTP share maadbedi" had to be understood, not just "ಹಂಚಿಕೊಳ್ಳಬೇಡಿ".
-> • Splitting audio at natural pauses made Kannada transcription complete and cheaper.
-> • Measure everything: the whole build used ~30 of 5,000 API credits.
+> Honest status: it's a working prototype on an internet calling line. A telecom operator could run the same thing inside the network, for everyone. If you work in telecom, banking or cyber safety, I'd love to talk.
 >
-> It's a decision aid, not a guarantee. If a call feels wrong, hang up and call **1930** (cybercrime.gov.in).
+> If a call feels wrong: hang up and call **1930** (cybercrime.gov.in).
 >
-> 🎥 Demo below · code: [repo link]
+> 🎥 Video below · code: [repo link]
 > Built for the Great Indian AI Internship Challenge by @Gnani.ai
 >
-> #GnaniAI #GreatIndianAIInternshipChallenge #VoiceAI #CyberSafety #Kannada #BuildInPublic
+> #GnaniAI #GreatIndianAIInternshipChallenge #CyberSafety #VoiceAI #Kannada
+
+**Posting tips:** upload the video natively (not a YouTube link); put the repo link in the first comment if the
+post feels long; post Tuesday-Thursday morning IST; reply to every comment in the first hour. Ask your [grandmother]
+before telling her story, even without her name.
 
 ## X (Twitter): fits in 280 characters
 
-> I built Scam Sentinel 🛡️: it listens to a phone call live and warns you mid-call, in Kannada/Hindi/English, before you share an OTP. 100% of simulated scams flagged on noisy lines (13 dB SNR). Built on Gnani Prisma + Timbre.
+> My [grandmother] lost [₹___] to a fake "[bank]" call. So I built Scam Sentinel 🛡️: it hears the scam live and warns her mid-call in Kannada, in my voice, and says "Stop!" if she starts reading the OTP. Built on Gnani Prisma + Timbre.
 > #GnaniAI #GreatIndianAIInternshipChallenge
 
-*(About 270 characters with both hashtags. Attach the 60 s video. Optional reply tweet: the benchmark
-chart plus "the misses are published too: [repo link]".)*
+*(Check the length after filling the brackets. Attach the video. Optional reply: the benchmark chart and "every miss is published too: [repo link]".)*
 
 ## Short reply / comment version
 
