@@ -1,5 +1,6 @@
 """Real scams page: every case is sourced, every re-enacted call is caught and named, the page is served."""
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -32,6 +33,32 @@ def test_the_re_enacted_call_is_caught_and_named(scam, lang):
     det = detect_rules(" ".join(lines))
     assert det.level != "low"                                    # ...and is flagged by the end
     assert det.scam_type == NAMED.get(scam["id"], scam["id"])
+
+
+@pytest.mark.parametrize("scam", DATA["scams"], ids=lambda s: s["id"])
+def test_every_scam_has_a_short_spoken_explanation(scam):
+    for lang in LANGS:
+        text = scam["spoken"][lang]
+        assert 150 < len(text) < 400                              # ~20 s of speech, ~1 credit each
+        assert "1930" not in text                                 # spaced, so TTS reads it digit by digit
+
+
+def test_audio_is_made_once_and_only_with_yes(tmp_path, monkeypatch, capsys):
+    import make_scam_audio as m
+    monkeypatch.setattr(m, "OUT", tmp_path)
+    calls = []
+    monkeypatch.setattr(m, "speak_alert", lambda client, text, lang: (calls.append(lang) or b"ID3fake", None))
+    monkeypatch.setattr(m, "GnaniClient", lambda: type("C", (), {"stats": {"tts_calls": len(calls), "cache_hits": 0}})())
+    monkeypatch.setattr(sys, "argv", ["make_scam_audio.py", "--lang", "kn"])
+    m.main()
+    assert calls == [] and "credits" in capsys.readouterr().out    # dry run: nothing spent
+    monkeypatch.setattr(sys, "argv", ["make_scam_audio.py", "--lang", "kn", "--yes"])
+    m.main()
+    assert calls == ["kn-IN"] * len(DATA["scams"])
+    index = json.loads((tmp_path / "index.json").read_text())["files"]
+    assert set(index) == {f"{s['id']}-kn" for s in DATA["scams"]}
+    m.main()                                                      # files exist now: nothing more to make
+    assert len(calls) == len(DATA["scams"])
 
 
 def test_scams_page_is_served(tmp_path):

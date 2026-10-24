@@ -116,6 +116,8 @@ class Relay:
         app.router.add_get("/pcm-worklet.js", self.page("pcm-worklet.js", "application/javascript"))
         app.router.add_get("/manifest.webmanifest", self.manifest)
         app.router.add_static("/icons", WEB / "icons")
+        (WEB / "audio").mkdir(exist_ok=True)
+        app.router.add_static("/audio", WEB / "audio")        # saved Timbre explanations (free to play)
         app.router.add_get("/info", self.info)
         app.router.add_get("/ws/call", self.call_ws)
         app.router.add_get("/ws/ops", self.ops_ws)
