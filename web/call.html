@@ -2,125 +2,162 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Scam Sentinel call</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1416">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Scam Sentinel">
+<link rel="icon" href="/icons/favicon.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link id="manifest" rel="manifest">
+<title>Scam Sentinel protected line</title>
 <style>
-  :root { --bg:#0f1115; --card:#1a1d24; --ink:#f3f3f1; --ink2:#b9b8b2; --good:#0ca30c; --warn:#fab219; --bad:#d03b3b; --accent:#2a78d6; }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:18px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
-  main { max-width:560px; margin:0 auto; padding:20px 16px 40px; }
-  h1 { font-size:22px; margin:4px 0 2px; }
-  .sub { color:var(--ink2); font-size:15px; margin:0 0 18px; }
-  .card { background:var(--card); border-radius:16px; padding:18px; margin:14px 0; }
-  button { width:100%; border:0; border-radius:14px; padding:20px; font-size:22px; font-weight:700; color:#fff; cursor:pointer; margin:8px 0; }
-  .call { background:var(--good); } .hang { background:var(--bad); } .pick { background:var(--accent); }
-  button:disabled { opacity:.4; }
-  #status { font-size:20px; font-weight:600; }
-  #timer { color:var(--ink2); font-variant-numeric:tabular-nums; }
-  .light { display:flex; align-items:center; gap:14px; font-size:24px; font-weight:700; }
-  .dot { width:40px; height:40px; border-radius:50%; background:var(--good); flex:none; }
-  .meter { height:12px; background:#2c2c2a; border-radius:6px; overflow:hidden; margin-top:12px; }
-  .meter > div { height:100%; width:0; background:var(--good); transition:width .4s, background .4s; }
-  #alerts .a { border-radius:12px; padding:14px; margin:10px 0; font-size:19px; }
-  #alerts .medium { background:#4a3a10; } #alerts .high { background:#5a1d1d; }
-  #banner { display:none; position:fixed; inset:0; background:var(--bad); color:#fff; z-index:10; padding:28px 20px;
-            flex-direction:column; justify-content:center; text-align:center; gap:16px; }
-  #banner.show { display:flex; }
-  #banner .big { font-size:40px; font-weight:800; line-height:1.15; }
-  #banner .msg { font-size:20px; }
-  #banner a, #banner button { background:#fff; color:var(--bad); text-decoration:none; border-radius:14px; padding:18px; font-size:24px; font-weight:800; }
-  .note { color:var(--ink2); font-size:14px; }
-  .hidden { display:none; }
-  .langs { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:10px 0 14px; }
-  .langs button { padding:16px 6px; font-size:20px; background:#2c2c2a; margin:0; }
-  .langs button.on { background:var(--accent); outline:3px solid #fff; }
-  label.fam { display:flex; gap:12px; align-items:center; font-size:19px; padding:12px; background:#2c2c2a; border-radius:12px; }
-  label.fam input { width:28px; height:28px; }
-  label.fam + label.fam { margin-top:8px; }
-  #stop { display:none; position:fixed; inset:0; background:#7a1010; color:#fff; z-index:11; padding:28px 20px;
-          flex-direction:column; justify-content:center; text-align:center; gap:16px; }
-  #stop.show { display:flex; }
-  #stop .big { font-size:48px; font-weight:800; line-height:1.1; }
-  #stop .msg { font-size:21px; }
-  #stop button { background:#fff; color:#7a1010; border-radius:14px; padding:16px; font-size:19px; font-weight:700; }
-  #banner .type { font-size:24px; font-weight:800; background:rgba(0,0,0,.25); border-radius:12px; padding:10px; }
-  .watch { color:#9be79b; font-size:16px; margin-top:6px; }
-  #after h2 { font-size:22px; margin:0 0 6px; }
-  #after .type { font-weight:700; color:var(--warn); margin:0 0 10px; }
+  :root { --bg:#0b1416; --bg2:#112023; --card:#16282b; --line:#24393c; --ink:#f2f5f4; --ink2:#a9bcb8; --muted:#7f948f;
+          --good:#19b37d; --warn:#f5a524; --bad:#e5484d; --accent:#3b8cf0; --risk:var(--good); }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; }
+  body { margin:0; background:radial-gradient(120% 60% at 50% 0%, #15302f 0%, var(--bg) 60%) fixed, var(--bg); color:var(--ink);
+         font:18px/1.45 system-ui,-apple-system,"Segoe UI","Noto Sans Kannada","Noto Sans Devanagari",sans-serif; }
+  main { max-width:520px; min-height:100%; margin:0 auto; padding:max(14px, env(safe-area-inset-top)) 16px 28px; display:flex; flex-direction:column; }
+  header { display:flex; align-items:center; gap:10px; padding:4px 0 14px; }
+  header img { width:36px; height:36px; border-radius:9px; }
+  header b { font-size:19px; letter-spacing:.01em; }
+  .pill { margin-left:auto; font-size:12px; color:var(--ink2); border:1px solid var(--line); border-radius:20px; padding:3px 9px; white-space:nowrap; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:18px; margin:10px 0; }
+  h2 { font-size:22px; margin:2px 0 6px; } .note { color:var(--ink2); font-size:14px; } .hidden { display:none !important; }
+  button { font:inherit; width:100%; border:0; border-radius:16px; padding:18px; font-size:21px; font-weight:700; color:#fff; cursor:pointer; margin:8px 0; }
+  button:disabled { opacity:.45; }
+  .go { background:var(--good); box-shadow:0 8px 24px -10px var(--good); } .stopbtn { background:var(--bad); } .ghost { background:transparent; border:1px solid var(--line); color:var(--ink2); font-size:16px; padding:12px; }
+
+  /* role picker */
+  .role { display:flex; gap:14px; align-items:center; text-align:left; background:var(--card); border:1px solid var(--line); padding:16px; }
+  .role span.i { font-size:30px; width:48px; height:48px; display:grid; place-items:center; background:var(--bg2); border-radius:14px; flex:none; }
+  .role small { display:block; color:var(--ink2); font-weight:400; font-size:14px; }
+
+  /* setup */
+  .label { color:var(--ink2); font-size:14px; margin:14px 0 6px; text-transform:uppercase; letter-spacing:.05em; }
+  .langs { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .langs button { margin:0; padding:14px 4px; font-size:19px; background:var(--bg2); border:1px solid var(--line); }
+  .langs button.on { background:var(--accent); border-color:var(--accent); }
+  .toggle { display:flex; gap:12px; align-items:center; padding:14px; background:var(--bg2); border:1px solid var(--line); border-radius:14px; margin-top:8px; cursor:pointer; font-size:17px; }
+  .toggle input { appearance:none; width:50px; height:30px; border-radius:15px; background:#33494c; position:relative; flex:none; margin:0; transition:background .2s; }
+  .toggle input::after { content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; transition:left .2s; }
+  .toggle input:checked { background:var(--good); } .toggle input:checked::after { left:23px; }
+  .toggle small { color:var(--ink2); display:block; font-size:13px; }
+
+  /* in call */
+  #incall { flex:1; display:flex; flex-direction:column; align-items:center; text-align:center; }
+  #who2 { color:var(--ink2); font-size:16px; margin-top:6px; }
+  #timer { font-variant-numeric:tabular-nums; color:var(--ink2); font-size:17px; min-height:24px; }
+  .orb { position:relative; width:210px; height:210px; margin:26px 0 14px; display:grid; place-items:center; }
+  .orb .core { width:150px; height:150px; border-radius:50%; background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--risk) 60%, #fff 0%), color-mix(in srgb, var(--risk) 55%, #000)); display:grid; place-items:center; font-size:64px; box-shadow:0 0 60px -6px var(--risk); transition:background .5s, box-shadow .5s; z-index:1; }
+  .orb .ring { position:absolute; inset:0; border-radius:50%; border:3px solid var(--risk); opacity:0; animation:pulse 2.4s ease-out infinite; }
+  .orb .ring:nth-child(2) { animation-delay:1.2s; }
+  body[data-level="high"] .orb .ring { animation-duration:1s; }
+  @keyframes pulse { 0% { transform:scale(.7); opacity:.8; } 100% { transform:scale(1.15); opacity:0; } }
+  #risktext { font-size:26px; font-weight:800; color:var(--risk); transition:color .5s; }
+  #status { font-size:16px; color:var(--ink2); margin-top:4px; }
+  .meter { width:100%; max-width:300px; height:8px; background:var(--bg2); border-radius:4px; overflow:hidden; margin:12px auto 0; }
+  .meter > div { height:100%; width:0; background:var(--risk); transition:width .5s, background .5s; }
+  .chip { display:inline-block; margin-top:12px; font-size:15px; color:#a6efd0; background:#11372d; border-radius:20px; padding:6px 12px; }
+  #alerts { width:100%; margin-top:14px; text-align:left; }
+  #alerts .a { border-radius:16px; padding:14px 16px; margin:8px 0; font-size:18px; border-left:6px solid; }
+  #alerts .medium { background:#3a2d0f; border-color:var(--warn); } #alerts .high { background:#3d1517; border-color:var(--bad); }
+  #alerts .a small { display:block; color:var(--ink2); font-size:14px; margin-top:4px; }
+  .callbar { margin-top:auto; padding-top:20px; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  #hang { width:78px; height:78px; border-radius:50%; padding:0; display:grid; place-items:center; background:var(--bad); box-shadow:0 10px 30px -8px var(--bad); }
+  #hang:disabled { opacity:.35; }
+  #hanglabel { color:var(--ink2); font-size:15px; }
+
+  /* overlays */
+  .overlay { display:none; position:fixed; inset:0; z-index:10; padding:max(28px, env(safe-area-inset-top)) 22px 28px; color:#fff; flex-direction:column; justify-content:center; text-align:center; gap:14px; overflow:auto; }
+  .overlay.show { display:flex; animation:pop .25s ease-out; }
+  .overlay > * { width:100%; max-width:480px; margin-inline:auto !important; }
+  @keyframes pop { from { opacity:0; transform:scale(1.04); } }
+  #banner { background:linear-gradient(180deg,#c1272d,#8e1418); }
+  #stop { background:linear-gradient(180deg,#8e1418,#4f0a0c); z-index:11; }
+  .overlay .big { font-size:40px; font-weight:900; line-height:1.12; }
+  #stop .big { font-size:64px; }
+  .overlay .msg { font-size:20px; }
+  .overlay .type { font-size:22px; font-weight:800; background:rgba(0,0,0,.25); border-radius:14px; padding:10px; }
+  .overlay a, .overlay button { display:block; background:#fff; color:#a3161b; text-decoration:none; border-radius:16px; padding:17px; font-size:21px; font-weight:800; margin:0; }
+  .overlay .soft { background:rgba(255,255,255,.14); color:#fff; font-weight:600; font-size:17px; }
+
+  /* after the call */
+  #after h2 { font-size:22px; } #after .type { font-weight:700; color:var(--warn); margin:0 0 10px; }
   .yn { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .steps a, .steps div { display:block; background:#2c2c2a; color:var(--ink); text-decoration:none; border-radius:12px;
-                         padding:14px; margin:8px 0; font-size:19px; }
-  .steps a { outline:2px solid var(--accent); }
-  .steps.urgent a:first-child { background:var(--bad); outline:none; color:#fff; font-weight:700; }
+  .steps a, .steps div { display:block; background:var(--bg2); border:1px solid var(--line); color:var(--ink); text-decoration:none; border-radius:14px; padding:14px; margin:8px 0; font-size:18px; }
+  .steps a { border-color:var(--accent); }
+  .steps.urgent a:first-child { background:var(--bad); border-color:var(--bad); color:#fff; font-weight:700; }
+  #install { background:var(--bg2); border:1px dashed var(--line); color:var(--ink); font-size:16px; padding:12px; }
 </style>
 </head>
-<body>
+<body data-level="low">
 <main>
-  <h1>🛡️ Scam Sentinel protected line</h1>
-  <p class="sub">Prototype · calls go over the internet through the Scam Sentinel server · use for <b>simulated</b> calls only</p>
+  <header><img src="/icons/icon-192.png" alt=""><b>Scam Sentinel</b><span class="pill">Prototype · simulated calls</span></header>
 
-  <section id="choose" class="card hidden">
-    <p>Which phone is this?</p>
-    <button class="pick" data-role="receiver">I am the person being protected</button>
-    <button class="pick" data-role="caller">I am the caller (playing the scammer)</button>
-    <button class="pick" data-role="listener">📱 Listen to a real phone call on speaker</button>
+  <section id="choose" class="hidden">
+    <h2>Which phone is this?</h2>
+    <button class="role" data-role="receiver"><span class="i">🛡️</span><span>Protect this phone<small>The person who might get a scam call</small></span></button>
+    <button class="role" data-role="caller"><span class="i">📞</span><span>Caller<small>Plays the scammer in a simulated call</small></span></button>
+    <button class="role" data-role="listener"><span class="i">🔊</span><span>Listen to a real call on speaker<small>Put this device next to the phone</small></span></button>
   </section>
 
   <section id="ready" class="card hidden">
-    <p id="who"></p>
+    <p id="who" style="margin-top:0"></p>
     <div id="options" class="hidden">
-      <p style="margin:6px 0 0">Warning language / ಭಾಷೆ / भाषा</p>
+      <div class="label">Warning language · ಭಾಷೆ · भाषा</div>
       <div class="langs" id="langs"></div>
-      <label class="fam hidden" id="famrow"><input type="checkbox" id="fam">
-        <span>🧬 Final warning in <b id="famname"></b>'s voice <small>(AI clone, made with consent)</small></span></label>
-      <label class="fam hidden" id="guardrow"><input type="checkbox" id="guard">
+      <label class="toggle hidden" id="famrow"><input type="checkbox" id="fam">
+        <span>🧬 Final warning in <b id="famname"></b>'s voice<small>AI voice clone, made with consent</small></span></label>
+      <label class="toggle hidden" id="guardrow"><input type="checkbox" id="guard">
         <span id="guardtext">✋ Stop me if I start saying an OTP or numbers to the caller</span></label>
     </div>
-    <button id="start" class="call">📞 Join the call</button>
+    <button id="start" class="go">📞 Join the call</button>
+    <button id="install" class="hidden">📲 Add Scam Sentinel to the home screen</button>
     <p class="note">Allow the microphone when asked. Keep this screen open during the call.</p>
   </section>
 
   <section id="incall" class="hidden">
-    <div class="card">
-      <div id="status">Connecting…</div>
-      <div id="timer"></div>
-      <div id="watch" class="watch hidden">👪 A family guardian is watching over this call</div>
-    </div>
-    <div id="riskcard" class="card hidden">
-      <div class="light"><div id="dot" class="dot"></div><span id="risktext">Safe so far</span></div>
+    <div id="who2"></div>
+    <div class="orb"><div class="ring"></div><div class="ring"></div><div class="core" id="orbicon">🛡️</div></div>
+    <div id="timer"></div>
+    <div id="riskcard" class="hidden" style="width:100%">
+      <div id="risktext"></div>
       <div class="meter"><div id="bar"></div></div>
-      <div id="alerts"></div>
     </div>
-    <button id="hang" class="hang">Hang up</button>
+    <div id="status">Connecting…</div>
+    <div id="watch" class="chip hidden"></div>
+    <div id="alerts"></div>
+    <div class="callbar"><button id="hang" aria-label="Hang up"><svg width="38" height="38" viewBox="0 0 24 24" fill="#fff" style="transform:rotate(135deg)"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg></button><span id="hanglabel">Hang up</span></div>
   </section>
 
   <section id="after" class="card hidden">
     <h2 id="a-title"></h2>
     <p class="type" id="a-type"></p>
     <p id="a-q"></p>
-    <div class="yn"><button id="a-yes" class="hang"></button><button id="a-no" class="call"></button></div>
+    <div class="yn"><button id="a-yes" class="stopbtn"></button><button id="a-no" class="go"></button></div>
     <div id="a-steps" class="steps"></div>
-    <button id="a-copy" class="pick hidden"></button>
+    <button id="a-copy" class="ghost hidden"></button>
     <p class="note" id="a-note"></p>
   </section>
 </main>
 
-<div id="banner" role="alert">
-  <div class="big">⚠️ SCAM CALL<br>HANG UP NOW</div>
+<div id="banner" class="overlay" role="alert">
+  <div class="big" id="bannerbig"></div>
   <div class="type" id="bannertype"></div>
   <div class="msg" id="bannermsg"></div>
   <div class="msg" id="bannervoice"></div>
   <div class="msg" id="bannerfamily"></div>
-  <button id="bannerhang">Hang up</button>
-  <a id="helpline" href="tel:1930">Call 1930 (cyber crime helpline)</a>
+  <button id="bannerhang"></button>
+  <a id="helpline" class="soft" href="tel:1930"></a>
 </div>
 
-<div id="stop" role="alert">
-  <div class="big">✋ STOP</div>
+<div id="stop" class="overlay" role="alert">
+  <div class="big" id="stopbig"></div>
   <div class="msg" id="stopmsg"></div>
-  <div class="msg" id="stopcut">🔇 The caller cannot hear you now.</div>
-  <button id="stopok">I understand, I will not say it</button>
-  <button id="unmute">Let the caller hear me again</button>
+  <div class="msg" id="stopcut"></div>
+  <button id="stopok"></button>
+  <button id="unmute" class="soft"></button>
 </div>
 
 <script>
@@ -128,50 +165,102 @@ const params = new URLSearchParams(location.search);
 const key = params.get("key") || "";
 let role = params.get("role");
 const $ = (id) => document.getElementById(id);
-const LEVEL = { low: ["var(--good)", "Safe so far"], medium: ["var(--warn)", "Be careful: suspicious call"], high: ["var(--bad)", "Likely scam"] };
 
-let ctx, ws, capture, player, stream, wakeLock, startedAt, timerId;
+// Words on the protected phone, in the language they chose (REVIEW kn/hi with native speakers)
+const UI = {
+  en: { low: "Safe so far", medium: "Be careful: suspicious call", high: "Likely scam", protected: "🛡️ Protected by Scam Sentinel",
+        waiting: "Waiting for the caller…", listening: "Listening · keep the call on speaker near this device", hang: "Hang up",
+        stopListen: "Stop listening", banner: "⚠️ SCAM CALL<br>HANG UP NOW", told: "👪 Your family has been told",
+        watch: "👪 A family member is watching over this call", stop: "✋ STOP", cut: "🔇 The caller cannot hear you now.",
+        ok: "I understand, I will not say it", unmute: "Let the caller hear me again", helpline: "📞 Call 1930 (cyber crime helpline)",
+        ended: "Call ended", caller: "Caller", speaker: "Phone call on speaker", voice: "🧬 Spoken in an " },
+  kn: { low: "ಸದ್ಯಕ್ಕೆ ಸುರಕ್ಷಿತ", medium: "ಎಚ್ಚರ: ಅನುಮಾನಾಸ್ಪದ ಕರೆ", high: "ಮೋಸದ ಕರೆ ಇರಬಹುದು", protected: "🛡️ ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ರಕ್ಷಣೆಯಲ್ಲಿದೆ",
+        waiting: "ಕರೆಗಾಗಿ ಕಾಯುತ್ತಿದೆ…", listening: "ಕೇಳುತ್ತಿದೆ · ಕರೆಯನ್ನು ಸ್ಪೀಕರ್‌ನಲ್ಲಿ ಈ ಸಾಧನದ ಹತ್ತಿರ ಇಡಿ", hang: "ಕರೆ ಕಟ್ ಮಾಡಿ",
+        stopListen: "ಕೇಳುವುದನ್ನು ನಿಲ್ಲಿಸಿ", banner: "⚠️ ಮೋಸದ ಕರೆ<br>ಈಗಲೇ ಕರೆ ಕಟ್ ಮಾಡಿ", told: "👪 ನಿಮ್ಮ ಮನೆಯವರಿಗೆ ತಿಳಿಸಲಾಗಿದೆ",
+        watch: "👪 ಮನೆಯವರು ಈ ಕರೆಯನ್ನು ಗಮನಿಸುತ್ತಿದ್ದಾರೆ", stop: "✋ ನಿಲ್ಲಿಸಿ", cut: "🔇 ಈಗ ಕರೆ ಮಾಡಿದವರಿಗೆ ನಿಮ್ಮ ಧ್ವನಿ ಕೇಳುವುದಿಲ್ಲ.",
+        ok: "ಸರಿ, ನಾನು ಹೇಳುವುದಿಲ್ಲ", unmute: "ಕರೆ ಮಾಡಿದವರಿಗೆ ಮತ್ತೆ ನನ್ನ ಧ್ವನಿ ಕೇಳಿಸಲಿ", helpline: "📞 1930 ಗೆ ಕರೆ ಮಾಡಿ (ಸೈಬರ್ ಅಪರಾಧ ಸಹಾಯವಾಣಿ)",
+        ended: "ಕರೆ ಮುಗಿಯಿತು", caller: "ಕರೆ ಮಾಡುತ್ತಿರುವವರು", speaker: "ಸ್ಪೀಕರ್‌ನಲ್ಲಿರುವ ಕರೆ", voice: "🧬 " },
+  hi: { low: "अभी तक सुरक्षित", medium: "सावधान: संदिग्ध कॉल", high: "धोखाधड़ी कॉल हो सकती है", protected: "🛡️ स्कैम सेंटिनल से सुरक्षित",
+        waiting: "कॉल का इंतज़ार…", listening: "सुन रहा है · कॉल को स्पीकर पर इस डिवाइस के पास रखें", hang: "कॉल काटें",
+        stopListen: "सुनना बंद करें", banner: "⚠️ धोखाधड़ी कॉल<br>अभी कॉल काटें", told: "👪 आपके घरवालों को बता दिया गया है",
+        watch: "👪 घरवाले इस कॉल पर नज़र रख रहे हैं", stop: "✋ रुकिए", cut: "🔇 अब कॉल करने वाला आपकी आवाज़ नहीं सुन सकता।",
+        ok: "ठीक है, नहीं बताना है", unmute: "कॉल करने वाले को फिर से मेरी आवाज़ सुनाएँ", helpline: "📞 1930 पर कॉल करें (साइबर अपराध हेल्पलाइन)",
+        ended: "कॉल खत्म", caller: "कॉल करने वाला", speaker: "स्पीकर पर कॉल", voice: "🧬 " },
+};
+const COLOR = { low: "var(--good)", medium: "var(--warn)", high: "var(--bad)" };
+
+let ctx, ws, capture, player, stream, wakeLock, startedAt, timerId, installPrompt;
 const warnings = {};
 let lang = "kn-IN";
 const protectedRole = () => role === "receiver" || role === "listener";
+const t = () => (protectedRole() && UI[lang.split("-")[0]]) || UI.en;
 const seen = { worst: "low", alerts: [], guard: 0, label: "", caller: [] };   // for the after-call steps
 
+function stored(k, v) {               // remembered on this phone only; browser storage may be unavailable
+  try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (_) { return null; }
+}
+const prefs = (() => { try { return JSON.parse(stored("sentinel-prefs") || "{}"); } catch (_) { return {}; } })();
+
+function setManifest() {             // "Add to home screen" opens straight into this phone's role
+  if (key && protectedRole()) $("manifest").href = `/manifest.webmanifest?app=${role}&key=${encodeURIComponent(key)}`;
+}
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; if (protectedRole()) $("install").classList.remove("hidden"); });
+$("install").onclick = async () => { if (!installPrompt) return; installPrompt.prompt(); await installPrompt.userChoice; installPrompt = null; $("install").classList.add("hidden"); };
+
+function pickLang(code) {
+  lang = code;
+  document.querySelectorAll("#langs button").forEach((x) => x.classList.toggle("on", x.dataset.lang === lang));
+}
+
 fetch(`/info?key=${encodeURIComponent(key)}`).then((r) => r.json()).then((info) => {
-  lang = info.lang || lang;
   for (const [code, name] of Object.entries(info.langs || {})) {
     const b = document.createElement("button");
     b.textContent = name; b.dataset.lang = code; b.type = "button";
-    b.onclick = () => { lang = code; document.querySelectorAll("#langs button").forEach((x) => x.classList.toggle("on", x.dataset.lang === lang)); };
+    b.onclick = () => pickLang(code);
     $("langs").append(b);
   }
-  document.querySelectorAll("#langs button").forEach((x) => x.classList.toggle("on", x.dataset.lang === lang));
-  if (info.family) { $("famname").textContent = info.family; $("famrow").classList.remove("hidden"); $("fam").checked = true; }
-  if (info.guard) { $("guardrow").classList.remove("hidden"); $("guard").checked = true; }
-}).catch(() => {});
+  pickLang(prefs.lang && info.langs?.[prefs.lang] ? prefs.lang : info.lang || lang);
+  if (info.family) { $("famname").textContent = info.family; $("famrow").classList.remove("hidden"); $("fam").checked = prefs.fam ?? true; }
+  if (info.guard) { $("guardrow").classList.remove("hidden"); $("guard").checked = prefs.guard ?? true; }
+}).catch(() => { $("who").textContent = "This link is missing its key. Scan the QR code again."; $("start").disabled = true; });
 
 function show(id) { for (const s of ["choose", "ready", "incall"]) $(s).classList.toggle("hidden", s !== id); }
-function setStatus(t) { $("status").textContent = t; }
+function setStatus(text) { $("status").textContent = text; }
 
 function chooseRole(r) {
   role = r;
   $("who").innerHTML = r === "receiver"
-    ? "<b>You are the person being protected.</b> If the caller sounds like a scammer, this phone will warn you."
+    ? "<b>This phone is protected.</b> If the caller sounds like a scammer, it warns you during the call, in your language."
     : r === "listener"
-    ? "<b>Put your phone call on speaker, next to this device.</b> This device listens and warns you out loud while the call is going on."
+    ? "<b>Put your phone call on speaker, next to this device.</b> It listens and warns you out loud while the call is going on."
     : "<b>You are the caller.</b> Read a simulated scam script. The other person will be warned; you will not hear it.";
   $("options").classList.toggle("hidden", !protectedRole());
   if (r === "listener") {
     $("guardtext").textContent = "✋ Warn me if I start saying an OTP or numbers";
     $("start").textContent = "🎧 Start listening";
   }
+  if (installPrompt && protectedRole()) $("install").classList.remove("hidden");
+  setManifest();
   show("ready");
 }
 
-if (role === "caller" || role === "receiver") chooseRole(role); else show("choose");
+if (role === "caller" || role === "receiver" || role === "listener") chooseRole(role); else show("choose");
 document.querySelectorAll("[data-role]").forEach((b) => b.onclick = () => chooseRole(b.dataset.role));
+
+function applyWords() {
+  const w = t();
+  document.documentElement.lang = protectedRole() ? lang.split("-")[0] : "en";
+  $("who2").textContent = role === "listener" ? w.speaker : role === "receiver" ? w.caller : "Simulated call";
+  $("hanglabel").textContent = role === "listener" ? w.stopListen : w.hang;
+  $("bannerbig").innerHTML = w.banner; $("bannerhang").textContent = w.hang; $("helpline").textContent = w.helpline;
+  $("stopbig").textContent = w.stop; $("stopcut").textContent = w.cut; $("stopok").textContent = w.ok; $("unmute").textContent = w.unmute;
+  $("watch").textContent = w.watch;
+  $("orbicon").textContent = protectedRole() ? "🛡️" : "📞";
+}
 
 $("start").onclick = async () => {
   $("start").disabled = true;
+  if (protectedRole()) stored("sentinel-prefs", JSON.stringify({ lang, fam: $("fam").checked, guard: $("guard").checked }));
   try {
     ctx = new (window.AudioContext || window.webkitAudioContext)();
     await ctx.resume();
@@ -185,29 +274,30 @@ $("start").onclick = async () => {
     player.connect(ctx.destination);
     try { wakeLock = await navigator.wakeLock?.request("screen"); } catch (_) {}
   } catch (e) {
-    alertBox("Could not start audio: " + e.message + ". Use Chrome or Safari and allow the microphone.");
+    $("who").textContent = "Could not start audio: " + e.message + ". Use Chrome or Safari and allow the microphone.";
     $("start").disabled = false;
     return;
   }
+  applyWords();
   show("incall");
   $("riskcard").classList.toggle("hidden", !protectedRole());
-  if (role === "listener") $("hang").textContent = "Stop listening (the call is over)";
+  if (protectedRole()) setRisk("low", 0);
   const proto = location.protocol === "https:" ? "wss" : "ws";
   const extra = protectedRole() ? `&lang=${lang}&family=${$("fam").checked ? 1 : 0}&guard=${$("guard").checked ? 1 : 0}` : "";
   ws = new WebSocket(`${proto}://${location.host}/ws/call?role=${role}&key=${encodeURIComponent(key)}${extra}`);
   ws.binaryType = "arraybuffer";
   capture.port.onmessage = (e) => { if (ws.readyState === 1 && startedAt) ws.send(e.data); };
   ws.onmessage = (e) => (typeof e.data === "string" ? onControl(JSON.parse(e.data)) : player.port.postMessage(e.data, [e.data]));
-  ws.onclose = () => { if (startedAt !== null) end("Call ended"); };
+  ws.onclose = () => { if (startedAt !== null) end(t().ended); };
 };
 
 function b64ToBuffer(b64) { const s = atob(b64); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u.buffer; }
 
 async function onControl(m) {
-  if (m.type === "waiting") setStatus(role === "receiver" ? "Waiting for the caller…" : role === "listener" ? "Starting…" : "Waiting for the other phone…");
+  if (m.type === "waiting") setStatus(role === "listener" ? "…" : role === "receiver" ? t().waiting : "Waiting for the other phone…");
   else if (m.type === "connected") {
     startedAt = Date.now();
-    setStatus(role === "receiver" ? "🛡️ Connected · protected" : role === "listener" ? "🛡️ Listening · keep the call on speaker near this device" : "Connected");
+    setStatus(role === "receiver" ? t().protected : role === "listener" ? t().listening : "Connected");
     if (protectedRole()) showWatch(m.guardians);
     timerId = setInterval(() => { const s = Math.floor((Date.now() - startedAt) / 1000); $("timer").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 500);
   } else if (m.type === "warnings") {
@@ -217,14 +307,14 @@ async function onControl(m) {
   else if (m.type === "guard") onGuard(m);
   else if (m.type === "alert") onAlert(m);
   else if (m.type === "error") alertBox(m.message);
-  else if (m.type === "ended") end("Call ended: " + m.reason);
+  else if (m.type === "ended") end(t().ended + ": " + m.reason);
 }
 
 function setRisk(level, score) {
-  const [color, text] = LEVEL[level];
-  $("dot").style.background = color; $("bar").style.background = color;
+  document.body.dataset.level = level;
+  document.documentElement.style.setProperty("--risk", COLOR[level]);
   $("bar").style.width = Math.min(100, score * 10) + "%";
-  $("risktext").textContent = text;
+  $("risktext").textContent = t()[level];
 }
 
 function showWatch(n) { if (protectedRole()) $("watch").classList.toggle("hidden", !n); }
@@ -258,23 +348,23 @@ function onAlert(m) {
   seen.caller = m.caller_said || seen.caller;
   const div = document.createElement("div");
   div.className = "a " + m.level;
-  div.textContent = (m.level === "high" ? "🔴 " : "🟠 ") + (m.scam_label ? m.scam_label + ": " : "") + m.message +
-    (m.voice ? `  (🧬 spoken in an ${m.voice})` : "");
+  div.textContent = (m.level === "high" ? "🔴 " : "🟠 ") + (m.scam_label ? m.scam_label + ": " : "") + m.message;
+  if (m.voice) { const s = document.createElement("small"); s.textContent = t().voice + m.voice; div.append(s); }
   $("alerts").prepend(div);
   navigator.vibrate?.(m.level === "high" ? [400, 150, 400, 150, 400] : [300]);
   if (m.level === "high") {
     $("bannermsg").textContent = m.message;
-    $("bannervoice").textContent = m.voice ? "🧬 Spoken in an " + m.voice : "";
+    $("bannervoice").textContent = m.voice ? t().voice + m.voice : "";
     $("bannertype").textContent = m.scam_label || "";
-    $("bannerfamily").textContent = m.family_told ? "👪 Your family has been told" : "";
+    $("bannerfamily").textContent = m.family_told ? t().told : "";
     $("banner").classList.add("show");
   }
   playWarning(m.level);
 }
 
-function alertBox(text) { const d = document.createElement("div"); d.className = "a medium"; d.textContent = text; $("alerts").prepend(d); $("riskcard").classList.remove("hidden"); setStatus(text); }
+function alertBox(text) { const d = document.createElement("div"); d.className = "a medium"; d.textContent = text; $("alerts").prepend(d); setStatus(text); }
 
-function hangup() { try { ws?.send(JSON.stringify({ type: "hangup" })); } catch (_) {} end("Call ended"); }
+function hangup() { try { ws?.send(JSON.stringify({ type: "hangup" })); } catch (_) {} end(t().ended); }
 $("hang").onclick = hangup;
 $("bannerhang").onclick = () => { $("banner").classList.remove("show"); hangup(); };
 
@@ -286,7 +376,7 @@ function end(text) {
   setStatus(text);
   $("hang").disabled = true;
   try { ws?.close(); } catch (_) {}
-  stream?.getTracks().forEach((t) => t.stop());
+  stream?.getTracks().forEach((tr) => tr.stop());
   wakeLock?.release?.();
   if (protectedRole() && (seen.worst !== "low" || seen.guard)) showAfter();
 }
@@ -326,18 +416,18 @@ const AFTER = {
 };
 
 function showAfter() {
-  const t = AFTER[lang.split("-")[0]] || AFTER.en;
+  const a = AFTER[lang.split("-")[0]] || AFTER.en;
   $("banner").classList.remove("show"); $("stop").classList.remove("show");
-  $("a-title").textContent = "⚠️ " + t.title;
+  $("a-title").textContent = "⚠️ " + a.title;
   $("a-type").textContent = seen.label;
-  $("a-q").textContent = t.q;
-  $("a-yes").textContent = t.yes; $("a-no").textContent = t.no;
-  $("a-copy").textContent = t.copy;
+  $("a-q").textContent = a.q;
+  $("a-yes").textContent = a.yes; $("a-no").textContent = a.no;
+  $("a-copy").textContent = a.copy;
   $("after").classList.remove("hidden");
   $("after").scrollIntoView({ behavior: "smooth" });
   const answer = (shared) => {
     seen.shared = shared;
-    const steps = shared ? t.yesSteps : t.noSteps;
+    const steps = shared ? a.yesSteps : a.noSteps;
     $("a-steps").className = "steps" + (shared ? " urgent" : "");
     $("a-steps").innerHTML = "";
     for (const [href, text] of steps) {
@@ -351,7 +441,7 @@ function showAfter() {
   $("a-yes").onclick = () => answer(true);
   $("a-no").onclick = () => answer(false);
   $("a-copy").onclick = async () => {
-    try { await navigator.clipboard.writeText(report()); $("a-note").textContent = t.copied; }
+    try { await navigator.clipboard.writeText(report()); $("a-note").textContent = a.copied; }
     catch (_) { try { await navigator.share({ text: report() }); } catch (_) { $("a-note").textContent = report(); } }
   };
 }

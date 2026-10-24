@@ -103,6 +103,20 @@ def test_pages_are_served(tmp_path):
     run(body, tmp_path)
 
 
+def test_phones_can_install_it_as_an_app(tmp_path):
+    async def body(http, fake, _):
+        assert (await http.get("/manifest.webmanifest?app=receiver&key=nope")).status == 403
+        assert (await http.get(f"/manifest.webmanifest?app=caller&key={KEY}")).status == 400
+        man = await (await http.get(f"/manifest.webmanifest?app=receiver&key={KEY}")).json(content_type=None)
+        assert man["start_url"] == f"/?role=receiver&key={KEY}" and man["display"] == "standalone"
+        guardian = await (await http.get(f"/manifest.webmanifest?app=guardian&key={KEY}")).json(content_type=None)
+        assert guardian["start_url"] == f"/guardian?key={KEY}" and guardian["name"] == "Family guardian"
+        for icon in man["icons"]:
+            res = await http.get(icon["src"])
+            assert res.status == 200 and res.content_type == "image/png"
+    run(body, tmp_path)
+
+
 def test_call_is_relayed_both_ways_and_only_the_receiver_is_warned(tmp_path, isolated_budget):
     async def body(http, fake, tts_calls):
         ops = await http.ws_connect(f"/ws/ops?key={KEY}")
