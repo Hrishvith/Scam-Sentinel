@@ -4,25 +4,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Operator view</title>
+<link rel="icon" href="/icons/favicon.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-  :root { --bg:#0f1115; --card:#1a1d24; --ink:#f3f3f1; --ink2:#b9b8b2; --muted:#898781; --good:#0ca30c; --warn:#fab219; --bad:#d03b3b; }
+  :root { --bg:#0b1416; --card:#16282b; --line:#24393c; --ink:#f2f5f4; --ink2:#a9bcb8; --muted:#7f948f; --good:#19b37d; --warn:#f5a524; --bad:#e5484d; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  body { margin:0; background:radial-gradient(120% 50% at 50% 0%, #15302f 0%, var(--bg) 60%) fixed, var(--bg); color:var(--ink); font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
   main { max-width:1100px; margin:0 auto; padding:20px 16px 40px; }
-  h1 { font-size:22px; margin:0 0 4px; } .sub { color:var(--ink2); margin:0 0 16px; font-size:14px; }
+  h1 { font-size:22px; margin:0 0 4px; display:flex; align-items:center; gap:10px; } h1 img { width:34px; height:34px; border-radius:9px; } .sub { color:var(--ink2); margin:0 0 16px; font-size:14px; }
   .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; }
-  .card { background:var(--card); border-radius:14px; padding:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; }
   h2 { font-size:15px; color:var(--ink2); margin:0 0 10px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
   .qr { background:#fff; padding:10px; border-radius:10px; width:max-content; margin:8px 0; }
   .link { font-size:12px; color:var(--muted); word-break:break-all; }
-  .peer { display:inline-block; padding:4px 10px; border-radius:20px; background:#2c2c2a; margin-right:6px; font-size:14px; }
+  .peer { display:inline-block; padding:4px 10px; border-radius:20px; background:#112023; margin-right:6px; font-size:14px; }
   .peer.on { background:#0d3d0d; color:#9be79b; }
   .light { display:flex; align-items:center; gap:12px; font-size:22px; font-weight:700; }
   .dot { width:28px; height:28px; border-radius:50%; background:var(--good); }
-  .meter { height:10px; background:#2c2c2a; border-radius:5px; overflow:hidden; margin:10px 0; }
+  .meter { height:10px; background:#112023; border-radius:5px; overflow:hidden; margin:10px 0; }
   .meter > div { height:100%; width:0; background:var(--good); transition:width .4s; }
-  #lines div { padding:6px 0; border-bottom:1px solid #2c2c2a; }
+  #lines div { padding:6px 0; border-bottom:1px solid var(--line); }
   #lines .t { color:var(--muted); font-variant-numeric:tabular-nums; margin-right:8px; }
   #lines .echo { color:var(--muted); font-style:italic; }
   .alert { border-radius:10px; padding:10px; margin:8px 0; } .alert.medium { background:#4a3a10; } .alert.high { background:#5a1d1d; }
@@ -33,7 +34,7 @@
 </head>
 <body>
 <main>
-  <h1>🛡️ Scam Sentinel · operator view</h1>
+  <h1><img src="/icons/icon-192.png" alt="">Scam Sentinel · operator view</h1>
   <p class="sub">What a telecom operator's protection system would see. Prototype: calls travel over the internet through this laptop. Simulated calls only.</p>
   <div class="grid">
     <div class="card">

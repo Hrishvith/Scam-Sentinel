@@ -109,6 +109,8 @@ class Relay:
         app.router.add_get("/operator", self.page("operator.html"))
         app.router.add_get("/guardian", self.page("guardian.html"))
         app.router.add_get("/pcm-worklet.js", self.page("pcm-worklet.js", "application/javascript"))
+        app.router.add_get("/manifest.webmanifest", self.manifest)
+        app.router.add_static("/icons", WEB / "icons")
         app.router.add_get("/info", self.info)
         app.router.add_get("/ws/call", self.call_ws)
         app.router.add_get("/ws/ops", self.ops_ws)
@@ -123,6 +125,24 @@ class Relay:
 
     def authorised(self, request: web.Request) -> bool:
         return secrets.compare_digest(request.query.get("key", ""), self.key)
+
+    async def manifest(self, request: web.Request) -> web.Response:
+        """Lets a phone add the page to its home screen as an app that opens straight into its role."""
+        if not self.authorised(request):
+            raise web.HTTPForbidden(text="bad key")
+        app = request.query.get("app", "receiver")
+        if app not in ("receiver", "listener", "guardian"):
+            raise web.HTTPBadRequest(text="app must be receiver, listener or guardian")
+        start = f"/guardian?key={self.key}" if app == "guardian" else f"/?role={app}&key={self.key}"
+        name = "Family guardian" if app == "guardian" else "Scam Sentinel"
+        icons = [{"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+                 {"src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+                 {"src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}]
+        body = {"name": name, "short_name": name, "start_url": start, "scope": "/", "id": f"/{app}",
+                "display": "standalone", "orientation": "portrait",
+                "background_color": "#0b1416", "theme_color": "#0b1416", "icons": icons}
+        return web.Response(text=json.dumps(body), content_type="application/manifest+json",
+                            headers={"Cache-Control": "no-store"})
 
     async def info(self, request: web.Request) -> web.Response:
         if not self.authorised(request):
