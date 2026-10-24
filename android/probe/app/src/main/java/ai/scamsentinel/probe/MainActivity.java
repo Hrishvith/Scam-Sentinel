@@ -18,7 +18,7 @@ import android.widget.TextView;
 
 import java.io.File;
 
-/** Three steps (microphone, draw over other apps, start), then the result of the call test. */
+/** Steps (microphone, draw over other apps, accessibility, start), then the result of the call test. */
 public class MainActivity extends Activity {
     private LinearLayout box;
     private TextView status, result;
@@ -34,7 +34,7 @@ public class MainActivity extends Activity {
         scroll.addView(box);
         setContentView(scroll);
 
-        text("Scam Sentinel · call test", 26, true);
+        text("Scam Sentinel · call test v2", 26, true);
         text("Finds out if this phone lets an app hear the other person during a normal call. "
                 + "Nothing is sent anywhere: the test recordings stay on this phone.", 16, false);
         status = text("", 17, true);
@@ -46,33 +46,43 @@ public class MainActivity extends Activity {
         });
         button("2. Allow \"draw over other apps\"", v -> startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:" + getPackageName()))));
-        button("3. Show the 🛡️ test button", v -> {
+        text("3. Turn on the accessibility service (Android only lets an accessibility service hear a call):\n"
+                + "   a) Tap \"Open accessibility settings\", find \"Scam Sentinel call test\" and switch it ON.\n"
+                + "   b) If Android says \"Restricted setting\": tap \"Open app info\", tap ⋮ (top right) → "
+                + "\"Allow restricted settings\", then do (a) again.", 15, false);
+        button("3a. Open accessibility settings", v -> startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
+        button("3b. Open app info (for restricted settings)", v -> startActivity(new Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()))));
+        button("4. Start the test (shows the 🛡️ button)", v -> {
             if (!ready()) { refresh(); return; }
             startForegroundService(new Intent(this, ProbeService.class));
-            status.setText("✅ The 🛡️ button is on screen. Now make the test call (below).");
+            status.setText(status.getText() + "\n✅ Ready. The 🛡️ button is on screen. Now make the test call.");
         });
         text("Then:\n• From ANOTHER phone, call this phone with the normal dialler and answer.\n"
                 + "• Turn on SPEAKER.\n• Tap 🛡️ Test this call (it floats over the call screen).\n"
                 + "• The other person talks for 20 seconds. You stay quiet.\n• After the call, open this app again.", 16, false);
         result = text("", 15, false);
         result.setTypeface(Typeface.MONOSPACE);
-        for (String name : ProbeService.NAMES) {
+        for (String name : CallTest.NAMES) {
             button("▶ Play what " + name + " heard", v -> play(new File(getFilesDir(), name + ".wav")));
         }
-        button("Stop the test button", v -> stopService(new Intent(this, ProbeService.class)));
+        button("Stop the test (remove the 🛡️ button)", v -> stopService(new Intent(this, ProbeService.class)));
+        text("When you are done testing, turn the accessibility service OFF again in Settings.", 14, false);
     }
 
     @Override protected void onResume() { super.onResume(); refresh(); }
 
     private boolean ready() {
         return checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-                && Settings.canDrawOverlays(this);
+                && (Settings.canDrawOverlays(this) || SentinelAccessibility.isOn());
     }
 
     private void refresh() {
         boolean mic = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
         boolean overlay = Settings.canDrawOverlays(this);
-        status.setText((mic ? "✅" : "⬜") + " Microphone allowed\n" + (overlay ? "✅" : "⬜") + " Draw over other apps allowed");
+        boolean a11y = SentinelAccessibility.isOn();
+        status.setText((mic ? "✅" : "⬜") + " Microphone allowed\n" + (overlay ? "✅" : "⬜") + " Draw over other apps allowed\n"
+                + (a11y ? "✅" : "⬜") + " Accessibility service ON");
         String report = getSharedPreferences("probe", MODE_PRIVATE).getString("report", "");
         result.setText(report.isEmpty() ? "No test yet." : "Last test:\n" + report);
     }

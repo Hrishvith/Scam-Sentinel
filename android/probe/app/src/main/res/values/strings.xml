@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="a11y_description">Scam Sentinel call test. Lets the app hear a phone call on speaker during the test, so it can check whether scam detection works on this phone. It does not read your screen. Turn it off after testing.</string>
+</resources>
