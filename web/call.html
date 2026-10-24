@@ -101,6 +101,21 @@
                border-radius:16px; padding:14px; margin:10px 0; font-weight:600; }
   .role[data-role=receiver] { border:3px solid var(--good) !important; }
   .role[data-role=receiver] .i { background:var(--good) !important; }
+  /* home: big vertical tiles, like an app screen (icon on top, words below) */
+  .tiles { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px; }
+  .tile { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:8px;
+          min-height:180px; margin:0; padding:18px 10px; width:auto; font:inherit; cursor:pointer; text-decoration:none;
+          background:var(--card); color:var(--ink); border:2px solid var(--line); border-radius:22px;
+          box-shadow:0 3px 12px -6px rgba(23,32,30,.3); transition:transform .1s; }
+  .tile:active { transform:scale(.97); }
+  .tile .ti { font-size:46px; width:82px; height:82px; display:grid; place-items:center; background:#e6f0ec; border-radius:24px; }
+  .tile .tt { font-size:20px; font-weight:800; line-height:1.25; }
+  .tile .ts { font-size:15px; color:var(--ink2); line-height:1.35; font-weight:400; }
+  .tile.big { grid-column:1 / -1; min-height:220px; border:3px solid var(--good); }
+  .tile.big .ti { width:104px; height:104px; font-size:60px; background:var(--good); }
+  .tile.big .tt { font-size:25px; }
+  .tile.sos { background:#fdecec; border-color:var(--bad); }
+  .tile.sos .ti { background:var(--bad); }
   .role.demo { margin-top:22px; border-style:dashed !important; box-shadow:none !important; }
   #install { background:var(--bg2); border:1px dashed var(--line); color:var(--ink); font-size:16px; padding:12px; }
 </style>
@@ -112,10 +127,13 @@
 
   <section id="choose" class="hidden">
     <h2 data-w="choose"></h2>
-    <button class="role" data-role="receiver"><span class="i">🛡️</span><span><span data-w="rProtect"></span><small data-w="rProtectS"></small></span></button>
-    <button class="role" data-role="listener"><span class="i">🔊</span><span><span data-w="rListen"></span><small data-w="rListenS"></small></span></button>
-    <a class="practice" id="practice1" href="#" data-w="practice"></a>
-    <a class="practice" id="scams1" href="#" data-w="scams"></a>
+    <div class="tiles">
+      <button class="tile big" data-role="receiver"><span class="ti">🛡️</span><span class="tt" data-w="rProtect"></span><span class="ts" data-w="rProtectS"></span></button>
+      <button class="tile" data-role="listener"><span class="ti">🔊</span><span class="tt" data-w="listenT"></span><span class="ts" data-w="rListenS"></span></button>
+      <a class="tile" id="practice1" href="#"><span class="ti">🎓</span><span class="tt" data-w="practiceT"></span><span class="ts" data-w="practiceS"></span></a>
+      <a class="tile" id="scams1" href="#"><span class="ti">📰</span><span class="tt" data-w="scamsT"></span><span class="ts" data-w="scamsS"></span></a>
+      <button class="tile sos" id="sos1" type="button"><span class="ti">🆘</span><span class="tt" data-w="sosT"></span><span class="ts" data-w="sosS"></span></button>
+    </div>
     <button class="role demo" data-role="caller"><span class="i">🎭</span><span><span data-w="rCaller"></span><small data-w="rCallerS"></small></span></button>
   </section>
 
@@ -240,6 +258,7 @@ $("install").onclick = async () => { if (!installPrompt) return; installPrompt.p
 
 for (const id of ["practice1", "practice2"]) $(id).href = `/practice?key=${encodeURIComponent(key)}`;
 $("scams1").href = `/scams?key=${encodeURIComponent(key)}`;
+$("sos1").onclick = () => window.Sentinel?.openHelp();
 $("cname").value = prefs.cname || ""; $("cnum").value = prefs.cnum || "";
 
 // Home and setup screens, in the language chosen for the whole site (REVIEW kn/hi with native speakers)
@@ -247,6 +266,8 @@ const HOME = {
   en: { choose: "Which phone is this?", rProtect: "Protect this phone", rProtectS: "For the person who might get a scam call",
         rCaller: "Demo: play the scammer", rCallerS: "Only to show how it works, from a second phone", rListen: "Listen to a real call on speaker",
         rListenS: "Put this phone next to the other phone", practice: "🎓 Practise spotting scam calls",
+        listenT: "Listen to a call on speaker", practiceT: "Practice", practiceS: "Learn to spot scam calls",
+        scamsT: "Real scams", scamsS: "How they work, what to do", sosT: "I was cheated", sosS: "What to do now",
         scams: "📰 Real scams: how they work, what to do",
         whoReceiver: "This phone is protected. If a caller sounds like a scammer, it warns you during the call, in your language.",
         whoListener: "Put your phone call on speaker, next to this phone. It listens and warns you out loud during the call.",
@@ -263,6 +284,8 @@ const HOME = {
   kn: { choose: "ಇದು ಯಾರ ಫೋನ್?", rProtect: "ಈ ಫೋನ್ ರಕ್ಷಿಸಿ", rProtectS: "ಮೋಸದ ಕರೆ ಬರಬಹುದಾದವರಿಗೆ",
         rCaller: "ಡೆಮೊ: ಮೋಸಗಾರನ ಪಾತ್ರ", rCallerS: "ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ ಎಂದು ತೋರಿಸಲು ಮಾತ್ರ, ಇನ್ನೊಂದು ಫೋನಿನಿಂದ", rListen: "ಸ್ಪೀಕರ್‌ನಲ್ಲಿರುವ ನಿಜವಾದ ಕರೆ ಕೇಳಿ",
         rListenS: "ಈ ಫೋನನ್ನು ಇನ್ನೊಂದು ಫೋನಿನ ಪಕ್ಕ ಇಡಿ", practice: "🎓 ಮೋಸದ ಕರೆ ಗುರುತಿಸುವ ಅಭ್ಯಾಸ",
+        listenT: "ಸ್ಪೀಕರ್‌ನಲ್ಲಿರುವ ಕರೆ ಕೇಳಿ", practiceT: "ಅಭ್ಯಾಸ", practiceS: "ಮೋಸದ ಕರೆ ಗುರುತಿಸಲು ಕಲಿಯಿರಿ",
+        scamsT: "ನಿಜವಾದ ಮೋಸಗಳು", scamsS: "ಹೇಗೆ ನಡೆಯುತ್ತವೆ, ಏನು ಮಾಡಬೇಕು", sosT: "ನನಗೆ ಮೋಸ ಆಯಿತು", sosS: "ಈಗ ಏನು ಮಾಡಬೇಕು",
         scams: "📰 ನಿಜವಾದ ಮೋಸಗಳು: ಹೇಗೆ ನಡೆಯುತ್ತವೆ, ಏನು ಮಾಡಬೇಕು",
         whoReceiver: "ಈ ಫೋನ್ ರಕ್ಷಣೆಯಲ್ಲಿದೆ. ಕರೆ ಮಾಡಿದವರು ಮೋಸಗಾರರಂತೆ ಕಂಡರೆ, ಕರೆಯ ಸಮಯದಲ್ಲೇ ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಎಚ್ಚರಿಸುತ್ತದೆ.",
         whoListener: "ನಿಮ್ಮ ಕರೆಯನ್ನು ಸ್ಪೀಕರ್‌ನಲ್ಲಿ ಇಟ್ಟು ಈ ಫೋನಿನ ಪಕ್ಕ ಇಡಿ. ಕರೆಯ ಸಮಯದಲ್ಲೇ ಕೇಳಿ ಜೋರಾಗಿ ಎಚ್ಚರಿಸುತ್ತದೆ.",
@@ -279,6 +302,8 @@ const HOME = {
   hi: { choose: "यह किसका फ़ोन है?", rProtect: "इस फ़ोन को सुरक्षित करें", rProtectS: "जिसे धोखे की कॉल आ सकती है, उसके लिए",
         rCaller: "डेमो: धोखेबाज़ का किरदार", rCallerS: "सिर्फ़ यह दिखाने के लिए कि यह कैसे काम करता है, दूसरे फ़ोन से", rListen: "स्पीकर पर चल रही असली कॉल सुनें",
         rListenS: "इस फ़ोन को दूसरे फ़ोन के पास रखें", practice: "🎓 धोखे की कॉल पहचानने का अभ्यास",
+        listenT: "स्पीकर पर कॉल सुनें", practiceT: "अभ्यास", practiceS: "धोखे की कॉल पहचानना सीखें",
+        scamsT: "असली धोखे", scamsS: "कैसे होते हैं, क्या करें", sosT: "मेरे साथ धोखा हुआ", sosS: "अब क्या करें",
         scams: "📰 असली धोखे: कैसे होते हैं, क्या करें",
         whoReceiver: "यह फ़ोन सुरक्षित है। कॉल करने वाला धोखेबाज़ लगे, तो कॉल के दौरान ही आपकी भाषा में चेतावनी देता है।",
         whoListener: "अपनी कॉल स्पीकर पर रखें और इस फ़ोन के पास रखें। कॉल के दौरान ही सुनकर ज़ोर से चेतावनी देता है।",
