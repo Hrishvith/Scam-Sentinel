@@ -56,6 +56,47 @@ GUARD_WARNINGS = {
 }
 
 
+# One line of advice per scam type, shown on the red warning screen. REVIEW with native speakers.
+SCAM_TIPS = {
+    "family_emergency": {
+        "kn": "ಪೊಲೀಸರು ಯಾರನ್ನೂ ಬಿಡಿಸಲು ಹಣ ಕೇಳುವುದಿಲ್ಲ. ಕರೆ ಕಟ್ ಮಾಡಿ, ನಿಮ್ಮ ಮನೆಯವರಿಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ.",
+        "hi": "पुलिस किसी को छोड़ने के लिए पैसे नहीं मांगती। कॉल काटें और अपने घरवाले को खुद फ़ोन करें।",
+        "en": "Police never ask for money to release anyone. Hang up and call your family member yourself."},
+    "digital_arrest": {
+        "kn": "'ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್' ಎಂಬುದೇ ಇಲ್ಲ. ನಿಜವಾದ ಪೊಲೀಸರು ಫೋನಿನಲ್ಲಿ ಹಣ ಕೇಳುವುದಿಲ್ಲ.",
+        "hi": "'डिजिटल अरेस्ट' जैसा कुछ नहीं होता। असली पुलिस फ़ोन पर पैसे नहीं मांगती।",
+        "en": "There is no such thing as a 'digital arrest'. Real police never ask for money on the phone."},
+    "remote_access": {
+        "kn": "ಯಾರು ಹೇಳಿದರೂ ಆ್ಯಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಬೇಡಿ. ಅದರಿಂದ ಅವರು ನಿಮ್ಮ ಫೋನನ್ನು ನಿಯಂತ್ರಿಸುತ್ತಾರೆ.",
+        "hi": "किसी के कहने पर कोई ऐप इंस्टॉल न करें। इससे वे आपका फ़ोन चला सकते हैं।",
+        "en": "Never install an app because a caller asks. It lets them control your phone."},
+    "courier": {
+        "kn": "ಕೊರಿಯರ್ ಕಂಪನಿಗಳು ಮತ್ತು ಕಸ್ಟಮ್ಸ್ ಫೋನಿನಲ್ಲಿ ದಂಡ ಕೇಳುವುದಿಲ್ಲ.",
+        "hi": "कूरियर कंपनी या कस्टम्स फ़ोन पर जुर्माना नहीं मांगते।",
+        "en": "Courier companies and customs never collect fines over the phone."},
+    "kyc_bank": {
+        "kn": "ಬ್ಯಾಂಕ್ ಎಂದಿಗೂ ಒಟಿಪಿ ಅಥವಾ ಪಿನ್ ಕೇಳುವುದಿಲ್ಲ. ಕಾರ್ಡ್ ಹಿಂದಿರುವ ಸಂಖ್ಯೆಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ.",
+        "hi": "बैंक कभी ओटीपी या पिन नहीं मांगता। कार्ड के पीछे लिखे नंबर पर खुद कॉल करें।",
+        "en": "Your bank never asks for an OTP or PIN. Call the number on the back of your card yourself."},
+    "prize": {
+        "kn": "ಬಹುಮಾನ ಪಡೆಯಲು ಹಣ ಕಟ್ಟಬೇಕಾಗಿಲ್ಲ. ಇದು ಮೋಸ.",
+        "hi": "इनाम पाने के लिए पैसे नहीं देने पड़ते। यह धोखा है।",
+        "en": "You never have to pay to receive a prize. This is a scam."},
+    "otp_theft": {
+        "kn": "ಒಟಿಪಿ ನಿಮಗೆ ಮಾತ್ರ. ಯಾರಿಗೂ ಹೇಳಬೇಡಿ.",
+        "hi": "ओटीपी सिर्फ़ आपके लिए है। किसी को न बताएं।",
+        "en": "An OTP is only for you. Never tell it to anyone."},
+    "money": {
+        "kn": "ಫೋನಿನಲ್ಲಿ ಒತ್ತಡ ಹಾಕಿ ಹಣ ಕೇಳಿದರೆ, ಮೊದಲು ಕರೆ ಕಟ್ ಮಾಡಿ, ಮನೆಯವರನ್ನು ಕೇಳಿ.",
+        "hi": "फ़ोन पर दबाव डालकर पैसे मांगे जाएँ तो पहले कॉल काटें, घरवालों से पूछें।",
+        "en": "If someone pressures you for money on a call, hang up first and ask your family."},
+    None: {
+        "kn": "ಅನುಮಾನ ಬಂದರೆ ಕರೆ ಕಟ್ ಮಾಡಿ. ನಿಜವಾದ ಸಂಸ್ಥೆಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ.",
+        "hi": "शक हो तो कॉल काटें और असली संस्था को खुद फ़ोन करें।",
+        "en": "If in doubt, hang up and call the real organisation yourself."},
+}
+
+
 def lang_key(lang_code: str) -> str:
     return lang_code.split("-")[0] if lang_code.split("-")[0] in T else "en"
 
@@ -76,3 +117,15 @@ def scam_label(lang_code: str, kind: str | None) -> str:
     """Name of the scam type in the listener's language ("Fake police / digital arrest")."""
     lang = lang_key(lang_code)
     return SCAM_TYPES[kind]["labels"][lang] if kind in SCAM_TYPES else SUSPICIOUS[lang]
+
+
+def scam_tip(lang_code: str, kind: str | None) -> str:
+    """One line of advice for this kind of scam ("Police never ask for money to release anyone")."""
+    return SCAM_TIPS.get(kind, SCAM_TIPS[None])[lang_key(lang_code)]
+
+
+def tricks(lang_code: str, tactics) -> list[dict]:
+    """Tactics spotted so far, heaviest first, as {id, label} for the live chips on the phone."""
+    lang = lang_key(lang_code)
+    ranked = sorted(tactics, key=lambda n: -TACTICS[n]["weight"])
+    return [{"id": n, "label": TACTICS[n]["labels"][lang]} for n in ranked]

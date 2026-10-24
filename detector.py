@@ -60,6 +60,28 @@ def _otp_requests(plain: str) -> list[str]:
     return hits
 
 
+ADVICE_NEAR = 40  # characters between an OTP/PIN word and the "tell nobody" that follows it
+_ABOUT_CALL = re.compile(r"ಕರೆ|ವಿಷಯ|ಲೈನ್|कॉल|बात|बारे|लाइन|call|matter|line|this")
+
+
+def _secrecy_is_otp_advice(plain: str) -> bool:
+    """"Tell nobody your OTP" (ಒಟಿಪಿ ಯಾರಿಗೂ ಹೇಳಬೇಡಿ) in a safety message is advice, not "keep this call secret".
+
+    True only when the text has a safety phrase and every secrecy match comes just after an OTP/PIN word."""
+    if not any(rx.search(plain) for rx in _SAFETY):
+        return False
+    ends = [m.end() for _, rx in _PATTERNS["credentials"] for m in rx.finditer(plain)]
+    spans = [m.span() for _, rx in _PATTERNS["secrecy"] for m in rx.finditer(plain)]
+    if not spans:
+        return False
+    for s, e in spans:
+        if _ABOUT_CALL.search(plain[max(0, s - 20):e + 20]):    # Kannada says it before, English after
+            return False      # "don't tell anyone about this call / this matter" is real secrecy
+        if not any(0 <= s - end <= ADVICE_NEAR for end in ends):
+            return False
+    return True
+
+
 _TYPE_WORDS = {name: [_compile(w) for w in spec.get("words", [])] for name, spec in SCAM_TYPES.items()}
 
 
@@ -110,6 +132,9 @@ def detect_rules(text: str) -> Detection:
         found["otp_request"] = asked
 
     notes: list[str] = []
+    if "secrecy" in found and "otp_request" not in found and _secrecy_is_otp_advice(plain):
+        del found["secrecy"]
+        notes.append("\"Tell nobody\" was about the OTP itself (safety advice), so it was not counted as secrecy.")
     weights = {name: TACTICS[name]["weight"] for name in found}
     # An OTP mention is only discounted when nothing else escalates (scammers also say "don't share"),
     # and a direct "tell me the OTP" is never excused by an earlier "don't share".
@@ -123,7 +148,7 @@ def detect_rules(text: str) -> Detection:
         weights["credentials"] *= 0.3
         if "otp_request" in weights:
             weights["otp_request"] = 0.0     # asking for the delivery OTP is the normal hand-over
-        for name in ("authority", "lure"):   # safety messages name RBI, the bank and KYC too
+        for name in ("authority", "lure", "secrecy"):   # safety messages name RBI and the bank, and say "tell no one"
             if name in weights:
                 weights[name] *= 0.5
         notes.append(context)

@@ -45,9 +45,9 @@ from pathlib import Path
 
 from aiohttp import WSMsgType, web
 
-from alerts import GUARD_WARNINGS, HELPLINE, lang_key, scam_label, top_reasons
+from alerts import GUARD_WARNINGS, HELPLINE, lang_key, scam_label, scam_tip, top_reasons, tricks
 from budget import Budget
-from detector import Detection
+from detector import Detection, detect_rules
 from family_voice import load_profile
 from gnani_client import BudgetExceeded, GnaniClient
 from live import FRAME_BYTES, SESSIONS_DIR, WS_URL, AlertPlayer, LiveEvent, LiveSession
@@ -108,6 +108,9 @@ class Relay:
         app.router.add_get("/", self.page("call.html"))
         app.router.add_get("/operator", self.page("operator.html"))
         app.router.add_get("/guardian", self.page("guardian.html"))
+        app.router.add_get("/practice", self.page("practice.html"))
+        app.router.add_get("/practice.json", self.page("practice.json", "application/json"))
+        app.router.add_post("/api/check", self.check)
         app.router.add_get("/pcm-worklet.js", self.page("pcm-worklet.js", "application/javascript"))
         app.router.add_get("/manifest.webmanifest", self.manifest)
         app.router.add_static("/icons", WEB / "icons")
@@ -143,6 +146,22 @@ class Relay:
                 "background_color": "#0b1416", "theme_color": "#0b1416", "icons": icons}
         return web.Response(text=json.dumps(body), content_type="application/manifest+json",
                             headers={"Cache-Control": "no-store"})
+
+    async def check(self, request: web.Request) -> web.Response:
+        """Practice page: score typed words with the offline rule detector. Free: no Gnani call, nothing saved."""
+        if not self.authorised(request):
+            raise web.HTTPForbidden(text="bad key")
+        try:
+            body = await request.json()
+        except (ValueError, UnicodeDecodeError):
+            raise web.HTTPBadRequest(text="send JSON: {text, lang}")
+        text, lang = str(body.get("text", ""))[:2000], str(body.get("lang", "en-IN"))
+        lang = lang if lang in LANGS else "en-IN"
+        det = detect_rules(text)
+        return web.json_response({"level": det.level, "score": round(det.score, 1), "scam_type": det.scam_type,
+                                  "scam_label": scam_label(lang, det.scam_type) if det.tactics else None,
+                                  "tip": scam_tip(lang, det.scam_type) if det.level != "low" else None,
+                                  "tricks": tricks(lang, det.tactics)})
 
     async def info(self, request: web.Request) -> web.Response:
         if not self.authorised(request):
@@ -283,13 +302,14 @@ class Relay:
                     await self.forward_guard(call, LiveEvent("guard", {"at": e.data["at"], "digits": total}))
         if e.kind == "alert":
             msg["family_told"] = bool(self.guardians)
+            msg["tip"] = scam_tip(call.lang, e.data.get("scam_type"))
             msg["scam_label_en"] = scam_label("en-IN", e.data.get("scam_type"))
             msg["caller_said"] = call.caller_lines
             await self.broadcast(self.guardians, {
                 "type": "alert", "level": e.data["level"], "at": e.data["at"], "lang": call.lang,
                 "scam_type": e.data.get("scam_type"), "scam_label": scam_label("en-IN", e.data.get("scam_type")),
                 "reasons": top_reasons("en-IN", Detection(tactics={t: [] for t in e.data.get("tactics", [])})),
-                "caller_said": call.caller_lines})
+                "tip": scam_tip("en-IN", e.data.get("scam_type")), "caller_said": call.caller_lines})
         elif e.kind == "done":
             await self.broadcast(self.guardians, {"type": "done", "level": e.data["level"],
                                                   "seconds": e.data["seconds_streamed"]})
@@ -301,7 +321,8 @@ class Relay:
         if e.kind == "alert":                 # only the protected person hears and sees the warning
             await self.safe_send(receiver, msg)
         elif e.kind == "transcript" and not e.data.get("echo"):
-            await self.safe_send(receiver, {"type": "risk", "level": e.data["level"], "score": e.data["score"]})
+            await self.safe_send(receiver, {"type": "risk", "level": e.data["level"], "score": e.data["score"],
+                                            "tricks": tricks(call.lang, e.data.get("tactics", []))})
 
     async def forward_guard(self, call: Call, e: LiveEvent) -> None:
         """Events from the OTP guard. The protected person's words are never forwarded, only digit counts."""
