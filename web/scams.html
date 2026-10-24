@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1416">
+<link rel="icon" href="/icons/favicon.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<title>Real scams</title>
+<style>
+  :root { --bg:#0b1416; --bg2:#112023; --card:#16282b; --line:#24393c; --ink:#f2f5f4; --ink2:#a9bcb8;
+          --good:#19b37d; --warn:#f5a524; --bad:#e5484d; --accent:#3b8cf0; --risk:var(--good); }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:radial-gradient(120% 60% at 50% 0%, #15302f 0%, var(--bg) 60%) fixed, var(--bg); color:var(--ink);
+         font:17px/1.5 system-ui,-apple-system,"Segoe UI","Noto Sans Kannada","Noto Sans Devanagari",sans-serif; }
+  main { max-width:640px; margin:0 auto; padding:max(14px, env(safe-area-inset-top)) 16px 40px; }
+  header { display:flex; align-items:center; gap:10px; padding:4px 0 10px; }
+  header img { width:36px; height:36px; border-radius:9px; } header b { font-size:19px; }
+  .pill { margin-left:auto; font-size:12px; color:var(--ink2); border:1px solid var(--line); border-radius:20px; padding:3px 9px; white-space:nowrap; }
+  h1 { font-size:26px; margin:6px 0 2px; } .sub { color:var(--ink2); margin:0 0 12px; font-size:16px; }
+  .hidden { display:none !important; }
+  button { font:inherit; border:0; border-radius:14px; color:#fff; cursor:pointer; }
+  a { color:#8fc3ff; }
+  .seg { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:8px 0 14px; }
+  .seg button { padding:10px 4px; background:var(--bg2); border:1px solid var(--line); }
+  .seg button.on { background:var(--accent); border-color:var(--accent); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:10px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:14px; }
+  .stat .v { font-size:24px; font-weight:900; color:#ff8a8d; line-height:1.15; }
+  .stat .d { font-size:14px; color:var(--ink); margin-top:4px; } .stat a { font-size:12px; }
+  .tools { display:flex; gap:8px; margin:16px 0 8px; }
+  .tools input { flex:1; min-width:0; padding:12px 14px; font:inherit; border-radius:14px; border:1px solid var(--line); background:var(--bg2); color:var(--ink); }
+  .filters { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; scrollbar-width:none; }
+  .filters button { flex:none; padding:8px 12px; font-size:15px; background:var(--bg2); border:1px solid var(--line); border-radius:20px; color:var(--ink); }
+  .filters button.on { background:var(--ink); color:var(--bg); }
+  .scam { background:var(--card); border:1px solid var(--line); border-radius:20px; margin:12px 0; overflow:hidden; }
+  .scam > button.head { width:100%; display:flex; gap:12px; align-items:center; text-align:left; background:none; padding:16px; color:var(--ink); }
+  .scam .i { font-size:28px; width:46px; height:46px; display:grid; place-items:center; background:var(--bg2); border-radius:14px; flex:none; }
+  .scam .t { font-weight:800; font-size:18px; line-height:1.3; } .scam .n { color:var(--ink2); font-size:13px; font-weight:400; }
+  .scam .chev { margin-left:auto; color:var(--ink2); transition:transform .25s; } .scam.open .chev { transform:rotate(180deg); }
+  .body { padding:0 16px 16px; display:none; } .scam.open .body { display:block; animation:fade .25s ease-out; }
+  @keyframes fade { from { opacity:0; transform:translateY(-4px); } }
+  h3 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink2); margin:16px 0 6px; }
+  .case { border-left:3px solid #ff8a8d; padding:4px 0 4px 12px; margin:8px 0; font-size:16px; }
+  .case a { font-size:13px; white-space:nowrap; }
+  ul.do { margin:0; padding:0; list-style:none; } ul.do li { background:var(--bg2); border-radius:12px; padding:10px 12px; margin:6px 0; }
+  ul.do li::before { content:"✅ "; }
+  .play { width:100%; padding:14px; margin-top:14px; background:var(--accent); font-weight:700; font-size:17px; }
+  .sim { margin-top:12px; background:var(--bg2); border:1px solid var(--line); border-radius:16px; padding:12px; }
+  .bubble { background:#26383b; border-radius:16px 16px 16px 4px; padding:10px 12px; margin:6px 40px 6px 0; font-size:16px; animation:fade .3s ease-out; }
+  .bubble small { display:block; color:var(--ink2); font-size:12px; }
+  .gauge { height:10px; background:#0b1416; border-radius:5px; overflow:hidden; margin:12px 0 8px; }
+  .gauge div { height:100%; width:0; background:var(--risk); transition:width .5s, background .5s; }
+  .lvl { font-weight:800; color:var(--risk); } .label { font-weight:600; }
+  .tricks { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+  .trick { font-size:14px; padding:6px 11px; border-radius:20px; background:color-mix(in srgb, var(--risk) 22%, var(--card));
+           border:1px solid color-mix(in srgb, var(--risk) 60%, transparent); animation:chip .45s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes chip { from { transform:scale(.4); opacity:0; } }
+  .tip { background:color-mix(in srgb, var(--risk) 18%, var(--card)); border-radius:12px; padding:10px 12px; font-weight:700; animation:fade .3s; }
+  .note { color:var(--ink2); font-size:13px; }
+  .links { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:18px; }
+  .links a { display:block; text-align:center; text-decoration:none; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+  <header><img src="/icons/icon-192.png" alt=""><b>Scam Sentinel</b><span class="pill">From real news reports</span></header>
+  <h1 id="title"></h1>
+  <p class="sub" id="sub"></p>
+  <div class="seg" id="langs"></div>
+  <div class="stats" id="stats"></div>
+  <div class="tools"><input id="q" type="search" autocomplete="off"></div>
+  <div class="filters" id="filters"></div>
+  <p class="note hidden" id="ennote"></p>
+  <div id="list"></div>
+  <p class="note hidden" id="none"></p>
+  <div class="links"><a id="l-practice" href="#"></a><a id="l-home" href="#"></a></div>
+  <p class="note" id="foot"></p>
+</main>
+
+<script>
+const key = new URLSearchParams(location.search).get("key") || "";
+const $ = (id) => document.getElementById(id);
+const ICON = { authority: "👮", threat: "⚠️", urgency: "⏰", secrecy: "🤫", credentials: "🔑", otp_request: "🔢",
+               payment: "💸", remote_access: "📲", lure: "🎁" };
+const COLOR = { low: "var(--good)", medium: "var(--warn)", high: "var(--bad)" };
+const LANGS = { kn: "ಕನ್ನಡ", hi: "हिन्दी", en: "English" };
+// REVIEW kn/hi with native speakers
+const UI = {
+  en: { title: "📰 Real scams in India", sub: "These tricks have taken real people's savings. Learn how each one works, so you can stop it.",
+        search: "Search: police, parcel, OTP…", all: "All", how: "How it works", cases: "Real cases", do: "What to do",
+        play: "▶ Watch Scam Sentinel catch it", replay: "↻ Watch again", caller: "Caller (re-enacted)", n: (k) => `${k} reported cases`,
+        low: "Safe so far", medium: "Suspicious", high: "Likely scam", none: "No scam matches that search.", source: "source",
+        ennote: "", practice: "🎓 Practise spotting scams", home: "🛡️ Protected line",
+        foot: "Short summaries of public news reports and government figures; amounts as reported, victims never named. The calls you can watch are re-enactments. Lost money? Call 1930 within the first hour, or report at cybercrime.gov.in." },
+  kn: { title: "📰 ಭಾರತದಲ್ಲಿ ನಡೆದ ನಿಜವಾದ ಮೋಸಗಳು", sub: "ಈ ತಂತ್ರಗಳಿಂದ ನಿಜವಾದ ಜನರು ತಮ್ಮ ಉಳಿತಾಯ ಕಳೆದುಕೊಂಡಿದ್ದಾರೆ. ಪ್ರತಿಯೊಂದು ಹೇಗೆ ನಡೆಯುತ್ತದೆ ಎಂದು ತಿಳಿಯಿರಿ.",
+        search: "ಹುಡುಕಿ: police, parcel, OTP…", all: "ಎಲ್ಲಾ", how: "ಹೇಗೆ ನಡೆಯುತ್ತದೆ", cases: "ನಿಜವಾದ ಪ್ರಕರಣಗಳು", do: "ಏನು ಮಾಡಬೇಕು",
+        play: "▶ ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ಹೇಗೆ ಹಿಡಿಯುತ್ತದೆ ನೋಡಿ", replay: "↻ ಮತ್ತೆ ನೋಡಿ", caller: "ಕರೆ ಮಾಡಿದವರು (ಮರುಸೃಷ್ಟಿ)", n: (k) => `${k} ವರದಿಯಾದ ಪ್ರಕರಣಗಳು`,
+        low: "ಸದ್ಯಕ್ಕೆ ಸುರಕ್ಷಿತ", medium: "ಅನುಮಾನಾಸ್ಪದ", high: "ಮೋಸದ ಕರೆ ಇರಬಹುದು", none: "ಈ ಹುಡುಕಾಟಕ್ಕೆ ಯಾವ ಮೋಸವೂ ಸಿಗಲಿಲ್ಲ.", source: "ಮೂಲ",
+        ennote: "ಪ್ರಕರಣಗಳ ವಿವರ ಇಂಗ್ಲಿಷ್ ಸುದ್ದಿ ವರದಿಗಳಿಂದ ತೆಗೆದುಕೊಂಡಿದೆ.", practice: "🎓 ಮೋಸದ ಕರೆ ಗುರುತಿಸುವ ಅಭ್ಯಾಸ", home: "🛡️ ಸುರಕ್ಷಿತ ಕರೆ",
+        foot: "ಸಾರ್ವಜನಿಕ ಸುದ್ದಿ ವರದಿಗಳು ಮತ್ತು ಸರ್ಕಾರಿ ಅಂಕಿಅಂಶಗಳ ಸಂಕ್ಷಿಪ್ತ ಸಾರ; ಸಂತ್ರಸ್ತರ ಹೆಸರು ಹಾಕಿಲ್ಲ. ನೋಡುವ ಕರೆಗಳು ಮರುಸೃಷ್ಟಿ. ಹಣ ಹೋದರೆ ಮೊದಲ ಒಂದು ಗಂಟೆಯೊಳಗೆ 1930 ಗೆ ಕರೆ ಮಾಡಿ, ಅಥವಾ cybercrime.gov.in ನಲ್ಲಿ ದೂರು ನೀಡಿ." },
+  hi: { title: "📰 भारत में हुई असली धोखाधड़ी", sub: "इन चालों से असली लोगों की जमा-पूँजी गई है। जानिए हर चाल कैसे चलती है, ताकि आप उसे रोक सकें।",
+        search: "खोजें: police, parcel, OTP…", all: "सभी", how: "यह कैसे होता है", cases: "असली मामले", do: "क्या करें",
+        play: "▶ देखें स्कैम सेंटिनल इसे कैसे पकड़ता है", replay: "↻ फिर से देखें", caller: "कॉल करने वाला (दोबारा बनाया गया)", n: (k) => `${k} दर्ज मामले`,
+        low: "अभी तक सुरक्षित", medium: "संदिग्ध", high: "धोखाधड़ी कॉल हो सकती है", none: "इस खोज से कोई धोखाधड़ी नहीं मिली।", source: "स्रोत",
+        ennote: "मामलों का विवरण अंग्रेज़ी समाचार रिपोर्टों से लिया गया है।", practice: "🎓 धोखे की कॉल पहचानने का अभ्यास", home: "🛡️ सुरक्षित कॉल",
+        foot: "सार्वजनिक समाचार रिपोर्टों और सरकारी आँकड़ों का छोटा सार; पीड़ितों के नाम नहीं दिए गए। दिखाई गई कॉल दोबारा बनाई गई हैं। पैसे गए हों तो पहले एक घंटे में 1930 पर कॉल करें, या cybercrime.gov.in पर शिकायत करें।" },
+};
+let lang = "kn", data = null, filter = "all";
+const t = () => UI[lang];
+function stored(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (_) { return null; } }
+lang = stored("sentinel-practice-lang") || (JSON.parse(stored("sentinel-prefs") || "{}").lang || "kn-IN").split("-")[0];
+if (!UI[lang]) lang = "kn";
+const k = encodeURIComponent(key);
+$("l-practice").href = `/practice?key=${k}`; $("l-home").href = `/?key=${k}`;
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+function link(url, label) { const a = el("a", "", label); a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer"; return a; }
+
+async function check(text) {
+  const r = await fetch(`/api/check?key=${k}`, { method: "POST", headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({ text, lang: lang + "-IN" }) });
+  if (!r.ok) throw new Error(r.status === 403 ? "This link is missing its key." : "Could not check");
+  return r.json();
+}
+
+function renderStats() {
+  $("stats").innerHTML = "";
+  for (const s of data.stats) {
+    const box = el("div", "stat");
+    box.append(el("div", "v", s.value), el("div", "d", s[lang] || s.en));
+    const src = link(s.source, s.by); box.append(src);
+    $("stats").append(box);
+  }
+}
+
+function renderFilters() {
+  $("filters").innerHTML = "";
+  for (const id of ["all", ...data.scams.map((s) => s.id)]) {
+    const s = data.scams.find((x) => x.id === id);
+    const b = el("button", filter === id ? "on" : "", id === "all" ? t().all : `${s.icon} ${s.title[lang].replace(/^"[^"]*":\s*/, "").replace(/^„|"/g, "")}`);
+    b.onclick = () => { filter = id; renderFilters(); renderList(); };
+    $("filters").append(b);
+  }
+}
+
+function matches(s) {
+  if (filter !== "all" && s.id !== filter) return false;
+  const q = $("q").value.trim().toLowerCase();
+  if (!q) return true;
+  const hay = [s.title.en, s.title[lang], s.how, ...s.cases.map((c) => c.text), ...Object.values(s.lines).flat()].join(" ").toLowerCase();
+  return q.split(/\s+/).every((w) => hay.includes(w));
+}
+
+function renderList() {
+  $("list").innerHTML = "";
+  const shown = data.scams.filter(matches);
+  $("none").textContent = t().none; $("none").classList.toggle("hidden", shown.length > 0);
+  for (const s of shown) {
+    const card = el("article", "scam" + (shown.length === 1 || filter !== "all" ? " open" : ""));
+    const head = el("button", "head");
+    const words = el("span"); words.append(el("div", "t", s.title[lang]), el("div", "n", t().n(s.cases.length)));
+    head.append(el("span", "i", s.icon), words, el("span", "chev", "▾"));
+    head.onclick = () => card.classList.toggle("open");
+    const body = el("div", "body");
+    body.append(el("h3", "", t().how), el("p", "", s.how), el("h3", "", t().cases));
+    for (const c of s.cases) { const p = el("div", "case", c.text + " "); p.append(link(c.source, `${t().source}: ${c.by} ↗`)); body.append(p); }
+    body.append(el("h3", "", t().do));
+    const ul = el("ul", "do"); for (const d of s.do[lang]) ul.append(el("li", "", d)); body.append(ul);
+    const play = el("button", "play", t().play), sim = el("div", "sim hidden");
+    play.onclick = () => simulate(s, sim, play);
+    body.append(play, sim);
+    card.append(head, body);
+    $("list").append(card);
+  }
+}
+
+// Re-enacted call, line by line: the same free rule detector the protected line uses scores it as it builds up
+async function simulate(s, sim, play) {
+  play.disabled = true; sim.classList.remove("hidden"); sim.innerHTML = "";
+  sim.style.setProperty("--risk", COLOR.low);
+  const chat = el("div"), gauge = el("div", "gauge"), bar = el("div"), status = el("div"), tricks = el("div", "tricks"), tip = el("div", "tip hidden");
+  gauge.append(bar);
+  const lvl = el("span", "lvl", t().low), label = el("span", "label");
+  status.append(lvl, document.createTextNode(" "), label);
+  sim.append(chat, gauge, status, tricks, tip);
+  const seen = new Set(), said = [];
+  for (const line of s.lines[lang]) {
+    const b = el("div", "bubble"); b.append(el("small", "", "📞 " + t().caller), document.createTextNode(line));
+    chat.append(b); said.push(line);
+    b.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    let res;
+    try { res = await check(said.join(" ")); } catch (e) { lvl.textContent = e.message; break; }
+    sim.style.setProperty("--risk", COLOR[res.level]);
+    bar.style.width = Math.min(100, res.score * 10) + "%";
+    lvl.textContent = t()[res.level];
+    label.textContent = res.scam_label && res.level !== "low" ? "· " + res.scam_label : "";
+    for (const tr of res.tricks) if (!seen.has(tr.id)) { seen.add(tr.id); tricks.append(el("span", "trick", (ICON[tr.id] || "•") + " " + tr.label)); }
+    if (res.tip) { tip.textContent = "💡 " + res.tip; tip.classList.remove("hidden"); }
+    if (res.level === "high") navigator.vibrate?.([200, 80, 200]);
+    await new Promise((r) => setTimeout(r, 1500));
+  }
+  play.textContent = t().replay; play.disabled = false;
+}
+
+function setLang(code) {
+  lang = code; stored("sentinel-practice-lang", code); document.documentElement.lang = code;
+  document.querySelectorAll("#langs button").forEach((b) => b.classList.toggle("on", b.dataset.lang === code));
+  const w = t();
+  $("title").textContent = w.title; $("sub").textContent = w.sub; $("q").placeholder = w.search; $("foot").textContent = w.foot;
+  $("l-practice").textContent = w.practice; $("l-home").textContent = w.home;
+  $("ennote").textContent = w.ennote; $("ennote").classList.toggle("hidden", !w.ennote);
+  if (data) { renderStats(); renderFilters(); renderList(); }
+}
+for (const [code, name] of Object.entries(LANGS)) {
+  const b = el("button", "", name); b.dataset.lang = code; b.onclick = () => setLang(code); $("langs").append(b);
+}
+$("q").oninput = () => renderList();
+fetch("/scams.json").then((r) => r.json()).then((d) => { data = d; setLang(lang); });
+setLang(lang);
+</script>
+</body>
+</html>

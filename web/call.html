@@ -111,6 +111,7 @@
     <button class="role" data-role="caller"><span class="i">📞</span><span>Caller<small>Plays the scammer in a simulated call</small></span></button>
     <button class="role" data-role="listener"><span class="i">🔊</span><span>Listen to a real call on speaker<small>Put this device next to the phone</small></span></button>
     <a class="practice" id="practice1" href="#">🎓 Practise spotting scam calls (free, no call needed)</a>
+    <a class="practice" id="scams1" href="#">📰 Real scams in India: how they work, what to do</a>
   </section>
 
   <section id="ready" class="card hidden">
@@ -233,6 +234,7 @@ window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); inst
 $("install").onclick = async () => { if (!installPrompt) return; installPrompt.prompt(); await installPrompt.userChoice; installPrompt = null; $("install").classList.add("hidden"); };
 
 for (const id of ["practice1", "practice2"]) $(id).href = `/practice?key=${encodeURIComponent(key)}`;
+$("scams1").href = `/scams?key=${encodeURIComponent(key)}`;
 $("cname").value = prefs.cname || ""; $("cnum").value = prefs.cnum || "";
 
 function pickLang(code) {

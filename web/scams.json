@@ -1,0 +1,382 @@
+{
+ "_note": "Real-world scams: short summaries of public news reports and government figures, amounts as reported, victims never named. Every case has a source link. Example lines are synthetic re-enactments for the demo. kn/hi: REVIEW with native speakers.",
+ "stats": [
+  {
+   "value": "₹22,845 crore",
+   "en": "lost to cyber fraud in India in 2024 (36.37 lakh financial fraud reports)",
+   "kn": "2024 ರಲ್ಲಿ ಭಾರತದಲ್ಲಿ ಸೈಬರ್ ವಂಚನೆಯಿಂದ ಕಳೆದುಹೋದ ಹಣ",
+   "hi": "2024 में भारत में साइबर धोखाधड़ी से गँवाए गए",
+   "source": "https://scroll.in/latest/1084796/indians-lost-rs-22845-crore-to-cyber-fraud-in-2024-a-206-rise-from-previous-year-centre",
+   "by": "Ministry of Home Affairs, reply in the Lok Sabha"
+  },
+  {
+   "value": "₹1,935 crore",
+   "en": "lost to 'digital arrest' scams in 2024, from 1.23 lakh complaints",
+   "kn": "2024 ರಲ್ಲಿ 'ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್' ಮೋಸದಿಂದ ಕಳೆದುಹೋದ ಹಣ",
+   "hi": "2024 में 'डिजिटल अरेस्ट' धोखाधड़ी से गँवाए गए",
+   "source": "https://inc42.com/?p=504907",
+   "by": "Ministry of Home Affairs, reply in Parliament"
+  },
+  {
+   "value": "641 cases · ₹109 crore",
+   "en": "'digital arrest' in Karnataka until November 2024 (480 cases in Bengaluru)",
+   "kn": "ನವೆಂಬರ್ 2024 ರವರೆಗೆ ಕರ್ನಾಟಕದಲ್ಲಿ 'ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್' ಪ್ರಕರಣಗಳು",
+   "hi": "नवंबर 2024 तक कर्नाटक में 'डिजिटल अरेस्ट' के मामले",
+   "source": "https://www.deccanherald.com/amp/story/india/karnataka/digital-arrest-cases-victims-lost-rs-109-crore-in-state-says-hm-3315677",
+   "by": "Karnataka Home Minister, via Deccan Herald"
+  }
+ ],
+ "scams": [
+  {
+   "id": "family_emergency",
+   "icon": "👮‍♂️",
+   "title": {
+    "en": "\"We've arrested your son\": fake police",
+    "kn": "\"ನಿಮ್ಮ ಮಗನನ್ನು ಅರೆಸ್ಟ್ ಮಾಡಿದ್ದೀವಿ\": ನಕಲಿ ಪೊಲೀಸ್",
+    "hi": "\"आपके बेटे को गिरफ़्तार किया है\": नकली पुलिस"
+   },
+   "how": "A caller posing as police says your son or daughter has been arrested, often for a shocking crime, and asks for money to release them. They may know your child's name. They push you to pay before you can check.",
+   "cases": [
+    {
+     "text": "Mangaluru, 2024: several parents got WhatsApp calls, mostly from foreign numbers, saying their children had been arrested. Parents who checked with the school found their children safe.",
+     "source": "https://www.deccanherald.com/india/karnataka/panic-in-mangaluru-parents-receive-fake-calls-demanding-ransom-for-their-kids-3063474",
+     "by": "Deccan Herald"
+    },
+    {
+     "text": "Rangat, Andaman: a mother sent ₹2.7 lakh in several transfers after a fake police call said her son was involved in a rape case. Her son had been asleep at home.",
+     "source": "https://nicobartimes.com/?p=19742",
+     "by": "Nicobar Times"
+    },
+    {
+     "text": "Bengaluru: callers posing as police told a 46-year-old woman her son was in custody and took ₹1.25 lakh, then asked for ₹2 lakh more.",
+     "source": "https://www.deccanherald.com/india/karnataka/bengaluru/fraudsters-fake-sons-arrest-dupe-woman-of-rs-125-lakh-in-bengaluru-4046765",
+     "by": "Deccan Herald"
+    }
+   ],
+   "do": {
+    "en": [
+     "Hang up. Police never ask for money to release anyone.",
+     "Call your child yourself, or their school or college.",
+     "Don't take WhatsApp calls from unknown foreign numbers."
+    ],
+    "kn": [
+     "ಕರೆ ಕಟ್ ಮಾಡಿ. ಪೊಲೀಸರು ಯಾರನ್ನೂ ಬಿಡಿಸಲು ಹಣ ಕೇಳುವುದಿಲ್ಲ.",
+     "ನಿಮ್ಮ ಮಗ/ಮಗಳಿಗೆ, ಅಥವಾ ಅವರ ಶಾಲೆ/ಕಾಲೇಜಿಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ.",
+     "ಅಪರಿಚಿತ ವಿದೇಶಿ ಸಂಖ್ಯೆಗಳ ವಾಟ್ಸ್‌ಆ್ಯಪ್ ಕರೆಗಳನ್ನು ಸ್ವೀಕರಿಸಬೇಡಿ."
+    ],
+    "hi": [
+     "कॉल काटें। पुलिस किसी को छोड़ने के लिए पैसे नहीं मांगती।",
+     "अपने बच्चे को, या उसके स्कूल/कॉलेज को खुद फ़ोन करें।",
+     "अनजान विदेशी नंबरों से आई व्हाट्सऐप कॉल न उठाएँ।"
+    ]
+   },
+   "lines": {
+    "kn": [
+     "ನಮಸ್ಕಾರ, ನಾನು ಪೊಲೀಸ್ ಸ್ಟೇಷನ್‌ನಿಂದ ಸಬ್ ಇನ್ಸ್‌ಪೆಕ್ಟರ್ ರಾಜು ಮಾತಾಡ್ತಾ ಇದ್ದೀನಿ.",
+     "ನಿಮ್ಮ ಮಗನನ್ನು ಒಂದು ಗಂಭೀರ ಕೇಸ್‌ನಲ್ಲಿ ಅರೆಸ್ಟ್ ಮಾಡಿದ್ದೀವಿ.",
+     "ಈ ವಿಷಯ ಯಾರಿಗೂ ಹೇಳಬೇಡಿ.",
+     "ಐದು ಲಕ್ಷ ರೂಪಾಯಿ ಈಗಲೇ ಟ್ರಾನ್ಸ್‌ಫರ್ ಮಾಡಿದ್ರೆ ನಿಮ್ಮ ಮಗನನ್ನು ಬಿಟ್ಟುಬಿಡ್ತೀವಿ."
+    ],
+    "hi": [
+     "नमस्ते, मैं थाने से सब-इंस्पेक्टर राजू बोल रहा हूँ।",
+     "हमने आपके बेटे को एक गंभीर केस में गिरफ़्तार किया है।",
+     "इस बारे में किसी को मत बताना।",
+     "अभी पाँच लाख रुपये ट्रांसफ़र कीजिए, हम आपके बेटे को छोड़ देंगे।"
+    ],
+    "en": [
+     "Hello, this is Sub-Inspector Raju from the police station.",
+     "We have arrested your son in a serious case.",
+     "Don't tell anyone about this.",
+     "Transfer five lakh rupees now and we will release your son."
+    ]
+   }
+  },
+  {
+   "id": "digital_arrest",
+   "icon": "🎥",
+   "title": {
+    "en": "\"Digital arrest\": fake officers on a video call",
+    "kn": "\"ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್\": ವೀಡಿಯೊ ಕರೆಯಲ್ಲಿ ನಕಲಿ ಅಧಿಕಾರಿಗಳು",
+    "hi": "\"डिजिटल अरेस्ट\": वीडियो कॉल पर नकली अफ़सर"
+   },
+   "how": "Callers pose as police, CBI, customs or the 'cyber crime branch', say a case or arrest warrant is in your name, and keep you on a video call for hours or days, 'under arrest', until you move your savings to 'verification' accounts.",
+   "cases": [
+    {
+     "text": "India, 2024: 1.23 lakh complaints and ₹1,935 crore lost to digital arrest scams, up from ₹339 crore in 2023.",
+     "source": "https://inc42.com/?p=504907",
+     "by": "Ministry of Home Affairs, via Inc42"
+    },
+    {
+     "text": "Bengaluru, Nov-Dec 2024: a 39-year-old software engineer lost about ₹11.8 crore to callers posing as the Mumbai Crime Branch, who kept him 'under arrest' for a month.",
+     "source": "https://www.deccanherald.com/amp/story/india%2Fkarnataka%2Fbengaluru%2Fengineer-loses-rs-11-8-cr-in-city-s-biggest-digital-arrest-scam-3330130",
+     "by": "Deccan Herald"
+    }
+   ],
+   "do": {
+    "en": [
+     "There is no such thing as a 'digital arrest'. Real police never hold you on a video call or ask for money.",
+     "Hang up and tell your family, even if they say 'don't tell anyone'.",
+     "Report at 1930 or cybercrime.gov.in."
+    ],
+    "kn": [
+     "'ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್' ಎಂಬುದೇ ಇಲ್ಲ. ನಿಜವಾದ ಪೊಲೀಸರು ವೀಡಿಯೊ ಕರೆಯಲ್ಲಿ ಹಿಡಿದಿಡುವುದಿಲ್ಲ, ಹಣ ಕೇಳುವುದಿಲ್ಲ.",
+     "'ಯಾರಿಗೂ ಹೇಳಬೇಡಿ' ಎಂದರೂ ಕರೆ ಕಟ್ ಮಾಡಿ, ಮನೆಯವರಿಗೆ ತಿಳಿಸಿ.",
+     "1930 ಅಥವಾ cybercrime.gov.in ನಲ್ಲಿ ದೂರು ನೀಡಿ."
+    ],
+    "hi": [
+     "'डिजिटल अरेस्ट' जैसा कुछ नहीं होता। असली पुलिस वीडियो कॉल पर नहीं रोकती और पैसे नहीं मांगती।",
+     "'किसी को मत बताना' कहें तब भी कॉल काटें और घरवालों को बताएँ।",
+     "1930 या cybercrime.gov.in पर शिकायत करें।"
+    ]
+   },
+   "lines": {
+    "kn": [
+     "ಸರ್, ನಾನು ಸೈಬರ್ ಕ್ರೈಮ್ ವಿಭಾಗದಿಂದ ಮಾತಾಡ್ತಾ ಇದ್ದೀನಿ.",
+     "ನಿಮ್ಮ ಹೆಸರಲ್ಲಿ ಅರೆಸ್ಟ್ ವಾರಂಟ್ ಇದೆ.",
+     "ಯಾರಿಗೂ ಹೇಳಬೇಡಿ, ಕರೆ ಕಟ್ ಮಾಡಬೇಡಿ."
+    ],
+    "hi": [
+     "सर, मैं साइबर क्राइम ब्रांच से बोल रहा हूँ।",
+     "आपके नाम पर अरेस्ट वारंट है।",
+     "किसी को मत बताइए और कॉल मत काटिए।"
+    ],
+    "en": [
+     "Sir, this is the cyber crime branch.",
+     "There is an arrest warrant in your name.",
+     "Don't tell anyone and don't cut the call."
+    ]
+   }
+  },
+  {
+   "id": "courier",
+   "icon": "📦",
+   "title": {
+    "en": "\"Your parcel has drugs\": the courier scam",
+    "kn": "\"ನಿಮ್ಮ ಪಾರ್ಸೆಲ್‌ನಲ್ಲಿ ಡ್ರಗ್ಸ್ ಇದೆ\": ಕೊರಿಯರ್ ಮೋಸ",
+    "hi": "\"आपके पार्सल में ड्रग्स हैं\": कूरियर धोखाधड़ी"
+   },
+   "how": "A caller says a parcel in your name was stopped by customs with drugs or fake passports inside, then 'transfers' you to a fake police officer on video, who threatens arrest unless you pay or move money for 'checking'.",
+   "cases": [
+    {
+     "text": "Bengaluru: an IISc professor lost ₹83 lakh after a 'FedEx' caller said a parcel in her name with drugs had been seized by Mumbai Customs, and a fake officer threatened charges on video.",
+     "source": "https://thenewsminute.com/karnataka/bengaluru-iisc-professor-latest-victim-of-fedex-courier-scam-loses-rs-83-lakhs",
+     "by": "The News Minute"
+    },
+    {
+     "text": "Bengaluru: a retiree lost ₹9.14 crore over two weeks to callers posing as police over a 'FedEx package with drugs'. Police froze ₹85 lakh in 'mule' accounts.",
+     "source": "https://www.deccanherald.com/amp/story/india%2Fkarnataka%2Fbengaluru%2Ffedex-frauds-con-scared-retiree-of-rs-9-crore-2810169",
+     "by": "Deccan Herald"
+    }
+   ],
+   "do": {
+    "en": [
+     "Courier companies and customs never collect fines or 'verification' money over the phone.",
+     "Hang up; if worried, call the courier's official number yourself.",
+     "Never move money to an account a caller gives you."
+    ],
+    "kn": [
+     "ಕೊರಿಯರ್ ಕಂಪನಿಗಳು ಮತ್ತು ಕಸ್ಟಮ್ಸ್ ಫೋನಿನಲ್ಲಿ ದಂಡ ಅಥವಾ 'ಪರಿಶೀಲನೆ' ಹಣ ಕೇಳುವುದಿಲ್ಲ.",
+     "ಕರೆ ಕಟ್ ಮಾಡಿ; ಬೇಕಿದ್ದರೆ ಕೊರಿಯರ್‌ನ ಅಧಿಕೃತ ಸಂಖ್ಯೆಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ.",
+     "ಕರೆ ಮಾಡಿದವರು ಕೊಟ್ಟ ಖಾತೆಗೆ ಎಂದಿಗೂ ಹಣ ಕಳುಹಿಸಬೇಡಿ."
+    ],
+    "hi": [
+     "कूरियर कंपनी और कस्टम्स फ़ोन पर जुर्माना या 'जाँच' के पैसे नहीं मांगते।",
+     "कॉल काटें; चिंता हो तो कूरियर के आधिकारिक नंबर पर खुद फ़ोन करें।",
+     "कॉल करने वाले के बताए खाते में कभी पैसे न भेजें।"
+    ]
+   },
+   "lines": {
+    "kn": [
+     "ನಮಸ್ಕಾರ, ನಾನು ಫೆಡೆಕ್ಸ್ ಕೊರಿಯರ್‌ನಿಂದ ಕರೆ ಮಾಡ್ತಿದ್ದೀನಿ.",
+     "ನಿಮ್ಮ ಹೆಸರಿನ ಪಾರ್ಸೆಲ್ ಅನ್ನು ಕಸ್ಟಮ್ಸ್ ಹಿಡಿದಿದೆ.",
+     "ಕೇಸ್ ದಾಖಲಾಗುವ ಮೊದಲು ಯುಪಿಐ ಮೂಲಕ ಈಗಲೇ ದಂಡ ಕಟ್ಟಿ."
+    ],
+    "hi": [
+     "नमस्ते, मैं फ़ेडएक्स कूरियर से बोल रहा हूँ।",
+     "आपके नाम का पार्सल कस्टम ने पकड़ा है।",
+     "केस दर्ज होने से पहले यूपीआई से तुरंत जुर्माना भरिए।"
+    ],
+    "en": [
+     "Hello, I'm calling from FedEx courier.",
+     "A parcel in your name has drugs and was stopped by customs.",
+     "Pay the customs fine by UPI immediately or a case will be registered."
+    ]
+   }
+  },
+  {
+   "id": "kyc_bank",
+   "icon": "🏦",
+   "title": {
+    "en": "\"Your KYC has expired\": the OTP theft",
+    "kn": "\"ನಿಮ್ಮ ಕೆವೈಸಿ ಮುಗಿದಿದೆ\": ಒಟಿಪಿ ಕಳ್ಳತನ",
+    "hi": "\"आपका केवाईसी खत्म हो गया है\": ओटीपी की चोरी"
+   },
+   "how": "A message or call says your bank KYC has expired and your account will be blocked today. A caller posing as the bank then asks for the OTP that arrives on your phone, and uses it to empty the account.",
+   "cases": [
+    {
+     "text": "Kerala, September 2024: police warned of fake KYC messages followed by calls from 'bank officials' asking for the OTP. They said reporting to 1930 within one hour gives a high chance of getting the money back.",
+     "source": "https://onmanorama.com/news/kerala/2024/09/23/cyber-fraud-in-the-guise-of-bank-kyc-updation-kerala-police-warn-public.html",
+     "by": "Onmanorama"
+    },
+    {
+     "text": "Bengaluru, 2023: a 77-year-old woman lost ₹1.8 lakh after giving a caller the OTP she received.",
+     "source": "https://www.udayavani.com/english-news/bengaluru-kyc-update-scam-woman-loses-rs-1-80-lakh",
+     "by": "Udayavani"
+    },
+    {
+     "text": "Mangaluru, 2023: a resident lost ₹3.1 lakh in several transactions after sharing an OTP with a caller claiming to be a KYC officer.",
+     "source": "https://www.udayavani.com/english-news/city-resident-loses-rs-3-1l-in-kyc-update-scam",
+     "by": "Udayavani"
+    }
+   ],
+   "do": {
+    "en": [
+     "Your bank never asks for an OTP, PIN or CVV.",
+     "Don't click links in KYC messages; call the number on the back of your card.",
+     "If money is gone, call 1930 within the first hour."
+    ],
+    "kn": [
+     "ಬ್ಯಾಂಕ್ ಎಂದಿಗೂ ಒಟಿಪಿ, ಪಿನ್ ಅಥವಾ ಸಿವಿವಿ ಕೇಳುವುದಿಲ್ಲ.",
+     "ಕೆವೈಸಿ ಸಂದೇಶದ ಲಿಂಕ್ ಒತ್ತಬೇಡಿ; ಕಾರ್ಡ್ ಹಿಂದಿರುವ ಸಂಖ್ಯೆಗೆ ಕರೆ ಮಾಡಿ.",
+     "ಹಣ ಹೋದರೆ ಮೊದಲ ಒಂದು ಗಂಟೆಯೊಳಗೆ 1930 ಗೆ ಕರೆ ಮಾಡಿ."
+    ],
+    "hi": [
+     "बैंक कभी ओटीपी, पिन या सीवीवी नहीं मांगता।",
+     "केवाईसी मैसेज के लिंक न खोलें; कार्ड के पीछे लिखे नंबर पर कॉल करें।",
+     "पैसे कट गए हों तो पहले एक घंटे में 1930 पर कॉल करें।"
+    ]
+   },
+   "lines": {
+    "kn": [
+     "ನಮಸ್ಕಾರ, ನಾನು ನಿಮ್ಮ ಬ್ಯಾಂಕಿನ ಕೆವೈಸಿ ವಿಭಾಗದಿಂದ ಮಾತಾಡ್ತಾ ಇದ್ದೀನಿ.",
+     "ನಿಮ್ಮ ಖಾತೆ ಇವತ್ತೇ ಬ್ಲಾಕ್ ಆಗುತ್ತೆ, ಈಗಲೇ ಅಪ್‌ಡೇಟ್ ಮಾಡಬೇಕು.",
+     "ನಿಮ್ಮ ಮೊಬೈಲಿಗೆ ಒಂದು ಒಟಿಪಿ ಬಂದಿದೆ, ಅದನ್ನು ಬೇಗ ತಿಳಿಸಿ."
+    ],
+    "hi": [
+     "नमस्ते, मैं आपके बैंक के केवाईसी विभाग से बोल रहा हूँ।",
+     "आज ही आपका खाता ब्लॉक हो जाएगा।",
+     "आपके मोबाइल पर एक ओटीपी आया है, जल्दी बताइए।"
+    ],
+    "en": [
+     "Hello, I'm calling from your bank's KYC department.",
+     "Your account will be blocked today.",
+     "An OTP has come to your phone, tell me the OTP quickly."
+    ]
+   }
+  },
+  {
+   "id": "remote_access",
+   "icon": "📲",
+   "title": {
+    "en": "\"Install this app\": remote-control apps",
+    "kn": "\"ಈ ಆ್ಯಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿ\": ರಿಮೋಟ್ ಕಂಟ್ರೋಲ್ ಆ್ಯಪ್‌ಗಳು",
+    "hi": "\"यह ऐप इंस्टॉल करें\": रिमोट कंट्रोल ऐप"
+   },
+   "how": "Posing as bank, telecom or customer-care staff, the caller asks you to install a screen-sharing app such as AnyDesk 'to fix a problem'. Once it is installed they can see your screen, read your OTPs and move your money.",
+   "cases": [
+    {
+     "text": "2019: NPCI, which runs UPI, cautioned people not to download AnyDesk at a stranger's request: fraudsters used it to control the phone and move money through the apps already on it. The RBI issued a similar alert.",
+     "source": "https://www.outlookbusiness.com/personal-finance-news/npci-cautions-consumers-against-downloading-anydesk-app-2886",
+     "by": "Outlook Business"
+    },
+    {
+     "text": "2023: a man who installed AnyDesk on a caller's request lost ₹5 lakh within minutes.",
+     "source": "https://businesstoday.in/technology/story/man-downloads-anydesk-on-phone-loses-rs-5-lakh-in-minutes-360687-2023-01-17",
+     "by": "Business Today"
+    }
+   ],
+   "do": {
+    "en": [
+     "Never install an app because a caller asks.",
+     "No real bank needs to see your screen.",
+     "If you installed one: switch off mobile data, uninstall it, and call your bank and 1930."
+    ],
+    "kn": [
+     "ಕರೆ ಮಾಡಿದವರು ಹೇಳಿದರು ಎಂದು ಯಾವ ಆ್ಯಪ್ ಕೂಡ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಬೇಡಿ.",
+     "ಯಾವ ನಿಜವಾದ ಬ್ಯಾಂಕಿಗೂ ನಿಮ್ಮ ಸ್ಕ್ರೀನ್ ನೋಡುವ ಅಗತ್ಯವಿಲ್ಲ.",
+     "ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿದ್ದರೆ: ಮೊಬೈಲ್ ಡೇಟಾ ಆಫ್ ಮಾಡಿ, ಆ್ಯಪ್ ತೆಗೆಯಿರಿ, ಬ್ಯಾಂಕ್ ಮತ್ತು 1930 ಗೆ ಕರೆ ಮಾಡಿ."
+    ],
+    "hi": [
+     "किसी कॉल करने वाले के कहने पर कोई ऐप इंस्टॉल न करें।",
+     "किसी असली बैंक को आपकी स्क्रीन देखने की ज़रूरत नहीं होती।",
+     "इंस्टॉल कर लिया हो तो: मोबाइल डेटा बंद करें, ऐप हटाएँ, बैंक और 1930 पर कॉल करें।"
+    ]
+   },
+   "lines": {
+    "kn": [
+     "ಸರ್, ಇವತ್ತೇ ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಖಾತೆ ಬ್ಲಾಕ್ ಆಗುತ್ತೆ.",
+     "ಸರಿ ಮಾಡೋಕೆ ಈಗಲೇ ಎನಿಡೆಸ್ಕ್ ಆ್ಯಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿ."
+    ],
+    "hi": [
+     "सर, आज ही आपका बैंक खाता ब्लॉक हो जाएगा।",
+     "ठीक करने के लिए अभी एनीडेस्क ऐप इंस्टॉल कीजिए।"
+    ],
+    "en": [
+     "Sir, your bank account will be blocked today.",
+     "Please install the AnyDesk app right now so I can fix it."
+    ]
+   }
+  },
+  {
+   "id": "electricity",
+   "icon": "💡",
+   "title": {
+    "en": "\"Power will be cut tonight\": fake electricity bill",
+    "kn": "\"ಇಂದು ರಾತ್ರಿ ಕರೆಂಟ್ ಕಟ್\": ನಕಲಿ ವಿದ್ಯುತ್ ಬಿಲ್",
+    "hi": "\"आज रात बिजली कटेगी\": नकली बिजली बिल"
+   },
+   "how": "An SMS or WhatsApp message says your electricity will be cut tonight over an unpaid bill and gives a number to call. The 'electricity officer' then asks you to pay a small amount or install an app, and empties your account.",
+   "cases": [
+    {
+     "text": "Bengaluru, December 2025: a 60-year-old professor was told to pay ₹12 to 'update' her power bill, installed a fake 'BESCOM' app shared on WhatsApp, and lost ₹14.6 lakh.",
+     "source": "https://www.deccanherald.com/amp/story/india%2Fkarnataka%2Fbengaluru%2Fbengaluru-woman-duped-of-rs-1460-lakh-after-downloading-fake-bescom-app-3816527",
+     "by": "Deccan Herald"
+    },
+    {
+     "text": "Bengaluru, 2022: a 61-year-old man got an SMS saying his power would be cut that night, called the number, installed the app the 'BESCOM employee' asked for, and lost ₹50,000.",
+     "source": "https://www.udayavani.com/english-news/fake-power-bill-scam-man-loses-rs-50000",
+     "by": "Udayavani"
+    },
+    {
+     "text": "Pune: an elderly man was cheated of ₹3 lakh through AnyDesk after a threat to cut off his electricity.",
+     "source": "https://www.punekarnews.in/?p=117584",
+     "by": "Punekar News"
+    }
+   ],
+   "do": {
+    "en": [
+     "Electricity companies don't send bill threats from personal mobile numbers.",
+     "Never call the number in such a message; check your bill on the official app or website.",
+     "Never install an app for a bill payment."
+    ],
+    "kn": [
+     "ವಿದ್ಯುತ್ ಕಂಪನಿಗಳು ವೈಯಕ್ತಿಕ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯಿಂದ ಬಿಲ್ ಬೆದರಿಕೆ ಕಳುಹಿಸುವುದಿಲ್ಲ.",
+     "ಅಂಥ ಸಂದೇಶದ ಸಂಖ್ಯೆಗೆ ಕರೆ ಮಾಡಬೇಡಿ; ಅಧಿಕೃತ ಆ್ಯಪ್ ಅಥವಾ ವೆಬ್‌ಸೈಟ್‌ನಲ್ಲಿ ಬಿಲ್ ನೋಡಿ.",
+     "ಬಿಲ್ ಕಟ್ಟಲು ಯಾವ ಆ್ಯಪ್ ಕೂಡ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಬೇಡಿ."
+    ],
+    "hi": [
+     "बिजली कंपनियाँ निजी मोबाइल नंबर से बिल की धमकी नहीं भेजतीं।",
+     "ऐसे मैसेज में दिए नंबर पर कॉल न करें; आधिकारिक ऐप या वेबसाइट पर बिल देखें।",
+     "बिल भरने के लिए कोई ऐप इंस्टॉल न करें।"
+    ]
+   },
+   "lines": {
+    "kn": [
+     "ನಮಸ್ಕಾರ, ನಾನು ಬೆಸ್ಕಾಂ ಕಚೇರಿಯಿಂದ ಕರೆ ಮಾಡ್ತಿದ್ದೀನಿ.",
+     "ನಿಮ್ಮ ಬಿಲ್ ಬಾಕಿ ಇದೆ, ಇಂದು ರಾತ್ರಿ ಕರೆಂಟ್ ಕಟ್ ಆಗುತ್ತೆ.",
+     "ಈಗಲೇ ಎನಿಡೆಸ್ಕ್ ಆ್ಯಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿ, ನಾನು ಅಪ್‌ಡೇಟ್ ಮಾಡ್ತೀನಿ."
+    ],
+    "hi": [
+     "नमस्ते, मैं बिजली विभाग से बोल रहा हूँ।",
+     "आपका बिल बकाया है, आज रात बिजली कट जाएगी।",
+     "अभी एनीडेस्क ऐप इंस्टॉल कीजिए, मैं अपडेट कर दूँगा।"
+    ],
+    "en": [
+     "Hello, I'm calling from the electricity office.",
+     "Your bill is unpaid and your electricity will be disconnected tonight.",
+     "Install the AnyDesk app right now and I will update it."
+    ]
+   }
+  }
+ ]
+}
