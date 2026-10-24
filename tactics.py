@@ -18,7 +18,8 @@ TACTICS: dict[str, dict] = {
         # Courier companies are NOT authority (real delivery calls are common); they are under "lure".
         "keywords": ["ಪೊಲೀಸ್", "ಸಿಬಿಐ", "ಸಿ ಬಿ ಐ", "ಕಸ್ಟಮ್ಸ್", "ಟ್ರಾಯ್", "ಆರ್ಬಿಐ", "ಆರ್ ಬಿ ಐ", "ಸೈಬರ್ ಕ್ರೈಮ್", "ಸೈಬರ್ ಕ್ರೈಂ",
                      "ಇನ್ಸ್ಪೆಕ್ಟರ್", "ಆದಾಯ ತೆರಿಗೆ",
-                     "पुलिस", "सीबीआई", "सी बी आई", "कस्टम", "ट्राई", "आरबीआई", "आर बी आई", "साइबर क्राइम",
+                     "पुलिस", "सीबीआई", "सी बी आई", "re:कस्टम(?!\\s?र)", "ट्राई", "आरबीआई", "आर बी आई", "साइबर क्राइम",
+                     # (कस्टम = customs, but not inside कस्टमर = customer)
                      "इंस्पेक्टर", "नारकोटिक्स", "इनकम टैक्स",
                      "police", "cbi", "c b i", "customs", "trai", "rbi", "r b i", "cyber crime", "cybercrime",
                      "narcotics", "income tax", "enforcement directorate", "inspector"],
