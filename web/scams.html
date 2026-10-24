@@ -45,6 +45,13 @@
   .case a { font-size:13px; white-space:nowrap; }
   ul.do { margin:0; padding:0; list-style:none; } ul.do li { background:var(--bg2); border-radius:12px; padding:10px 12px; margin:6px 0; }
   ul.do li::before { content:"✅ "; }
+  .listen { width:100%; padding:14px; margin-top:4px; background:var(--good); font-weight:700; font-size:17px; display:flex; gap:10px; align-items:center; justify-content:center; }
+  .listen.on { background:#0f7a55; }
+  .listen .wave { display:none; gap:3px; } .listen.on .wave { display:inline-flex; }
+  .listen .wave i { width:3px; height:14px; background:#fff; border-radius:2px; animation:wave 1s ease-in-out infinite; }
+  .listen .wave i:nth-child(2) { animation-delay:.15s; } .listen .wave i:nth-child(3) { animation-delay:.3s; }
+  @keyframes wave { 50% { transform:scaleY(.35); } }
+  .voice { text-align:center; margin:4px 0 0; }
   .play { width:100%; padding:14px; margin-top:14px; background:var(--accent); font-weight:700; font-size:17px; }
   .sim { margin-top:12px; background:var(--bg2); border:1px solid var(--line); border-radius:16px; padding:12px; }
   .bubble { background:#26383b; border-radius:16px 16px 16px 4px; padding:10px 12px; margin:6px 40px 6px 0; font-size:16px; animation:fade .3s ease-out; }
@@ -89,24 +96,28 @@ const LANGS = { kn: "ಕನ್ನಡ", hi: "हिन्दी", en: "English" }
 const UI = {
   en: { title: "📰 Real scams in India", sub: "These tricks have taken real people's savings. Learn how each one works, so you can stop it.",
         search: "Search: police, parcel, OTP…", all: "All", how: "How it works", cases: "Real cases", do: "What to do",
+        listen: "🔊 Listen to this explained", stop: "⏹ Stop", voice: "Spoken by Gnani Timbre (AI voice)",
         play: "▶ Watch Scam Sentinel catch it", replay: "↻ Watch again", caller: "Caller (re-enacted)", n: (k) => `${k} reported cases`,
         low: "Safe so far", medium: "Suspicious", high: "Likely scam", none: "No scam matches that search.", source: "source",
         ennote: "", practice: "🎓 Practise spotting scams", home: "🛡️ Protected line",
         foot: "Short summaries of public news reports and government figures; amounts as reported, victims never named. The calls you can watch are re-enactments. Lost money? Call 1930 within the first hour, or report at cybercrime.gov.in." },
   kn: { title: "📰 ಭಾರತದಲ್ಲಿ ನಡೆದ ನಿಜವಾದ ಮೋಸಗಳು", sub: "ಈ ತಂತ್ರಗಳಿಂದ ನಿಜವಾದ ಜನರು ತಮ್ಮ ಉಳಿತಾಯ ಕಳೆದುಕೊಂಡಿದ್ದಾರೆ. ಪ್ರತಿಯೊಂದು ಹೇಗೆ ನಡೆಯುತ್ತದೆ ಎಂದು ತಿಳಿಯಿರಿ.",
         search: "ಹುಡುಕಿ: police, parcel, OTP…", all: "ಎಲ್ಲಾ", how: "ಹೇಗೆ ನಡೆಯುತ್ತದೆ", cases: "ನಿಜವಾದ ಪ್ರಕರಣಗಳು", do: "ಏನು ಮಾಡಬೇಕು",
+        listen: "🔊 ಈ ಮೋಸದ ವಿವರಣೆ ಕೇಳಿ", stop: "⏹ ನಿಲ್ಲಿಸಿ", voice: "ಗ್ನಾನಿ ಟಿಂಬರ್ ಧ್ವನಿ (AI)",
         play: "▶ ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ಹೇಗೆ ಹಿಡಿಯುತ್ತದೆ ನೋಡಿ", replay: "↻ ಮತ್ತೆ ನೋಡಿ", caller: "ಕರೆ ಮಾಡಿದವರು (ಮರುಸೃಷ್ಟಿ)", n: (k) => `${k} ವರದಿಯಾದ ಪ್ರಕರಣಗಳು`,
         low: "ಸದ್ಯಕ್ಕೆ ಸುರಕ್ಷಿತ", medium: "ಅನುಮಾನಾಸ್ಪದ", high: "ಮೋಸದ ಕರೆ ಇರಬಹುದು", none: "ಈ ಹುಡುಕಾಟಕ್ಕೆ ಯಾವ ಮೋಸವೂ ಸಿಗಲಿಲ್ಲ.", source: "ಮೂಲ",
         ennote: "ಪ್ರಕರಣಗಳ ವಿವರ ಇಂಗ್ಲಿಷ್ ಸುದ್ದಿ ವರದಿಗಳಿಂದ ತೆಗೆದುಕೊಂಡಿದೆ.", practice: "🎓 ಮೋಸದ ಕರೆ ಗುರುತಿಸುವ ಅಭ್ಯಾಸ", home: "🛡️ ಸುರಕ್ಷಿತ ಕರೆ",
         foot: "ಸಾರ್ವಜನಿಕ ಸುದ್ದಿ ವರದಿಗಳು ಮತ್ತು ಸರ್ಕಾರಿ ಅಂಕಿಅಂಶಗಳ ಸಂಕ್ಷಿಪ್ತ ಸಾರ; ಸಂತ್ರಸ್ತರ ಹೆಸರು ಹಾಕಿಲ್ಲ. ನೋಡುವ ಕರೆಗಳು ಮರುಸೃಷ್ಟಿ. ಹಣ ಹೋದರೆ ಮೊದಲ ಒಂದು ಗಂಟೆಯೊಳಗೆ 1930 ಗೆ ಕರೆ ಮಾಡಿ, ಅಥವಾ cybercrime.gov.in ನಲ್ಲಿ ದೂರು ನೀಡಿ." },
   hi: { title: "📰 भारत में हुई असली धोखाधड़ी", sub: "इन चालों से असली लोगों की जमा-पूँजी गई है। जानिए हर चाल कैसे चलती है, ताकि आप उसे रोक सकें।",
         search: "खोजें: police, parcel, OTP…", all: "सभी", how: "यह कैसे होता है", cases: "असली मामले", do: "क्या करें",
+        listen: "🔊 इस धोखे के बारे में सुनें", stop: "⏹ रोकें", voice: "ग्नानी टिम्बर आवाज़ (AI)",
         play: "▶ देखें स्कैम सेंटिनल इसे कैसे पकड़ता है", replay: "↻ फिर से देखें", caller: "कॉल करने वाला (दोबारा बनाया गया)", n: (k) => `${k} दर्ज मामले`,
         low: "अभी तक सुरक्षित", medium: "संदिग्ध", high: "धोखाधड़ी कॉल हो सकती है", none: "इस खोज से कोई धोखाधड़ी नहीं मिली।", source: "स्रोत",
         ennote: "मामलों का विवरण अंग्रेज़ी समाचार रिपोर्टों से लिया गया है।", practice: "🎓 धोखे की कॉल पहचानने का अभ्यास", home: "🛡️ सुरक्षित कॉल",
         foot: "सार्वजनिक समाचार रिपोर्टों और सरकारी आँकड़ों का छोटा सार; पीड़ितों के नाम नहीं दिए गए। दिखाई गई कॉल दोबारा बनाई गई हैं। पैसे गए हों तो पहले एक घंटे में 1930 पर कॉल करें, या cybercrime.gov.in पर शिकायत करें।" },
 };
-let lang = "kn", data = null, filter = "all";
+let lang = "kn", data = null, filter = "all", voices = new Set();
+const audio = new Audio(); let playing = null;          // one explanation at a time
 const t = () => UI[lang];
 function stored(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (_) { return null; } }
 lang = stored("sentinel-practice-lang") || (JSON.parse(stored("sentinel-prefs") || "{}").lang || "kn-IN").split("-")[0];
@@ -162,6 +173,12 @@ function renderList() {
     head.append(el("span", "i", s.icon), words, el("span", "chev", "▾"));
     head.onclick = () => card.classList.toggle("open");
     const body = el("div", "body");
+    if (voices.has(`${s.id}-${lang}`)) {
+      const b = el("button", "listen"); b.dataset.id = s.id;
+      b.append(el("span", "", t().listen), Object.assign(el("span", "wave"), { innerHTML: "<i></i><i></i><i></i>" }));
+      b.onclick = () => listen(s.id, b);
+      body.append(b, el("p", "note voice", t().voice));
+    }
     body.append(el("h3", "", t().how), el("p", "", s.how), el("h3", "", t().cases));
     for (const c of s.cases) { const p = el("div", "case", c.text + " "); p.append(link(c.source, `${t().source}: ${c.by} ↗`)); body.append(p); }
     body.append(el("h3", "", t().do));
@@ -173,6 +190,16 @@ function renderList() {
     $("list").append(card);
   }
 }
+
+function listen(id, button) {
+  const same = playing === id && !audio.paused;
+  audio.pause(); playing = null;
+  document.querySelectorAll(".listen").forEach((b) => { b.classList.remove("on"); b.firstChild.textContent = t().listen; });
+  if (same) return;
+  audio.src = `/audio/scams/${id}-${lang}.mp3`;
+  audio.play().then(() => { playing = id; button.classList.add("on"); button.firstChild.textContent = t().stop; }).catch(() => {});
+}
+audio.onended = () => { playing = null; document.querySelectorAll(".listen").forEach((b) => { b.classList.remove("on"); b.firstChild.textContent = t().listen; }); };
 
 // Re-enacted call, line by line: the same free rule detector the protected line uses scores it as it builds up
 async function simulate(s, sim, play) {
@@ -204,6 +231,7 @@ async function simulate(s, sim, play) {
 
 function setLang(code) {
   lang = code; stored("sentinel-practice-lang", code); document.documentElement.lang = code;
+  audio.pause(); playing = null;
   document.querySelectorAll("#langs button").forEach((b) => b.classList.toggle("on", b.dataset.lang === code));
   const w = t();
   $("title").textContent = w.title; $("sub").textContent = w.sub; $("q").placeholder = w.search; $("foot").textContent = w.foot;
@@ -215,7 +243,9 @@ for (const [code, name] of Object.entries(LANGS)) {
   const b = el("button", "", name); b.dataset.lang = code; b.onclick = () => setLang(code); $("langs").append(b);
 }
 $("q").oninput = () => renderList();
-fetch("/scams.json").then((r) => r.json()).then((d) => { data = d; setLang(lang); });
+Promise.all([fetch("/scams.json").then((r) => r.json()),
+             fetch("/audio/scams/index.json").then((r) => (r.ok ? r.json() : { files: [] })).catch(() => ({ files: [] }))])
+  .then(([d, a]) => { data = d; voices = new Set(a.files); setLang(lang); });
 setLang(lang);
 </script>
 </body>
