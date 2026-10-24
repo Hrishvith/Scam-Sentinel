@@ -19,20 +19,34 @@ def test_every_case_and_figure_links_to_its_source():
     assert all(s["cases"] for s in DATA["scams"])
 
 
+def scammer_lines(scam, lang):
+    """What the scammer says before Scam Sentinel's warning cuts in (the part the detector hears)."""
+    scene = scam["scene"][lang]
+    return [text for who, text in scene[:scene.index(["W", ""])] if who == "S"]
+
+
 @pytest.mark.parametrize("scam", DATA["scams"], ids=lambda s: s["id"])
 def test_every_scam_is_written_in_every_language(scam):
     for lang in LANGS:
-        assert scam["title"][lang] and len(scam["do"][lang]) == len(scam["do"]["en"]) and scam["lines"][lang]
+        assert scam["title"][lang] and len(scam["do"][lang]) == len(scam["do"]["en"]) and scam["scene"][lang]
 
 
 @pytest.mark.parametrize("scam", DATA["scams"], ids=lambda s: s["id"])
 @pytest.mark.parametrize("lang", LANGS)
-def test_the_re_enacted_call_is_caught_and_named(scam, lang):
-    lines = scam["lines"][lang]
+def test_the_re_enacted_call_is_caught_and_named_before_the_warning(scam, lang):
+    lines = scammer_lines(scam, lang)
     assert detect_rules(lines[0]).level == "low"                 # it starts innocent...
     det = detect_rules(" ".join(lines))
-    assert det.level != "low"                                    # ...and is flagged by the end
+    assert det.level != "low"                                    # ...and is flagged when the warning plays
     assert det.scam_type == NAMED.get(scam["id"], scam["id"])
+
+
+@pytest.mark.parametrize("scam", DATA["scams"], ids=lambda s: s["id"])
+@pytest.mark.parametrize("lang", LANGS)
+def test_each_scene_is_a_conversation_that_ends_with_hanging_up(scam, lang):
+    scene = scam["scene"][lang]
+    assert [who for who, _ in scene].count("W") == 1 and scene[-1][0] == "V"     # warning, then they hang up
+    assert {"S", "V"} <= {who for who, _ in scene} and all(text for who, text in scene if who != "W")
 
 
 @pytest.mark.parametrize("scam", DATA["scams"], ids=lambda s: s["id"])
@@ -59,6 +73,38 @@ def test_audio_is_made_once_and_only_with_yes(tmp_path, monkeypatch, capsys):
     assert set(index) == {f"{s['id']}-kn" for s in DATA["scams"]}
     m.main()                                                      # files exist now: nothing more to make
     assert len(calls) == len(DATA["scams"])
+
+
+def test_scene_audio_uses_two_voices_and_the_real_warning_and_costs_only_once(tmp_path, monkeypatch, capsys):
+    import make_scene_audio as m
+    from gnani_client import CacheMiss
+    monkeypatch.setattr(m, "OUT", tmp_path)
+    made = []
+
+    class Fake:
+        def __init__(self, offline=False):
+            self.offline, self.stats = offline, {"tts_calls": 0, "cache_hits": 0}
+
+        def synthesize(self, text, *, language, voice, model):
+            if self.offline:
+                raise CacheMiss("tts", len(text))
+            made.append((voice, text))
+            return b"ID3"
+    monkeypatch.setattr(m, "GnaniClient", Fake)
+    monkeypatch.setattr(sys, "argv", ["make_scene_audio.py", "--lang", "kn"])
+    m.main()
+    assert made == [] and "credits" in capsys.readouterr().out            # dry run spends nothing
+    monkeypatch.setattr(sys, "argv", ["make_scene_audio.py", "--lang", "kn", "--yes"])
+    m.main()
+    voices = {v for v, _ in made}
+    assert {"Kavin", "Saanvi"} <= voices                                  # scammer and the person called
+    warnings = [t for v, t in made if v not in ("Kavin", "Saanvi")]
+    assert len(warnings) == len(DATA["scams"]) and all(t.startswith("ಎಚ್ಚರ") for t in warnings)
+    scenes = json.loads((tmp_path / "index.json").read_text())["scenes"]
+    assert set(scenes) == {f"{s['id']}-kn" for s in DATA["scams"]}       # only complete scenes are listed
+    before = len(made)
+    m.main()                                                              # all saved: nothing more to make
+    assert len(made) == before
 
 
 def test_every_phone_page_loads_the_shared_help_bar_first(tmp_path):

@@ -57,6 +57,11 @@
   .sim { margin-top:12px; background:var(--bg2); border:1px solid var(--line); border-radius:16px; padding:12px; }
   .bubble { background:#26383b; border-radius:16px 16px 16px 4px; padding:10px 12px; margin:6px 40px 6px 0; font-size:16px; animation:fade .3s ease-out; }
   .bubble small { display:block; color:var(--ink2); font-size:12px; }
+  .bubble.v { margin:6px 0 6px 40px; background:#1d3a33; border-radius:16px 16px 4px 16px; }
+  .bubble.w { margin:10px 0; background:var(--bad); color:#fff; border-radius:16px; font-weight:700; }
+  .bubble.w small { color:#ffe1e1; }
+  .bubble.now { outline:2px solid #8fc3ff; }
+  .reenact { margin:0 0 8px; }
   .gauge { height:10px; background:#0b1416; border-radius:5px; overflow:hidden; margin:12px 0 8px; }
   .gauge div { height:100%; width:0; background:var(--risk); transition:width .5s, background .5s; }
   .lvl { font-weight:800; color:var(--risk); } .label { font-weight:600; }
@@ -98,26 +103,29 @@ const UI = {
   en: { title: "📰 Real scams in India", sub: "These tricks have taken real people's savings. Learn how each one works, so you can stop it.",
         search: "Search: police, parcel, OTP…", all: "All", how: "How it works", cases: "Real cases", do: "What to do",
         listen: "🔊 Listen to this explained", stop: "⏹ Stop", voice: "Spoken by Gnani Timbre (AI voice)",
-        play: "▶ Watch Scam Sentinel catch it", replay: "↻ Watch again", caller: "Caller (re-enacted)", n: (k) => `${k} reported cases`,
+        play: "▶ Hear how this scam call happens", replay: "↻ Play again", stopScene: "⏹ Stop", scammer: "Scammer",
+        victim: "Person who got the call", sentinel: "Scam Sentinel warns", reenact: "Re-enacted call · AI voices · not a real recording", n: (k) => `${k} reported cases`,
         low: "Safe so far", medium: "Suspicious", high: "Likely scam", none: "No scam matches that search.", source: "source",
         ennote: "", practice: "🎓 Practise spotting scams", home: "🛡️ Protected line",
         foot: "Short summaries of public news reports and government figures; amounts as reported, victims never named. The calls you can watch are re-enactments. Lost money? Call 1930 within the first hour, or report at cybercrime.gov.in." },
   kn: { title: "📰 ಭಾರತದಲ್ಲಿ ನಡೆದ ನಿಜವಾದ ಮೋಸಗಳು", sub: "ಈ ತಂತ್ರಗಳಿಂದ ನಿಜವಾದ ಜನರು ತಮ್ಮ ಉಳಿತಾಯ ಕಳೆದುಕೊಂಡಿದ್ದಾರೆ. ಪ್ರತಿಯೊಂದು ಹೇಗೆ ನಡೆಯುತ್ತದೆ ಎಂದು ತಿಳಿಯಿರಿ.",
         search: "ಹುಡುಕಿ: police, parcel, OTP…", all: "ಎಲ್ಲಾ", how: "ಹೇಗೆ ನಡೆಯುತ್ತದೆ", cases: "ನಿಜವಾದ ಪ್ರಕರಣಗಳು", do: "ಏನು ಮಾಡಬೇಕು",
         listen: "🔊 ಈ ಮೋಸದ ವಿವರಣೆ ಕೇಳಿ", stop: "⏹ ನಿಲ್ಲಿಸಿ", voice: "ಗ್ನಾನಿ ಟಿಂಬರ್ ಧ್ವನಿ (AI)",
-        play: "▶ ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ಹೇಗೆ ಹಿಡಿಯುತ್ತದೆ ನೋಡಿ", replay: "↻ ಮತ್ತೆ ನೋಡಿ", caller: "ಕರೆ ಮಾಡಿದವರು (ಮರುಸೃಷ್ಟಿ)", n: (k) => `${k} ವರದಿಯಾದ ಪ್ರಕರಣಗಳು`,
+        play: "▶ ಈ ಮೋಸದ ಕರೆ ಹೇಗೆ ನಡೆಯುತ್ತದೆ ಕೇಳಿ", replay: "↻ ಮತ್ತೆ ಕೇಳಿ", stopScene: "⏹ ನಿಲ್ಲಿಸಿ", scammer: "ಮೋಸಗಾರ",
+        victim: "ಕರೆ ಸ್ವೀಕರಿಸಿದವರು", sentinel: "ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ಎಚ್ಚರಿಕೆ", reenact: "ಮರುಸೃಷ್ಟಿಸಿದ ಕರೆ · AI ಧ್ವನಿಗಳು · ನಿಜವಾದ ರೆಕಾರ್ಡಿಂಗ್ ಅಲ್ಲ", n: (k) => `${k} ವರದಿಯಾದ ಪ್ರಕರಣಗಳು`,
         low: "ಸದ್ಯಕ್ಕೆ ಸುರಕ್ಷಿತ", medium: "ಅನುಮಾನಾಸ್ಪದ", high: "ಮೋಸದ ಕರೆ ಇರಬಹುದು", none: "ಈ ಹುಡುಕಾಟಕ್ಕೆ ಯಾವ ಮೋಸವೂ ಸಿಗಲಿಲ್ಲ.", source: "ಮೂಲ",
         ennote: "ಪ್ರಕರಣಗಳ ವಿವರ ಇಂಗ್ಲಿಷ್ ಸುದ್ದಿ ವರದಿಗಳಿಂದ ತೆಗೆದುಕೊಂಡಿದೆ.", practice: "🎓 ಮೋಸದ ಕರೆ ಗುರುತಿಸುವ ಅಭ್ಯಾಸ", home: "🛡️ ಸುರಕ್ಷಿತ ಕರೆ",
         foot: "ಸಾರ್ವಜನಿಕ ಸುದ್ದಿ ವರದಿಗಳು ಮತ್ತು ಸರ್ಕಾರಿ ಅಂಕಿಅಂಶಗಳ ಸಂಕ್ಷಿಪ್ತ ಸಾರ; ಸಂತ್ರಸ್ತರ ಹೆಸರು ಹಾಕಿಲ್ಲ. ನೋಡುವ ಕರೆಗಳು ಮರುಸೃಷ್ಟಿ. ಹಣ ಹೋದರೆ ಮೊದಲ ಒಂದು ಗಂಟೆಯೊಳಗೆ 1930 ಗೆ ಕರೆ ಮಾಡಿ, ಅಥವಾ cybercrime.gov.in ನಲ್ಲಿ ದೂರು ನೀಡಿ." },
   hi: { title: "📰 भारत में हुई असली धोखाधड़ी", sub: "इन चालों से असली लोगों की जमा-पूँजी गई है। जानिए हर चाल कैसे चलती है, ताकि आप उसे रोक सकें।",
         search: "खोजें: police, parcel, OTP…", all: "सभी", how: "यह कैसे होता है", cases: "असली मामले", do: "क्या करें",
         listen: "🔊 इस धोखे के बारे में सुनें", stop: "⏹ रोकें", voice: "ग्नानी टिम्बर आवाज़ (AI)",
-        play: "▶ देखें स्कैम सेंटिनल इसे कैसे पकड़ता है", replay: "↻ फिर से देखें", caller: "कॉल करने वाला (दोबारा बनाया गया)", n: (k) => `${k} दर्ज मामले`,
+        play: "▶ सुनिए यह धोखे की कॉल कैसे होती है", replay: "↻ फिर से सुनें", stopScene: "⏹ रोकें", scammer: "धोखेबाज़",
+        victim: "जिसे कॉल आया", sentinel: "स्कैम सेंटिनल की चेतावनी", reenact: "दोबारा बनाई गई कॉल · AI आवाज़ें · असली रिकॉर्डिंग नहीं", n: (k) => `${k} दर्ज मामले`,
         low: "अभी तक सुरक्षित", medium: "संदिग्ध", high: "धोखाधड़ी कॉल हो सकती है", none: "इस खोज से कोई धोखाधड़ी नहीं मिली।", source: "स्रोत",
         ennote: "मामलों का विवरण अंग्रेज़ी समाचार रिपोर्टों से लिया गया है।", practice: "🎓 धोखे की कॉल पहचानने का अभ्यास", home: "🛡️ सुरक्षित कॉल",
         foot: "सार्वजनिक समाचार रिपोर्टों और सरकारी आँकड़ों का छोटा सार; पीड़ितों के नाम नहीं दिए गए। दिखाई गई कॉल दोबारा बनाई गई हैं। पैसे गए हों तो पहले एक घंटे में 1930 पर कॉल करें, या cybercrime.gov.in पर शिकायत करें।" },
 };
-let lang = "kn", data = null, filter = "all", voices = new Set();
+let lang = "kn", data = null, filter = "all", voices = new Set(), sceneVoices = new Set();
 const audio = new Audio(); let playing = null;          // one explanation at a time
 const t = () => UI[lang];
 function stored(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (_) { return null; } }
@@ -159,7 +167,7 @@ function matches(s) {
   if (filter !== "all" && s.id !== filter) return false;
   const q = $("q").value.trim().toLowerCase();
   if (!q) return true;
-  const hay = [s.title.en, s.title[lang], s.how, ...s.cases.map((c) => c.text), ...Object.values(s.lines).flat()].join(" ").toLowerCase();
+  const hay = [s.title.en, s.title[lang], s.how, ...s.cases.map((c) => c.text), ...Object.values(s.scene).flat(2)].join(" ").toLowerCase();
   return q.split(/\s+/).every((w) => hay.includes(w));
 }
 
@@ -197,42 +205,70 @@ function listen(id, button) {
   audio.pause(); playing = null;
   document.querySelectorAll(".listen").forEach((b) => { b.classList.remove("on"); b.firstChild.textContent = t().listen; });
   if (same) return;
+  sceneRun++; sceneAudio.pause();
   audio.src = `/audio/scams/${id}-${lang}.mp3`;
   audio.play().then(() => { playing = id; button.classList.add("on"); button.firstChild.textContent = t().stop; }).catch(() => {});
 }
 audio.onended = () => { playing = null; document.querySelectorAll(".listen").forEach((b) => { b.classList.remove("on"); b.firstChild.textContent = t().listen; }); };
 
-// Re-enacted call, line by line: the same free rule detector the protected line uses scores it as it builds up
+// Re-enacted call: the scammer and the person called talk in two Gnani voices; the same free rule detector
+// the protected line uses scores the scammer's words as they build up, and Scam Sentinel's warning cuts in.
+const sceneAudio = new Audio();
+let sceneRun = 0;                                   // bumping it stops the scene that is playing
+function say(file, text) {                          // play one saved line, or wait as long as reading it takes
+  return new Promise((resolve) => {
+    if (!file) return setTimeout(resolve, 900 + text.length * 45);
+    sceneAudio.src = file;
+    sceneAudio.onended = sceneAudio.onerror = () => resolve();
+    sceneAudio.play().catch(() => setTimeout(resolve, 900 + text.length * 45));
+  });
+}
 async function simulate(s, sim, play) {
-  play.disabled = true; sim.classList.remove("hidden"); sim.innerHTML = "";
+  if (play.dataset.on) { sceneRun++; sceneAudio.pause(); return; }          // the button is Stop while playing
+  const run = ++sceneRun;
+  audio.pause(); audio.onended();                   // stop a Listen explanation that is playing
+  play.dataset.on = "1"; play.textContent = t().stopScene;
+  sim.classList.remove("hidden"); sim.innerHTML = "";
   sim.style.setProperty("--risk", COLOR.low);
   const chat = el("div"), gauge = el("div", "gauge"), bar = el("div"), status = el("div"), tricks = el("div", "tricks"), tip = el("div", "tip hidden");
   gauge.append(bar);
   const lvl = el("span", "lvl", t().low), label = el("span", "label");
   status.append(lvl, document.createTextNode(" "), label);
-  sim.append(chat, gauge, status, tricks, tip);
-  const seen = new Set(), said = [];
-  for (const line of s.lines[lang]) {
-    const b = el("div", "bubble"); b.append(el("small", "", "📞 " + t().caller), document.createTextNode(line));
-    chat.append(b); said.push(line);
+  sim.append(el("p", "note reenact", "🎭 " + t().reenact), chat, gauge, status, tricks, tip);
+  const audio = sceneVoices.has(`${s.id}-${lang}`), seen = new Set(), said = [];
+  let last = { level: "low", tip: null };
+  for (const [n, [who, text]] of s.scene[lang].entries()) {
+    if (run !== sceneRun) break;
+    const b = el("div", "bubble " + who.toLowerCase());
+    const name = who === "S" ? "📞 " + t().scammer : who === "V" ? "🙋 " + t().victim : "🛡️ " + t().sentinel;
+    b.append(el("small", "", name), document.createTextNode(who === "W" ? `${t()[last.level]}! ${last.tip || ""}` : text));
+    if (who === "W") { sim.style.setProperty("--risk", COLOR[last.level]); navigator.vibrate?.([300, 100, 300]); }
+    chat.append(b); b.classList.add("now");
     b.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    let res;
-    try { res = await check(said.join(" ")); } catch (e) { lvl.textContent = e.message; break; }
-    sim.style.setProperty("--risk", COLOR[res.level]);
-    bar.style.width = Math.min(100, res.score * 10) + "%";
-    lvl.textContent = t()[res.level];
-    label.textContent = res.scam_label && res.level !== "low" ? "· " + res.scam_label : "";
-    for (const tr of res.tricks) if (!seen.has(tr.id)) { seen.add(tr.id); tricks.append(el("span", "trick", (ICON[tr.id] || "•") + " " + tr.label)); }
-    if (res.tip) { tip.textContent = "💡 " + res.tip; tip.classList.remove("hidden"); }
-    if (res.level === "high") navigator.vibrate?.([200, 80, 200]);
-    await new Promise((r) => setTimeout(r, 1500));
+    if (who === "S") {                              // only the caller's words are checked, like on a real call
+      said.push(text);
+      check(said.join(" ")).then((res) => {
+        if (run !== sceneRun) return;
+        last = res;
+        sim.style.setProperty("--risk", COLOR[res.level]);
+        bar.style.width = Math.min(100, res.score * 10) + "%";
+        lvl.textContent = t()[res.level];
+        label.textContent = res.scam_label && res.level !== "low" ? "· " + res.scam_label : "";
+        for (const tr of res.tricks) if (!seen.has(tr.id)) { seen.add(tr.id); tricks.append(el("span", "trick", (ICON[tr.id] || "•") + " " + tr.label)); }
+        if (res.tip) { tip.textContent = "💡 " + res.tip; tip.classList.remove("hidden"); }
+      }).catch((e) => { lvl.textContent = e.message; });
+    }
+    await say(audio ? `/audio/scenes/${s.id}-${lang}-${n}.mp3` : null, text || "..........");
+    b.classList.remove("now");
+    await new Promise((r) => setTimeout(r, 250));
   }
-  play.textContent = t().replay; play.disabled = false;
+  if (run === sceneRun) sceneRun++;
+  delete play.dataset.on; play.textContent = t().replay;
 }
 
 function setLang(code) {
   lang = code; stored("sentinel-practice-lang", code); document.documentElement.lang = code;
-  audio.pause(); playing = null;
+  audio.pause(); playing = null; sceneRun++; sceneAudio.pause();
   document.querySelectorAll("#langs button").forEach((b) => b.classList.toggle("on", b.dataset.lang === code));
   const w = t();
   $("title").textContent = w.title; $("sub").textContent = w.sub; $("q").placeholder = w.search; $("foot").textContent = w.foot;
@@ -247,8 +283,9 @@ for (const [code, name] of Object.entries(LANGS)) {
 $("q").oninput = () => renderList();
 window.addEventListener("sentinel-lang", (e) => setLang(e.detail));   // one language for the whole site
 Promise.all([fetch("/scams.json").then((r) => r.json()),
-             fetch("/audio/scams/index.json").then((r) => (r.ok ? r.json() : { files: [] })).catch(() => ({ files: [] }))])
-  .then(([d, a]) => { data = d; voices = new Set(a.files); setLang(lang); });
+             fetch("/audio/scams/index.json").then((r) => (r.ok ? r.json() : { files: [] })).catch(() => ({ files: [] })),
+             fetch("/audio/scenes/index.json").then((r) => (r.ok ? r.json() : { scenes: [] })).catch(() => ({ scenes: [] }))])
+  .then(([d, a, sc]) => { data = d; voices = new Set(a.files); sceneVoices = new Set(sc.scenes); setLang(lang); });
 setLang(lang);
 </script>
 </body>
