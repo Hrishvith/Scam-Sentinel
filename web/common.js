@@ -122,10 +122,16 @@
     #sn-lang .note { font-size:15px; color:#56615e; margin:0; }
     #sn-lang button.x { width:100%; margin-top:6px; padding:16px; border-radius:16px; border:2px solid #d3cdbf; background:#fff;
                         color:#17201e; font:inherit; font-size:19px; font-weight:700; cursor:pointer; }
-    #sn-langbtn { width:auto !important; flex:none; margin:0 0 0 auto !important; display:inline-flex; align-items:center; gap:6px;
-                  min-height:46px; padding:0 12px; border-radius:14px; border:2px solid rgba(255,255,255,.55);
-                  background:rgba(255,255,255,.16); color:#fff; font:inherit; font-size:17px; font-weight:800; cursor:pointer; }
-    body.sn-incall #sn-langbtn { display:none; }
+    /* language bar: always visible under the header, one tap per language (no menus to find) */
+    #sn-langstrip { margin:0 0 14px; padding:10px; background:#fff; border:2px solid #d3cdbf; border-radius:20px;
+                    box-shadow:0 2px 10px -6px rgba(23,32,30,.3); }
+    #sn-langstrip .lab { font-size:15px; font-weight:700; color:#424d4a; margin:0 4px 8px; }
+    #sn-langstrip .row { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:8px; }
+    #sn-langstrip button { width:auto !important; margin:0 !important; min-height:56px; padding:6px 8px; border-radius:14px; cursor:pointer;
+                           font:inherit; font-size:21px; font-weight:800; color:#0b5d4b; background:#fff; border:2px solid #0b5d4b; }
+    #sn-langstrip button.on { background:#0b5d4b; color:#fff; box-shadow:inset 0 0 0 3px #0b5d4b, 0 0 0 3px #bfe0d5; }
+    #sn-langstrip button.more { font-size:16px; color:#424d4a; border-color:#d3cdbf; padding:6px 10px; }
+    body.sn-incall #sn-langstrip { display:none; }
     header .pill { order:9; }
   `;
   document.head.append(css);
@@ -214,14 +220,25 @@
     picker.scrollTop = 0;
   }
 
-  // ---- 🌐 language button in every page header: one place to change the language of the whole site ----
-  const langBtn = el("button", { id: "sn-langbtn", type: "button", onclick: () => askLang() });
-  function renderLangBtn() { langBtn.textContent = "🌐 " + NAMES[getLang() || "kn"]; }
+  // ---- language bar under the header of every page: the three languages are always one tap away ----
+  const strip = el("section", { id: "sn-langstrip", ariaLabel: "Language" });
+  function renderLangBtn() {
+    const current = getLang() || "kn";
+    strip.innerHTML = "";
+    strip.append(el("div", { className: "lab" }, "🌐 ಭಾಷೆ · भाषा · Language"));
+    const row = el("div", { className: "row" });
+    for (const [code, name] of Object.entries(NAMES)) {
+      row.append(el("button", { type: "button", className: code === current ? "on" : "", ariaPressed: String(code === current),
+                                onclick: () => setLang(code) }, name));
+    }
+    row.append(el("button", { type: "button", className: "more", title: "More languages", onclick: () => askLang() }, "+"));
+    strip.append(row);
+  }
 
   function start() {
     document.body.append(bar, help, picker);
     document.querySelector("header")?.prepend(back);
-    document.querySelector("header")?.append(langBtn);
+    document.querySelector("header")?.after(strip);
     applySize();
     document.documentElement.lang = getLang() || "kn";
     render();
