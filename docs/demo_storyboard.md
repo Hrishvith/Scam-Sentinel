@@ -3,59 +3,62 @@
 **The idea:** a feature tour gets scrolled past; a story gets watched. The video retells *your real story*,
 then re-enacts the same kind of call, and this time Scam Sentinel interrupts it **during the call**.
 
-**Shape:** real story (10 s) → re-enacted call, with the warning cutting in (35 s) → how it works (8 s) → end card (7 s).
+**Shape:** real story (10 s) → re-enacted call, the warning cutting in and the 'arrested' son's phone ringing (32 s) → how it works (8 s) → close (10 s).
 Vertical 9:16, 1080×1920 (LinkedIn and X both favour it on phones). Captions burned in (most people watch muted).
 
-## Fill these in first (from your real story)
+## The real story
 
-| | Your answer |
-|---|---|
-| WHO got the call (relation only, no name unless they agree) | `[e.g. my grandmother, 72, Mysuru]` |
-| WHAT the caller pretended to be | `[e.g. bank KYC officer / police / courier]` |
-| WHAT they asked for | `[e.g. the OTP / ₹ transfer / install an app]` |
-| HOW it ended | `[e.g. she read out the OTP, ₹__ was gone in minutes / we stopped it just in time]` |
-| Language of the call | `[Kannada / Hindi / English]` |
+My uncle got a call from an unknown number. The caller said he was from the police: they had arrested his
+son for an attempted rape, and he had to pay about ₹5 lakh to get him released. It was a false story,
+but my uncle was terrified.
 
-**Consent:** ask the person before you tell their story publicly, even without their name. If they
-appear on camera, they must agree to that too. Never show their real number, bank or account details.
+Still to fill in: `[how it ended: did he pay / how did the family find out it was fake]` and `[language of the call]`.
+
+**How to tell it publicly:** say *"a serious criminal case"*, not the exact accusation. The real accusation is
+what makes this scam so cruel, but in a public post it attaches that word to your cousin, even with no names.
+Ask both your uncle and your cousin before posting. No names, numbers or photos of either unless they agree.
+
+**The twist that makes the video:** in the re-enactment, the guardian phone belongs to the "arrested" son.
+The scammer says he is in custody, and at that moment *his* phone, safe at college or at work, rings with the alert,
+and he calls his father. That one shot shows the whole lie collapsing.
 
 ## Shot list
 
 | Time | Shot | Caption / voice |
 |---|---|---|
-| 0:00-0:03 | **Hook.** You, to camera, close up (or text on black) | *"In [year], my [WHO] got a call from '[WHAT]'. [HOW, in one line]."* |
-| 0:03-0:10 | Old photo of you two, or their hands holding a phone (no face needed) | *"It took [N] minutes. Nobody could warn her during the call. So I built something that can."* |
-| 0:10-0:13 | Title: **Scam Sentinel** + app icon on a phone home screen; tap it | caption: *"Re-enacted call · simulated, no real numbers"* (keep on screen the whole call) |
-| 0:13-0:22 | Phone A (the protected person) on a table: the green shield screen, timer running. Off-screen, your friend reads the scam lines (below) | Call audio. Small English captions of the Kannada lines |
-| 0:22-0:26 | Shield turns **orange**: "ಎಚ್ಚರ: ಅನುಮಾನಾಸ್ಪದ ಕರೆ"; the Kannada warning plays | caption: *"It hears the scam tricks as they happen…"* |
-| 0:26-0:32 | Caller asks for the OTP → screen goes **red**: "ಮೋಸದ ಕರೆ · ಈಗಲೇ ಕರೆ ಕಟ್ ಮಾಡಿ"; **your cloned voice** speaks the warning | caption: *"…and warns her in a voice she trusts: mine (AI voice clone, made with consent)"* |
-| 0:32-0:38 | She starts reading numbers: "ಏಳು… ನಾಲ್ಕು…" → **✋ ನಿಲ್ಲಿಸಿ** fills the screen; "the caller can't hear you now" | caption: *"She starts reading the OTP. It stops her, and cuts her voice off from the scammer."* |
-| 0:38-0:44 | Cut to phone B in another room/hand: the family guardian alarm, "🚨 likely SCAM call", tap **Call them now** | caption: *"And her family's phone rings, while the call is still going on."* |
-| 0:44-0:52 | Fast montage, 1 s each: the language buttons ಕನ್ನಡ / हिन्दी / English; benchmark chart; operator view | caption: *"Kannada · Hindi · English · Hinglish. Built on Gnani Prisma (live speech-to-text), Timbre (voice) and voice cloning. 24/24 test scams caught, 0/36 false alarms."* |
-| 0:52-0:60 | You to camera, or end card with icon | *"Prototype today, telecom-ready design tomorrow. If you work in telecom or banking, let's talk."* + **#GnaniAI #GreatIndianAIInternshipChallenge** · *"Real scam call? Call 1930 / cybercrime.gov.in"* |
+| 0:00-0:04 | **Hook.** You, to camera, close up | *"My uncle got a call: 'We are the police. We've arrested your son. Pay ₹5 lakh to release him.'"* |
+| 0:04-0:10 | Your uncle's hands holding a phone (no face unless he agrees) | *"None of it was true. But for [N] minutes he believed it, and nobody could warn him during the call. So I built something that can."* |
+| 0:10-0:13 | App icon on a phone home screen; tap it; green shield | caption: *"Re-enacted call · simulated, no real numbers"* (on screen for the whole call) |
+| 0:13-0:19 | Phone A (the "father", played by a family member or you) on a table, call running. Your friend, off-screen, reads line 1 | Call audio + English captions |
+| 0:19-0:24 | Line 2 ("we've arrested your son") → shield turns **orange**: "ಎಚ್ಚರ: ಅನುಮಾನಾಸ್ಪದ ಕರೆ"; Kannada warning plays | *"It recognises the trick as it happens: a fake police officer, a son 'in custody'…"* |
+| 0:24-0:30 | Line 3 ("don't tell anyone") → **red**: "ಮೋಸದ ಕರೆ · ಈಗಲೇ ಕರೆ ಕಟ್ ಮಾಡಿ" + the warning **in a family voice** | *"…and the warning comes in a voice he trusts (AI voice clone, made with consent)"* |
+| 0:30-0:36 | **Cut to phone B: the son**, at college, phone rings: "🚨 likely SCAM call · family emergency". He taps **Call them now** | *"Meanwhile, the 'arrested' son's phone rings. He's fine, and he's calling his dad."* |
+| 0:36-0:42 | Line 4 (₹5 lakh, account number); the father starts reading a made-up number: "ಎರಡು… ಏಳು… ಒಂಬತ್ತು…" → **✋ ನಿಲ್ಲಿಸಿ** | *"And if he starts giving his bank details, it says STOP, and the scammer can't hear him."* |
+| 0:42-0:50 | 1-second montage: ಕನ್ನಡ / हिन्दी / English buttons; benchmark chart; operator view | *"Kannada · Hindi · English · Hinglish. Gnani Prisma live speech-to-text, Timbre voice, voice cloning. 24/24 test scams caught, 0/36 false alarms."* |
+| 0:50-0:60 | You to camera | *"My uncle got lucky. Not everyone does. Telecom and banking folks, let's build this into the network."* + **#GnaniAI #GreatIndianAIInternshipChallenge** · *"Real scam call? 1930 · cybercrime.gov.in"* |
+
+If the real ending was that he paid, change the last line to *"My uncle lost [₹___]. It doesn't have to happen to anyone else."*
 
 ## Lines for the re-enacted call (Kannada; REVIEW with a native speaker)
 
-Pick the set that matches your story. These are the lines from our two-phone tests that the detector
-already catches; keep the meaning if you reword them.
+Checked with the offline detector (no credits): line 1 green, line 2 **orange**, line 3 **red**, line 4 arms the OTP guard.
 
-**Bank / KYC + OTP**
-1. ನಮಸ್ಕಾರ, ನಾನು ನಿಮ್ಮ ಬ್ಯಾಂಕಿನ ಕೆವೈಸಿ ವಿಭಾಗದಿಂದ ಮಾತಾಡ್ತಾ ಇದ್ದೀನಿ.
-2. ನಿಮ್ಮ ಖಾತೆ ಇವತ್ತೇ ಬ್ಲಾಕ್ ಆಗುತ್ತೆ, ಈಗಲೇ ಅಪ್‌ಡೇಟ್ ಮಾಡಬೇಕು.
-3. ನಿಮ್ಮ ಮೊಬೈಲಿಗೆ ಒಂದು ಒಟಿಪಿ ಬಂದಿದೆ, ಅದನ್ನು ಬೇಗ ತಿಳಿಸಿ.
+1. ನಮಸ್ಕಾರ, ನಾನು ಪೊಲೀಸ್ ಸ್ಟೇಷನ್‌ನಿಂದ ಸಬ್ ಇನ್ಸ್‌ಪೆಕ್ಟರ್ ರಾಜು ಮಾತಾಡ್ತಾ ಇದ್ದೀನಿ. *(I'm Sub-Inspector Raju from the police station.)*
+2. ನಿಮ್ಮ ಮಗನನ್ನು ಒಂದು ಗಂಭೀರ ಕೇಸ್‌ನಲ್ಲಿ ಅರೆಸ್ಟ್ ಮಾಡಿದ್ದೀವಿ. *(We've arrested your son in a serious case.)*
+3. ಈ ವಿಷಯ ಯಾರಿಗೂ ಹೇಳಬೇಡಿ. *(Don't tell anyone about this.)*
+4. ಐದು ಲಕ್ಷ ರೂಪಾಯಿ ಈಗಲೇ ಟ್ರಾನ್ಸ್‌ಫರ್ ಮಾಡಿದ್ರೆ ನಿಮ್ಮ ಮಗನನ್ನು ಬಿಟ್ಟುಬಿಡ್ತೀವಿ. ನಿಮ್ಮ ಅಕೌಂಟ್ ನಂಬರ್ ಹೇಳಿ.
+   *(Transfer ₹5 lakh now and we'll release your son. Tell me your account number.)*
 
-**Fake police / "your son is in custody"**
-1. ನಾನು ಸಬ್ ಇನ್ಸ್‌ಪೆಕ್ಟರ್ ರಾಜು ಮಾತಾಡ್ತಾ ಇದ್ದೀನಿ.
-2. ನಿಮ್ಮ ಮಗ ನಮ್ಮ ಕಸ್ಟಡಿಯಲ್ಲಿದ್ದಾನೆ, ಯಾರಿಗೂ ಹೇಳಬೇಡಿ.
-3. ಬೇಗ ಐದು ಲಕ್ಷ ರೂಪಾಯಿ ಟ್ರಾನ್ಸ್‌ಫರ್ ಮಾಡಿ, ಇಲ್ಲಾಂದ್ರೆ ಅರೆಸ್ಟ್ ಆಗುತ್ತೆ.
+The father then says a **made-up** number slowly: "ಎರಡು… ಏಳು… ಒಂಬತ್ತು…" (the guard fires at the third digit).
 
-The protected person then says a made-up OTP slowly: "ಏಳು… ನಾಲ್ಕು… ಎರಡು…" (the guard fires at the third digit).
+**Setup for this story:** phone A = the father (protected, ಕನ್ನಡ, family voice + OTP guard on). Phone B = the son
+(guardian page, installed, "Start watching", a made-up number typed in for the call-back button). Phone C = the
+scammer, in another room. Family voice: the clone is of *your* voice today, so either caption it "my voice", or
+record a consented clone of your cousin with `family_voice.py` (about 1-2 credits).
 
 ## How to shoot it
 
-- **Phones:** phone A = protected (installed to the home screen, language ಕನ್ನಡ, family voice + OTP guard on);
-  phone B = guardian (installed, "Start watching" tapped); phone C (your friend, another room) = caller.
-  The laptop stays off camera; nobody needs to see QR codes. Open the links once before filming and
+- **Phones:** as in "Setup for this story" above. The laptop stays off camera; nobody needs to see QR codes. Open the links once before filming and
   "Add to home screen", so the shot starts from an app icon.
 - **Sound:** record phone A's screen with its screen recorder (Android: quick settings → Screen record →
   *device audio + mic*). Film phone B with a second phone. Cut the two together.
