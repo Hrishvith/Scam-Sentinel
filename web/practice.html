@@ -7,6 +7,7 @@
 <link rel="icon" href="/icons/favicon.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <title>Spot the scam</title>
+<script src="/common.js"></script>
 <style>
   :root { --bg:#0b1416; --bg2:#112023; --card:#16282b; --line:#24393c; --ink:#f2f5f4; --ink2:#a9bcb8;
           --good:#19b37d; --warn:#f5a524; --bad:#e5484d; --accent:#3b8cf0; --risk:var(--good); }
@@ -262,7 +263,8 @@ function setLang(code) {
   updateSpeak();
 }
 for (const [code, name] of Object.entries(LANGS)) {
-  const b = document.createElement("button"); b.textContent = name; b.dataset.lang = code; b.onclick = () => setLang(code); $("langs").append(b);
+  const b = document.createElement("button"); b.textContent = name; b.dataset.lang = code;
+  b.onclick = () => (window.Sentinel ? Sentinel.setLang(code) : setLang(code)); $("langs").append(b);
 }
 function tab(name) {
   $("quiz").classList.toggle("hidden", name !== "quiz"); $("check").classList.toggle("hidden", name !== "check");
@@ -271,6 +273,7 @@ function tab(name) {
 $("t-quiz").onclick = () => tab("quiz");
 $("t-check").onclick = () => tab("check");
 
+window.addEventListener("sentinel-lang", (e) => setLang(e.detail));   // one language for the whole site
 fetch("/practice.json").then((r) => r.json()).then((d) => { items = d.items; setLang(lang); });
 setLang(lang);
 </script>

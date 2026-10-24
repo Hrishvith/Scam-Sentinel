@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link id="manifest" rel="manifest">
 <title>Scam Sentinel protected line</title>
+<script src="/common.js"></script>
 <style>
   :root { --bg:#0b1416; --bg2:#112023; --card:#16282b; --line:#24393c; --ink:#f2f5f4; --ink2:#a9bcb8; --muted:#7f948f;
           --good:#19b37d; --warn:#f5a524; --bad:#e5484d; --accent:#3b8cf0; --risk:var(--good); }
@@ -103,34 +104,34 @@
 </head>
 <body data-level="low">
 <main>
-  <header><img src="/icons/icon-192.png" alt=""><b>Scam Sentinel</b><span class="pill">Prototype · simulated calls</span></header>
+  <header><img src="/icons/icon-192.png" alt=""><b>Scam Sentinel</b><span class="pill" id="pill">Prototype · simulated calls</span></header>
 
   <section id="choose" class="hidden">
-    <h2>Which phone is this?</h2>
-    <button class="role" data-role="receiver"><span class="i">🛡️</span><span>Protect this phone<small>The person who might get a scam call</small></span></button>
-    <button class="role" data-role="caller"><span class="i">📞</span><span>Caller<small>Plays the scammer in a simulated call</small></span></button>
-    <button class="role" data-role="listener"><span class="i">🔊</span><span>Listen to a real call on speaker<small>Put this device next to the phone</small></span></button>
-    <a class="practice" id="practice1" href="#">🎓 Practise spotting scam calls (free, no call needed)</a>
-    <a class="practice" id="scams1" href="#">📰 Real scams in India: how they work, what to do</a>
+    <h2 data-w="choose"></h2>
+    <button class="role" data-role="receiver"><span class="i">🛡️</span><span><span data-w="rProtect"></span><small data-w="rProtectS"></small></span></button>
+    <button class="role" data-role="caller"><span class="i">📞</span><span><span data-w="rCaller"></span><small data-w="rCallerS"></small></span></button>
+    <button class="role" data-role="listener"><span class="i">🔊</span><span><span data-w="rListen"></span><small data-w="rListenS"></small></span></button>
+    <a class="practice" id="practice1" href="#" data-w="practice"></a>
+    <a class="practice" id="scams1" href="#" data-w="scams"></a>
   </section>
 
   <section id="ready" class="card hidden">
     <p id="who" style="margin-top:0"></p>
     <div id="options" class="hidden">
-      <div class="label">Warning language · ಭಾಷೆ · भाषा</div>
+      <div class="label" data-w="warnLang"></div>
       <div class="langs" id="langs"></div>
       <label class="toggle hidden" id="famrow"><input type="checkbox" id="fam">
-        <span>🧬 Final warning in <b id="famname"></b>'s voice<small>AI voice clone, made with consent</small></span></label>
+        <span><span data-w="famA"></span><b id="famname"></b><span data-w="famB"></span><small data-w="famS"></small></span></label>
       <label class="toggle hidden" id="guardrow"><input type="checkbox" id="guard">
-        <span id="guardtext">✋ Stop me if I start saying an OTP or numbers to the caller</span></label>
-      <div class="label">Family member to call if a caller frightens you (optional)</div>
-      <div class="contact"><input id="cname" placeholder="Name" autocomplete="off"><input id="cnum" type="tel" inputmode="tel" placeholder="Phone number" autocomplete="off"></div>
-      <p class="note" style="margin:6px 0 0">Saved only on this phone. The red warning shows a button to call them yourself.</p>
+        <span id="guardtext"></span></label>
+      <div class="label" data-w="family"></div>
+      <div class="contact"><input id="cname" autocomplete="off"><input id="cnum" type="tel" inputmode="tel" autocomplete="off"></div>
+      <p class="note" style="margin:6px 0 0" data-w="saved"></p>
     </div>
-    <button id="start" class="go">📞 Join the call</button>
-    <button id="install" class="hidden">📲 Add Scam Sentinel to the home screen</button>
-    <p class="note">Allow the microphone when asked. Keep this screen open during the call.</p>
-    <a class="practice hidden" id="practice2" href="#">🎓 Practise spotting scam calls first</a>
+    <button id="start" class="go"></button>
+    <button id="install" class="hidden" data-w="install"></button>
+    <p class="note" data-w="mic"></p>
+    <a class="practice hidden" id="practice2" href="#" data-w="practiceFirst"></a>
   </section>
 
   <section id="incall" class="hidden">
@@ -237,45 +238,104 @@ for (const id of ["practice1", "practice2"]) $(id).href = `/practice?key=${encod
 $("scams1").href = `/scams?key=${encodeURIComponent(key)}`;
 $("cname").value = prefs.cname || ""; $("cnum").value = prefs.cnum || "";
 
+// Home and setup screens, in the language chosen for the whole site (REVIEW kn/hi with native speakers)
+const HOME = {
+  en: { choose: "Which phone is this?", rProtect: "Protect this phone", rProtectS: "For the person who might get a scam call",
+        rCaller: "Caller", rCallerS: "Plays the scammer in a practice call", rListen: "Listen to a real call on speaker",
+        rListenS: "Put this phone next to the other phone", practice: "🎓 Practise spotting scam calls",
+        scams: "📰 Real scams: how they work, what to do",
+        whoReceiver: "This phone is protected. If a caller sounds like a scammer, it warns you during the call, in your language.",
+        whoListener: "Put your phone call on speaker, next to this phone. It listens and warns you out loud during the call.",
+        whoCaller: "You are the caller. Read a practice scam script. The other person will be warned; you will not hear it.",
+        warnLang: "Language of the warnings", famA: "🧬 Final warning in ", famB: "'s voice", famS: "AI voice copy, made with their permission",
+        guard: "✋ Stop me if I start saying an OTP or numbers to the caller", guardL: "✋ Warn me if I start saying an OTP or numbers",
+        family: "Family member to call if a caller frightens you (you can skip this)", name: "Name", number: "Phone number",
+        saved: "Saved only on this phone. The red warning will show a button to call them.", join: "📞 Join the call",
+        listen: "🎧 Start listening", install: "📲 Put Scam Sentinel on the home screen",
+        mic: "When the phone asks, tap Allow for the microphone. Keep this screen open during the call.",
+        practiceFirst: "🎓 Practise spotting scam calls first", nokey: "This link is not complete. Please scan the QR code again.",
+        noaudio: "The microphone could not start. Please open this page in Chrome and tap Allow for the microphone.",
+        pill: "Prototype · practice calls" },
+  kn: { choose: "ಇದು ಯಾರ ಫೋನ್?", rProtect: "ಈ ಫೋನ್ ರಕ್ಷಿಸಿ", rProtectS: "ಮೋಸದ ಕರೆ ಬರಬಹುದಾದವರಿಗೆ",
+        rCaller: "ಕರೆ ಮಾಡುವವರು", rCallerS: "ಅಭ್ಯಾಸ ಕರೆಯಲ್ಲಿ ಮೋಸಗಾರನ ಪಾತ್ರ", rListen: "ಸ್ಪೀಕರ್‌ನಲ್ಲಿರುವ ನಿಜವಾದ ಕರೆ ಕೇಳಿ",
+        rListenS: "ಈ ಫೋನನ್ನು ಇನ್ನೊಂದು ಫೋನಿನ ಪಕ್ಕ ಇಡಿ", practice: "🎓 ಮೋಸದ ಕರೆ ಗುರುತಿಸುವ ಅಭ್ಯಾಸ",
+        scams: "📰 ನಿಜವಾದ ಮೋಸಗಳು: ಹೇಗೆ ನಡೆಯುತ್ತವೆ, ಏನು ಮಾಡಬೇಕು",
+        whoReceiver: "ಈ ಫೋನ್ ರಕ್ಷಣೆಯಲ್ಲಿದೆ. ಕರೆ ಮಾಡಿದವರು ಮೋಸಗಾರರಂತೆ ಕಂಡರೆ, ಕರೆಯ ಸಮಯದಲ್ಲೇ ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಎಚ್ಚರಿಸುತ್ತದೆ.",
+        whoListener: "ನಿಮ್ಮ ಕರೆಯನ್ನು ಸ್ಪೀಕರ್‌ನಲ್ಲಿ ಇಟ್ಟು ಈ ಫೋನಿನ ಪಕ್ಕ ಇಡಿ. ಕರೆಯ ಸಮಯದಲ್ಲೇ ಕೇಳಿ ಜೋರಾಗಿ ಎಚ್ಚರಿಸುತ್ತದೆ.",
+        whoCaller: "ನೀವು ಕರೆ ಮಾಡುವವರು. ಅಭ್ಯಾಸದ ಮೋಸದ ಸಾಲುಗಳನ್ನು ಓದಿ. ಇನ್ನೊಬ್ಬರಿಗೆ ಎಚ್ಚರಿಕೆ ಹೋಗುತ್ತದೆ; ನಿಮಗೆ ಕೇಳಿಸುವುದಿಲ್ಲ.",
+        warnLang: "ಎಚ್ಚರಿಕೆಯ ಭಾಷೆ", famA: "🧬 ಕೊನೆಯ ಎಚ್ಚರಿಕೆ ", famB: " ಅವರ ಧ್ವನಿಯಲ್ಲಿ", famS: "AI ಧ್ವನಿ ನಕಲು, ಅವರ ಒಪ್ಪಿಗೆಯೊಂದಿಗೆ",
+        guard: "✋ ನಾನು ಒಟಿಪಿ ಅಥವಾ ಸಂಖ್ಯೆಗಳನ್ನು ಹೇಳಲು ಶುರು ಮಾಡಿದರೆ ನನ್ನನ್ನು ತಡೆಯಿರಿ", guardL: "✋ ನಾನು ಒಟಿಪಿ ಅಥವಾ ಸಂಖ್ಯೆಗಳನ್ನು ಹೇಳಲು ಶುರು ಮಾಡಿದರೆ ಎಚ್ಚರಿಸಿ",
+        family: "ಕರೆ ಹೆದರಿಸಿದರೆ ಕರೆ ಮಾಡಬೇಕಾದ ಮನೆಯವರು (ಬೇಕಿದ್ದರೆ ಮಾತ್ರ)", name: "ಹೆಸರು", number: "ಫೋನ್ ಸಂಖ್ಯೆ",
+        saved: "ಈ ಫೋನಿನಲ್ಲಿ ಮಾತ್ರ ಉಳಿಯುತ್ತದೆ. ಕೆಂಪು ಎಚ್ಚರಿಕೆಯಲ್ಲಿ ಅವರಿಗೆ ಕರೆ ಮಾಡುವ ಬಟನ್ ಇರುತ್ತದೆ.", join: "📞 ಕರೆಗೆ ಸೇರಿ",
+        listen: "🎧 ಕೇಳಲು ಶುರು ಮಾಡಿ", install: "📲 ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ಅನ್ನು ಹೋಮ್ ಸ್ಕ್ರೀನ್‌ಗೆ ಸೇರಿಸಿ",
+        mic: "ಫೋನ್ ಕೇಳಿದಾಗ ಮೈಕ್ರೋಫೋನ್‌ಗೆ Allow ಒತ್ತಿ. ಕರೆಯ ಸಮಯದಲ್ಲಿ ಈ ಸ್ಕ್ರೀನ್ ತೆರೆದಿರಲಿ.",
+        practiceFirst: "🎓 ಮೊದಲು ಮೋಸದ ಕರೆ ಗುರುತಿಸುವ ಅಭ್ಯಾಸ ಮಾಡಿ", nokey: "ಈ ಲಿಂಕ್ ಪೂರ್ಣವಾಗಿಲ್ಲ. ದಯವಿಟ್ಟು QR ಕೋಡ್ ಮತ್ತೆ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ.",
+        noaudio: "ಮೈಕ್ರೋಫೋನ್ ಶುರುವಾಗಲಿಲ್ಲ. ಈ ಪುಟವನ್ನು Chrome ನಲ್ಲಿ ತೆರೆದು, ಮೈಕ್ರೋಫೋನ್‌ಗೆ Allow ಒತ್ತಿ.",
+        pill: "ಪ್ರೋಟೋಟೈಪ್ · ಅಭ್ಯಾಸ ಕರೆಗಳು" },
+  hi: { choose: "यह किसका फ़ोन है?", rProtect: "इस फ़ोन को सुरक्षित करें", rProtectS: "जिसे धोखे की कॉल आ सकती है, उसके लिए",
+        rCaller: "कॉल करने वाला", rCallerS: "अभ्यास कॉल में धोखेबाज़ का किरदार", rListen: "स्पीकर पर चल रही असली कॉल सुनें",
+        rListenS: "इस फ़ोन को दूसरे फ़ोन के पास रखें", practice: "🎓 धोखे की कॉल पहचानने का अभ्यास",
+        scams: "📰 असली धोखे: कैसे होते हैं, क्या करें",
+        whoReceiver: "यह फ़ोन सुरक्षित है। कॉल करने वाला धोखेबाज़ लगे, तो कॉल के दौरान ही आपकी भाषा में चेतावनी देता है।",
+        whoListener: "अपनी कॉल स्पीकर पर रखें और इस फ़ोन के पास रखें। कॉल के दौरान ही सुनकर ज़ोर से चेतावनी देता है।",
+        whoCaller: "आप कॉल करने वाले हैं। अभ्यास वाली धोखे की लाइनें पढ़ें। दूसरे व्यक्ति को चेतावनी मिलेगी; आपको सुनाई नहीं देगी।",
+        warnLang: "चेतावनी की भाषा", famA: "🧬 आख़िरी चेतावनी ", famB: " की आवाज़ में", famS: "AI आवाज़ की नकल, उनकी अनुमति से",
+        guard: "✋ अगर मैं ओटीपी या नंबर बोलने लगूँ तो मुझे रोकें", guardL: "✋ अगर मैं ओटीपी या नंबर बोलने लगूँ तो चेतावनी दें",
+        family: "कॉल डराए तो किसे फ़ोन करें (चाहें तो छोड़ दें)", name: "नाम", number: "फ़ोन नंबर",
+        saved: "सिर्फ़ इसी फ़ोन में सेव होता है। लाल चेतावनी में उन्हें कॉल करने का बटन दिखेगा।", join: "📞 कॉल से जुड़ें",
+        listen: "🎧 सुनना शुरू करें", install: "📲 स्कैम सेंटिनल को होम स्क्रीन पर लगाएँ",
+        mic: "फ़ोन पूछे तो माइक्रोफ़ोन के लिए Allow दबाएँ। कॉल के दौरान यह स्क्रीन खुली रखें।",
+        practiceFirst: "🎓 पहले धोखे की कॉल पहचानने का अभ्यास करें", nokey: "यह लिंक अधूरा है। कृपया QR कोड फिर से स्कैन करें।",
+        noaudio: "माइक्रोफ़ोन शुरू नहीं हुआ। यह पेज Chrome में खोलें और माइक्रोफ़ोन के लिए Allow दबाएँ।",
+        pill: "प्रोटोटाइप · अभ्यास कॉल" },
+};
+const home = () => HOME[window.Sentinel?.getLang() || lang.split("-")[0]] || HOME.en;
+function applyHome() {
+  const h = home();
+  document.querySelectorAll("[data-w]").forEach((e) => { if (h[e.dataset.w] !== undefined) e.textContent = h[e.dataset.w]; });
+  $("cname").placeholder = h.name; $("cnum").placeholder = h.number;
+  $("pill").textContent = h.pill;
+  if (role) {
+    $("who").textContent = role === "receiver" ? h.whoReceiver : role === "listener" ? h.whoListener : h.whoCaller;
+    $("guardtext").textContent = role === "listener" ? h.guardL : h.guard;
+    if (!$("start").disabled) $("start").textContent = role === "listener" ? h.listen : h.join;
+  }
+}
+window.addEventListener("sentinel-lang", (e) => { pickLang(e.detail + "-IN", false); applyHome(); });
+
 function pickLang(code) {
   lang = code;
   document.querySelectorAll("#langs button").forEach((x) => x.classList.toggle("on", x.dataset.lang === lang));
 }
+function tapLang(code) { pickLang(code); window.Sentinel?.setLang(code.split("-")[0]); }
 
 fetch(`/info?key=${encodeURIComponent(key)}`).then((r) => r.json()).then((info) => {
   for (const [code, name] of Object.entries(info.langs || {})) {
     const b = document.createElement("button");
     b.textContent = name; b.dataset.lang = code; b.type = "button";
-    b.onclick = () => pickLang(code);
+    b.onclick = () => tapLang(code);
     $("langs").append(b);
   }
-  pickLang(prefs.lang && info.langs?.[prefs.lang] ? prefs.lang : info.lang || lang);
+  const site = window.Sentinel?.getLang();
+  pickLang(site && info.langs?.[site + "-IN"] ? site + "-IN" : prefs.lang && info.langs?.[prefs.lang] ? prefs.lang : info.lang || lang);
   if (info.family) { $("famname").textContent = info.family; $("famrow").classList.remove("hidden"); $("fam").checked = prefs.fam ?? true; }
   if (info.guard) { $("guardrow").classList.remove("hidden"); $("guard").checked = prefs.guard ?? true; }
-}).catch(() => { $("who").textContent = "This link is missing its key. Scan the QR code again."; $("start").disabled = true; });
+}).catch(() => { $("who").textContent = home().nokey; $("start").disabled = true; });
 
 function show(id) { for (const s of ["choose", "ready", "incall"]) $(s).classList.toggle("hidden", s !== id); }
 function setStatus(text) { $("status").textContent = text; }
 
 function chooseRole(r) {
   role = r;
-  $("who").innerHTML = r === "receiver"
-    ? "<b>This phone is protected.</b> If the caller sounds like a scammer, it warns you during the call, in your language."
-    : r === "listener"
-    ? "<b>Put your phone call on speaker, next to this device.</b> It listens and warns you out loud while the call is going on."
-    : "<b>You are the caller.</b> Read a simulated scam script. The other person will be warned; you will not hear it.";
+  applyHome();
   $("options").classList.toggle("hidden", !protectedRole());
-  if (r === "listener") {
-    $("guardtext").textContent = "✋ Warn me if I start saying an OTP or numbers";
-    $("start").textContent = "🎧 Start listening";
-  }
   if (installPrompt && protectedRole()) $("install").classList.remove("hidden");
   $("practice2").classList.toggle("hidden", !protectedRole());
   setManifest();
   show("ready");
 }
 
-if (role === "caller" || role === "receiver" || role === "listener") chooseRole(role); else show("choose");
+if (role === "caller" || role === "receiver" || role === "listener") chooseRole(role); else { role = null; show("choose"); applyHome(); }
 document.querySelectorAll("[data-role]").forEach((b) => b.onclick = () => chooseRole(b.dataset.role));
 
 function applyWords() {
@@ -306,12 +366,13 @@ $("start").onclick = async () => {
     player.connect(ctx.destination);
     try { wakeLock = await navigator.wakeLock?.request("screen"); } catch (_) {}
   } catch (e) {
-    $("who").textContent = "Could not start audio: " + e.message + ". Use Chrome or Safari and allow the microphone.";
+    $("who").textContent = home().noaudio;
     $("start").disabled = false;
     return;
   }
   applyWords();
   show("incall");
+  window.Sentinel?.inCall(true);           // no bottom bar, and Back asks before leaving the call
   $("riskcard").classList.toggle("hidden", !protectedRole());
   if (protectedRole()) setRisk("low", 0);
   const proto = location.protocol === "https:" ? "wss" : "ws";
@@ -422,6 +483,7 @@ function end(text) {
   seen.seconds = startedAt ? Math.round((Date.now() - startedAt) / 1000) : 0;
   startedAt = null;
   clearInterval(timerId);
+  window.Sentinel?.inCall(false);
   setStatus(text);
   $("hang").disabled = true;
   try { ws?.close(); } catch (_) {}

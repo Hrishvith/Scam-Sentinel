@@ -1,0 +1,169 @@
+// Shared by every phone page: one language for the whole site, a big-text button, the bottom bar
+// (Home · Practice · Real scams · Help) and the "I was cheated" help screen. Made for people who
+// are new to smartphones: big targets, few words, their own language. REVIEW kn/hi with native speakers.
+(function () {
+  const params = new URLSearchParams(location.search);
+  const key = params.get("key") || "";
+  const k = encodeURIComponent(key);
+
+  function stored(name, value) {           // browser storage can be unavailable: never rely on it
+    try { if (value === undefined) return localStorage.getItem(name); localStorage.setItem(name, value); } catch (_) { return null; }
+  }
+  function prefs() { try { return JSON.parse(stored("sentinel-prefs") || "{}"); } catch (_) { return {}; } }
+
+  const WORDS = {
+    en: { home: "Home", practice: "Practice", scams: "Real scams", help: "Help", bigger: "Text size",
+          sosTitle: "Were you cheated?", sosSub: "Don't worry. Do these now, one by one. The first hour matters most.",
+          s1: "📞 Call 1930: cyber crime helpline", s1n: "They can try to stop the money. Tell them what happened.",
+          s2: "🏦 Call your bank", s2n: "Use the number on the back of your card. Ask them to block your card and UPI.",
+          s3: "👪 Call {name}", s3n: "Tell your family now. It is not your fault.", s3x: "👪 Call your family",
+          s4: "🌐 File a complaint online", s4n: "cybercrime.gov.in",
+          calm: "Got a scary call right now? Just hang up. It is always OK to hang up: real police and real banks never mind.",
+          close: "Close", pick: "Choose your language" },
+    kn: { home: "ಮುಖಪುಟ", practice: "ಅಭ್ಯಾಸ", scams: "ನಿಜವಾದ ಮೋಸಗಳು", help: "ಸಹಾಯ", bigger: "ಅಕ್ಷರದ ಗಾತ್ರ",
+          sosTitle: "ನಿಮಗೆ ಮೋಸ ಆಯಿತೇ?", sosSub: "ಗಾಬರಿ ಬೇಡ. ಈಗಲೇ ಇವುಗಳನ್ನು ಒಂದೊಂದಾಗಿ ಮಾಡಿ. ಮೊದಲ ಒಂದು ಗಂಟೆ ಬಹಳ ಮುಖ್ಯ.",
+          s1: "📞 1930 ಗೆ ಕರೆ ಮಾಡಿ: ಸೈಬರ್ ಅಪರಾಧ ಸಹಾಯವಾಣಿ", s1n: "ಅವರು ಹಣವನ್ನು ತಡೆಯಲು ಪ್ರಯತ್ನಿಸುತ್ತಾರೆ. ಏನಾಯಿತು ಎಂದು ಹೇಳಿ.",
+          s2: "🏦 ನಿಮ್ಮ ಬ್ಯಾಂಕಿಗೆ ಕರೆ ಮಾಡಿ", s2n: "ಕಾರ್ಡ್ ಹಿಂದಿರುವ ಸಂಖ್ಯೆಗೆ ಕರೆ ಮಾಡಿ. ಕಾರ್ಡ್ ಮತ್ತು ಯುಪಿಐ ಬ್ಲಾಕ್ ಮಾಡಲು ಹೇಳಿ.",
+          s3: "👪 {name} ಅವರಿಗೆ ಕರೆ ಮಾಡಿ", s3n: "ಈಗಲೇ ಮನೆಯವರಿಗೆ ತಿಳಿಸಿ. ಇದು ನಿಮ್ಮ ತಪ್ಪಲ್ಲ.", s3x: "👪 ಮನೆಯವರಿಗೆ ಕರೆ ಮಾಡಿ",
+          s4: "🌐 ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ದೂರು ನೀಡಿ", s4n: "cybercrime.gov.in",
+          calm: "ಈಗ ಹೆದರಿಸುವ ಕರೆ ಬಂದಿದೆಯೇ? ಕರೆ ಕಟ್ ಮಾಡಿ. ಕರೆ ಕಟ್ ಮಾಡುವುದು ಯಾವಾಗಲೂ ಸರಿ: ನಿಜವಾದ ಪೊಲೀಸರು, ಬ್ಯಾಂಕಿನವರು ಬೇಸರಿಸುವುದಿಲ್ಲ.",
+          close: "ಮುಚ್ಚಿ", pick: "ನಿಮ್ಮ ಭಾಷೆ ಆಯ್ಕೆ ಮಾಡಿ" },
+    hi: { home: "होम", practice: "अभ्यास", scams: "असली धोखे", help: "मदद", bigger: "अक्षर का आकार",
+          sosTitle: "क्या आपके साथ धोखा हुआ?", sosSub: "घबराइए मत। अभी ये काम एक-एक करके करें। पहला एक घंटा सबसे ज़रूरी है।",
+          s1: "📞 1930 पर कॉल करें: साइबर क्राइम हेल्पलाइन", s1n: "वे पैसे रोकने की कोशिश करते हैं। उन्हें बताएँ क्या हुआ।",
+          s2: "🏦 अपने बैंक को कॉल करें", s2n: "कार्ड के पीछे लिखे नंबर पर कॉल करें। कार्ड और यूपीआई ब्लॉक करवाएँ।",
+          s3: "👪 {name} को कॉल करें", s3n: "अभी घरवालों को बताएँ। इसमें आपकी गलती नहीं है।", s3x: "👪 घरवालों को कॉल करें",
+          s4: "🌐 ऑनलाइन शिकायत करें", s4n: "cybercrime.gov.in",
+          calm: "अभी डराने वाली कॉल आई है? बस कॉल काट दें। कॉल काटना हमेशा ठीक है: असली पुलिस और असली बैंक बुरा नहीं मानते।",
+          close: "बंद करें", pick: "अपनी भाषा चुनें" },
+  };
+  const NAMES = { kn: "ಕನ್ನಡ", hi: "हिन्दी", en: "English" };
+
+  function getLang() {
+    const l = stored("sentinel-lang") || stored("sentinel-practice-lang") || (prefs().lang || "").split("-")[0];
+    return WORDS[l] ? l : null;
+  }
+  function setLang(l) {
+    if (!WORDS[l]) return;
+    stored("sentinel-lang", l); stored("sentinel-practice-lang", l);
+    const p = prefs(); p.lang = l + "-IN"; stored("sentinel-prefs", JSON.stringify(p));
+    document.documentElement.lang = l;
+    render();
+    window.dispatchEvent(new CustomEvent("sentinel-lang", { detail: l }));
+  }
+  const w = () => WORDS[getLang() || "kn"];
+
+  // ---- text size: three steps, remembered on this phone ----
+  const SIZES = [1, 1.15, 1.3];
+  function applySize() { document.body.style.zoom = SIZES[Number(stored("sentinel-size") || 0)] || 1; }
+  function nextSize() { stored("sentinel-size", String((Number(stored("sentinel-size") || 0) + 1) % SIZES.length)); applySize(); }
+
+  // ---- styles for the bar and the help screen ----
+  const css = document.createElement("style");
+  css.textContent = `
+    body { padding-bottom: 96px; }
+    body.sn-incall #sn-bar { display:none; }
+    #sn-bar { position:fixed; left:0; right:0; bottom:0; z-index:9; background:#0d1b1d; border-top:1px solid #24393c;
+              display:grid; grid-template-columns:repeat(5,1fr);
+              padding:6px max(4px, calc((100vw - 560px) / 2)) max(6px, env(safe-area-inset-bottom)); }
+    #sn-bar a, #sn-bar button { display:flex; flex-direction:column; align-items:center; gap:2px; color:#a9bcb8; text-decoration:none;
+              background:none; border:0; font:inherit; font-size:12px; padding:6px 2px; border-radius:12px; cursor:pointer; min-height:56px; }
+    #sn-bar .ic { font-size:24px; line-height:1; }
+    #sn-bar .on { color:#fff; background:#16282b; }
+    #sn-bar .sos { color:#fff; background:#c1272d; font-weight:700; }
+    #sn-help { display:none; position:fixed; inset:0; z-index:20; background:#0b1416; color:#f2f5f4; overflow:auto;
+               padding:max(18px, env(safe-area-inset-top)) 16px 30px; }
+    #sn-help.show { display:block; }
+    #sn-help .in { max-width:520px; margin:0 auto; }
+    #sn-help h2 { font-size:28px; margin:6px 0 4px; } #sn-help .sub { color:#a9bcb8; font-size:17px; margin:0 0 14px; }
+    #sn-help a.step { display:block; text-decoration:none; color:#fff; border-radius:18px; padding:16px; margin:10px 0; background:#16282b; border:1px solid #24393c; }
+    #sn-help a.step b { display:block; font-size:20px; } #sn-help a.step span { color:#c9d6d3; font-size:15px; }
+    #sn-help a.step.first { background:#c1272d; border-color:#c1272d; } #sn-help a.step.first span { color:#ffe1e1; }
+    #sn-help .num { display:inline-grid; place-items:center; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.2); margin-right:8px; font-weight:800; }
+    #sn-help .calm { background:#11372d; color:#a6efd0; border-radius:16px; padding:14px; font-size:17px; margin-top:16px; }
+    #sn-help button.x { width:100%; margin-top:14px; padding:16px; border-radius:16px; border:1px solid #24393c; background:none; color:#f2f5f4; font:inherit; font-size:18px; }
+    #sn-lang { display:none; position:fixed; inset:0; z-index:21; background:#0b1416; color:#f2f5f4; padding:40px 20px; text-align:center; }
+    #sn-lang.show { display:flex; flex-direction:column; justify-content:center; gap:14px; }
+    #sn-lang img { width:72px; height:72px; border-radius:18px; margin:0 auto 6px; }
+    #sn-lang .q { font-size:20px; color:#a9bcb8; line-height:1.6; }
+    #sn-lang button { max-width:420px; width:100%; margin:0 auto; padding:22px; font:inherit; font-size:28px; font-weight:800; color:#fff;
+                      background:#16282b; border:2px solid #24393c; border-radius:20px; cursor:pointer; }
+  `;
+  document.head.append(css);
+
+  function el(tag, attrs, text) { const e = document.createElement(tag); Object.assign(e, attrs || {}); if (text !== undefined) e.textContent = text; return e; }
+
+  // ---- bottom bar ----
+  const here = location.pathname.replace(/\/$/, "") || "/";
+  const bar = el("nav", { id: "sn-bar", ariaLabel: "Scam Sentinel" });
+  const items = [["home", "🏠", `/?key=${k}`, "/"], ["practice", "🎓", `/practice?key=${k}`, "/practice"],
+                 ["scams", "📰", `/scams?key=${k}`, "/scams"]];
+  function render() {
+    const words = w();
+    bar.innerHTML = "";
+    for (const [name, icon, href, path] of items) {
+      const a = el("a", { href, className: here === path ? "on" : "" });
+      a.append(el("span", { className: "ic" }, icon), el("span", {}, words[name]));
+      bar.append(a);
+    }
+    const size = el("button", { type: "button", ariaLabel: words.bigger, onclick: nextSize });
+    size.append(el("span", { className: "ic" }, "🔠"), el("span", {}, words.bigger));
+    const sos = el("button", { type: "button", className: "sos", onclick: openHelp });
+    sos.append(el("span", { className: "ic" }, "🆘"), el("span", {}, words.help));
+    bar.append(size, sos);
+    renderHelp();
+  }
+
+  // ---- "I was cheated" help screen ----
+  const help = el("div", { id: "sn-help", role: "dialog" });
+  function renderHelp() {
+    const words = w(), p = prefs();
+    const num = (p.cnum || "").replace(/[^0-9+]/g, "");
+    help.innerHTML = "";
+    const box = el("div", { className: "in" });
+    box.append(el("h2", {}, "🆘 " + words.sosTitle), el("p", { className: "sub" }, words.sosSub));
+    const steps = [["tel:1930", words.s1, words.s1n], ["", words.s2, words.s2n],
+                   [num ? "tel:" + num : "", num ? words.s3.replace("{name}", p.cname || "") : words.s3x, words.s3n],
+                   ["https://cybercrime.gov.in", words.s4, words.s4n]];
+    steps.forEach(([href, title, note], i) => {
+      const a = el("a", { className: "step" + (i === 0 ? " first" : "") });
+      if (href) { a.href = href; if (href.startsWith("http")) { a.target = "_blank"; a.rel = "noopener"; } }
+      const b = el("b"); b.append(el("span", { className: "num" }, String(i + 1)), document.createTextNode(title));
+      a.append(b, el("span", {}, note));
+      box.append(a);
+    });
+    box.append(el("div", { className: "calm" }, "💚 " + words.calm), el("button", { className: "x", type: "button", onclick: closeHelp }, words.close));
+    help.append(box);
+  }
+  function openHelp() { renderHelp(); help.classList.add("show"); }
+  function closeHelp() { help.classList.remove("show"); }
+
+  // ---- first visit: choose the language before anything else ----
+  const picker = el("div", { id: "sn-lang" });
+  function askLang(done) {
+    picker.innerHTML = "";
+    picker.append(el("img", { src: "/icons/icon-192.png", alt: "" }),
+                  el("div", { className: "q" }, `${WORDS.kn.pick} · ${WORDS.hi.pick} · ${WORDS.en.pick}`));
+    for (const [code, name] of Object.entries(NAMES)) {
+      picker.append(el("button", { type: "button", onclick: () => { picker.classList.remove("show"); setLang(code); done && done(code); } }, name));
+    }
+    picker.classList.add("show");
+  }
+
+  function start() {
+    document.body.append(bar, help, picker);
+    applySize();
+    document.documentElement.lang = getLang() || "kn";
+    render();
+    if (!getLang() && document.body.dataset.askLang !== "no") askLang();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+
+  // a page in the middle of a call hides the bar and asks before the phone's Back button leaves
+  function inCall(on) {
+    document.body.classList.toggle("sn-incall", on);
+    window.onbeforeunload = on ? () => "" : null;
+  }
+
+  window.Sentinel = { getLang, setLang, words: w, openHelp, askLang, inCall, stored };
+})();
