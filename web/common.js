@@ -55,14 +55,20 @@
 
   // ---- text size: three steps, remembered on this phone ----
   const SIZES = [1, 1.15, 1.3];
-  function applySize() { document.body.style.zoom = SIZES[Number(stored("sentinel-size") || 0)] || 1; }
+  // Only the page content grows: zooming <body> would also scale and shift the fixed bottom bar off the screen.
+  function applySize() {
+    const z = SIZES[Number(stored("sentinel-size") || 0)] || 1;
+    document.querySelectorAll("main").forEach((m) => { m.style.zoom = z; });
+  }
   function nextSize() { stored("sentinel-size", String((Number(stored("sentinel-size") || 0) + 1) % SIZES.length)); applySize(); }
 
   // ---- styles for the bar and the help screen ----
   const css = document.createElement("style");
   css.textContent = `
-    body { padding-bottom: 96px; }
+    /* room for the bottom bar under the last item on every page (pages lay out a full-height <main>) */
+    main { padding-bottom: calc(110px + env(safe-area-inset-bottom)) !important; }
     body.sn-incall #sn-bar { display:none; }
+    body.sn-incall main { padding-bottom: 28px !important; }
     #sn-bar { position:fixed; left:0; right:0; bottom:0; z-index:9; background:#0d1b1d; border-top:1px solid #24393c;
               display:grid; grid-template-columns:repeat(5,1fr);
               padding:6px max(4px, calc((100vw - 560px) / 2)) max(6px, env(safe-area-inset-bottom)); }
