@@ -71,6 +71,16 @@
   @keyframes chip { from { transform:scale(.4); opacity:0; } }
   .tip { background:color-mix(in srgb, var(--risk) 18%, var(--card)); border-radius:12px; padding:10px 12px; font-weight:700; animation:fade .3s; }
   .note { color:var(--ink2); font-size:13px; }
+  /* scam list: a grid of vertical boxes, like the figures above; an opened box spans the full width */
+  #list { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:12px; margin-top:10px; }
+  #list .scam { margin:0; display:flex; flex-direction:column; }
+  #list .scam:not(.open) > .head { flex-direction:column; justify-content:flex-start; text-align:center; gap:10px;
+                                   min-height:210px; padding:20px 12px; }
+  #list .scam:not(.open) .i { width:84px; height:84px; font-size:48px; border-radius:24px; }
+  #list .scam:not(.open) .t { font-size:18px; }
+  #list .scam:not(.open) .chev { margin:auto 0 0; font-size:15px; font-weight:700; color:var(--accent); }
+  #list .scam.open { grid-column:1 / -1; }
+  #list .scam.open .chev { font-size:15px; }
   .links { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:18px; }
   .links a { display:block; text-align:center; text-decoration:none; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; font-weight:600; }
 </style>
@@ -102,7 +112,7 @@ const LANGS = { kn: "ಕನ್ನಡ", hi: "हिन्दी", en: "English" }
 // REVIEW kn/hi with native speakers
 const UI = {
   en: { title: "📰 Real scams in India", sub: "These tricks have taken real people's savings. Learn how each one works, so you can stop it.",
-        search: "Search: police, parcel, OTP…", all: "All", how: "How it works", cases: "Real cases", do: "What to do",
+        search: "Search: police, parcel, OTP…", all: "All", open: "Open", close: "Close", how: "How it works", cases: "Real cases", do: "What to do",
         listen: "🔊 Listen to this explained", stop: "⏹ Stop", voice: "Spoken by Gnani Timbre (AI voice)",
         play: "▶ Hear how this scam call happens", replay: "↻ Play again", stopScene: "⏹ Stop", scammer: "Scammer",
         victim: "Person who got the call", sentinel: "Scam Sentinel warns", reenact: "Re-enacted call · AI voices · not a real recording", n: (k) => `${k} reported cases`,
@@ -110,7 +120,7 @@ const UI = {
         ennote: "", practice: "🎓 Practise spotting scams", home: "🛡️ Protected line",
         foot: "Short summaries of public news reports and government figures; amounts as reported, victims never named. The calls you can watch are re-enactments. Lost money? Call 1930 within the first hour, or report at cybercrime.gov.in." },
   kn: { title: "📰 ಭಾರತದಲ್ಲಿ ನಡೆದ ನಿಜವಾದ ಮೋಸಗಳು", sub: "ಈ ತಂತ್ರಗಳಿಂದ ನಿಜವಾದ ಜನರು ತಮ್ಮ ಉಳಿತಾಯ ಕಳೆದುಕೊಂಡಿದ್ದಾರೆ. ಪ್ರತಿಯೊಂದು ಹೇಗೆ ನಡೆಯುತ್ತದೆ ಎಂದು ತಿಳಿಯಿರಿ.",
-        search: "ಹುಡುಕಿ: police, parcel, OTP…", all: "ಎಲ್ಲಾ", how: "ಹೇಗೆ ನಡೆಯುತ್ತದೆ", cases: "ನಿಜವಾದ ಪ್ರಕರಣಗಳು", do: "ಏನು ಮಾಡಬೇಕು",
+        search: "ಹುಡುಕಿ: police, parcel, OTP…", all: "ಎಲ್ಲಾ", open: "ತೆರೆಯಿರಿ", close: "ಮುಚ್ಚಿ", how: "ಹೇಗೆ ನಡೆಯುತ್ತದೆ", cases: "ನಿಜವಾದ ಪ್ರಕರಣಗಳು", do: "ಏನು ಮಾಡಬೇಕು",
         listen: "🔊 ಈ ಮೋಸದ ವಿವರಣೆ ಕೇಳಿ", stop: "⏹ ನಿಲ್ಲಿಸಿ", voice: "ಗ್ನಾನಿ ಟಿಂಬರ್ ಧ್ವನಿ (AI)",
         play: "▶ ಈ ಮೋಸದ ಕರೆ ಹೇಗೆ ನಡೆಯುತ್ತದೆ ಕೇಳಿ", replay: "↻ ಮತ್ತೆ ಕೇಳಿ", stopScene: "⏹ ನಿಲ್ಲಿಸಿ", scammer: "ಮೋಸಗಾರ",
         victim: "ಕರೆ ಸ್ವೀಕರಿಸಿದವರು", sentinel: "ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ಎಚ್ಚರಿಕೆ", reenact: "ಮರುಸೃಷ್ಟಿಸಿದ ಕರೆ · AI ಧ್ವನಿಗಳು · ನಿಜವಾದ ರೆಕಾರ್ಡಿಂಗ್ ಅಲ್ಲ", n: (k) => `${k} ವರದಿಯಾದ ಪ್ರಕರಣಗಳು`,
@@ -118,7 +128,7 @@ const UI = {
         ennote: "ಪ್ರಕರಣಗಳ ವಿವರ ಇಂಗ್ಲಿಷ್ ಸುದ್ದಿ ವರದಿಗಳಿಂದ ತೆಗೆದುಕೊಂಡಿದೆ.", practice: "🎓 ಮೋಸದ ಕರೆ ಗುರುತಿಸುವ ಅಭ್ಯಾಸ", home: "🛡️ ಸುರಕ್ಷಿತ ಕರೆ",
         foot: "ಸಾರ್ವಜನಿಕ ಸುದ್ದಿ ವರದಿಗಳು ಮತ್ತು ಸರ್ಕಾರಿ ಅಂಕಿಅಂಶಗಳ ಸಂಕ್ಷಿಪ್ತ ಸಾರ; ಸಂತ್ರಸ್ತರ ಹೆಸರು ಹಾಕಿಲ್ಲ. ನೋಡುವ ಕರೆಗಳು ಮರುಸೃಷ್ಟಿ. ಹಣ ಹೋದರೆ ಮೊದಲ ಒಂದು ಗಂಟೆಯೊಳಗೆ 1930 ಗೆ ಕರೆ ಮಾಡಿ, ಅಥವಾ cybercrime.gov.in ನಲ್ಲಿ ದೂರು ನೀಡಿ." },
   hi: { title: "📰 भारत में हुई असली धोखाधड़ी", sub: "इन चालों से असली लोगों की जमा-पूँजी गई है। जानिए हर चाल कैसे चलती है, ताकि आप उसे रोक सकें।",
-        search: "खोजें: police, parcel, OTP…", all: "सभी", how: "यह कैसे होता है", cases: "असली मामले", do: "क्या करें",
+        search: "खोजें: police, parcel, OTP…", all: "सभी", open: "खोलें", close: "बंद करें", how: "यह कैसे होता है", cases: "असली मामले", do: "क्या करें",
         listen: "🔊 इस धोखे के बारे में सुनें", stop: "⏹ रोकें", voice: "ग्नानी टिम्बर आवाज़ (AI)",
         play: "▶ सुनिए यह धोखे की कॉल कैसे होती है", replay: "↻ फिर से सुनें", stopScene: "⏹ रोकें", scammer: "धोखेबाज़",
         victim: "जिसे कॉल आया", sentinel: "स्कैम सेंटिनल की चेतावनी", reenact: "दोबारा बनाई गई कॉल · AI आवाज़ें · असली रिकॉर्डिंग नहीं", n: (k) => `${k} दर्ज मामले`,
@@ -180,8 +190,11 @@ function renderList() {
     const card = el("article", "scam" + (shown.length === 1 || filter !== "all" ? " open" : ""));
     const head = el("button", "head");
     const words = el("span"); words.append(el("div", "t", s.title[lang]), el("div", "n", t().n(s.cases.length)));
-    head.append(el("span", "i", s.icon), words, el("span", "chev", "▾"));
-    head.onclick = () => card.classList.toggle("open");
+    const chev = el("span", "chev");
+    const label = () => { chev.textContent = card.classList.contains("open") ? t().close + " ▴" : t().open + " ▾"; };
+    head.append(el("span", "i", s.icon), words, chev);
+    head.onclick = () => { card.classList.toggle("open"); label(); if (card.classList.contains("open")) card.scrollIntoView({ behavior: "smooth", block: "start" }); };
+    queueMicrotask(label);
     const body = el("div", "body");
     if (voices.has(`${s.id}-${lang}`)) {
       const b = el("button", "listen"); b.dataset.id = s.id;
