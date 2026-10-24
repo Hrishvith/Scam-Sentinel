@@ -19,7 +19,8 @@
           s3: "👪 Call {name}", s3n: "Tell your family now. It is not your fault.", s3x: "👪 Call your family",
           s4: "🌐 File a complaint online", s4n: "cybercrime.gov.in",
           calm: "Got a scary call right now? Just hang up. It is always OK to hang up: real police and real banks never mind.",
-          close: "Close", pick: "Choose your language" },
+          close: "Close", pick: "Choose your language", now: "Ready to use", soon: "Coming soon",
+          soonNote: "These languages need native speakers to check the words and voices first." },
     kn: { back: "ಹಿಂದೆ", home: "ಮುಖಪುಟ", practice: "ಅಭ್ಯಾಸ", scams: "ನಿಜವಾದ ಮೋಸಗಳು", help: "ಸಹಾಯ", bigger: "ಅಕ್ಷರದ ಗಾತ್ರ",
           sosTitle: "ನಿಮಗೆ ಮೋಸ ಆಯಿತೇ?", sosSub: "ಗಾಬರಿ ಬೇಡ. ಈಗಲೇ ಇವುಗಳನ್ನು ಒಂದೊಂದಾಗಿ ಮಾಡಿ. ಮೊದಲ ಒಂದು ಗಂಟೆ ಬಹಳ ಮುಖ್ಯ.",
           s1: "📞 1930 ಗೆ ಕರೆ ಮಾಡಿ: ಸೈಬರ್ ಅಪರಾಧ ಸಹಾಯವಾಣಿ", s1n: "ಅವರು ಹಣವನ್ನು ತಡೆಯಲು ಪ್ರಯತ್ನಿಸುತ್ತಾರೆ. ಏನಾಯಿತು ಎಂದು ಹೇಳಿ.",
@@ -27,7 +28,8 @@
           s3: "👪 {name} ಅವರಿಗೆ ಕರೆ ಮಾಡಿ", s3n: "ಈಗಲೇ ಮನೆಯವರಿಗೆ ತಿಳಿಸಿ. ಇದು ನಿಮ್ಮ ತಪ್ಪಲ್ಲ.", s3x: "👪 ಮನೆಯವರಿಗೆ ಕರೆ ಮಾಡಿ",
           s4: "🌐 ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ದೂರು ನೀಡಿ", s4n: "cybercrime.gov.in",
           calm: "ಈಗ ಹೆದರಿಸುವ ಕರೆ ಬಂದಿದೆಯೇ? ಕರೆ ಕಟ್ ಮಾಡಿ. ಕರೆ ಕಟ್ ಮಾಡುವುದು ಯಾವಾಗಲೂ ಸರಿ: ನಿಜವಾದ ಪೊಲೀಸರು, ಬ್ಯಾಂಕಿನವರು ಬೇಸರಿಸುವುದಿಲ್ಲ.",
-          close: "ಮುಚ್ಚಿ", pick: "ನಿಮ್ಮ ಭಾಷೆ ಆಯ್ಕೆ ಮಾಡಿ" },
+          close: "ಮುಚ್ಚಿ", pick: "ನಿಮ್ಮ ಭಾಷೆ ಆಯ್ಕೆ ಮಾಡಿ", now: "ಈಗ ಬಳಸಬಹುದು", soon: "ಶೀಘ್ರದಲ್ಲೇ",
+          soonNote: "ಈ ಭಾಷೆಗಳ ಪದಗಳು ಮತ್ತು ಧ್ವನಿಗಳನ್ನು ಮೊದಲು ಆ ಭಾಷೆಯವರು ಪರಿಶೀಲಿಸಬೇಕು." },
     hi: { back: "पीछे", home: "होम", practice: "अभ्यास", scams: "असली धोखे", help: "मदद", bigger: "अक्षर का आकार",
           sosTitle: "क्या आपके साथ धोखा हुआ?", sosSub: "घबराइए मत। अभी ये काम एक-एक करके करें। पहला एक घंटा सबसे ज़रूरी है।",
           s1: "📞 1930 पर कॉल करें: साइबर क्राइम हेल्पलाइन", s1n: "वे पैसे रोकने की कोशिश करते हैं। उन्हें बताएँ क्या हुआ।",
@@ -35,9 +37,14 @@
           s3: "👪 {name} को कॉल करें", s3n: "अभी घरवालों को बताएँ। इसमें आपकी गलती नहीं है।", s3x: "👪 घरवालों को कॉल करें",
           s4: "🌐 ऑनलाइन शिकायत करें", s4n: "cybercrime.gov.in",
           calm: "अभी डराने वाली कॉल आई है? बस कॉल काट दें। कॉल काटना हमेशा ठीक है: असली पुलिस और असली बैंक बुरा नहीं मानते।",
-          close: "बंद करें", pick: "अपनी भाषा चुनें" },
+          close: "बंद करें", pick: "अपनी भाषा चुनें", now: "अभी इस्तेमाल करें", soon: "जल्द आ रहा है",
+          soonNote: "इन भाषाओं के शब्द और आवाज़ें पहले उस भाषा के लोग जाँचेंगे।" },
   };
   const NAMES = { kn: "ಕನ್ನಡ", hi: "हिन्दी", en: "English" };
+  const ENGLISH = { kn: "Kannada", hi: "Hindi", en: "English" };
+  // Regional languages shown as "coming soon": the warnings, scam words and voices are not ready in them yet
+  const SOON = [["தமிழ்", "Tamil"], ["తెలుగు", "Telugu"], ["മലയാളം", "Malayalam"], ["मराठी", "Marathi"],
+                ["বাংলা", "Bengali"], ["ગુજરાતી", "Gujarati"], ["ਪੰਜਾਬੀ", "Punjabi"], ["ଓଡ଼ିଆ", "Odia"]];
 
   function getLang() {
     if (WORDS[params.get("lang")]) return params.get("lang");      // a shared link can open in a language: ?lang=kn
@@ -47,6 +54,7 @@
   function setLang(l) {
     if (!WORDS[l]) return;
     stored("sentinel-lang", l); stored("sentinel-practice-lang", l);
+    if (params.has("lang")) { params.delete("lang"); history.replaceState(null, "", location.pathname + "?" + params); }
     const p = prefs(); p.lang = l + "-IN"; stored("sentinel-prefs", JSON.stringify(p));
     document.documentElement.lang = l;
     render();
@@ -96,12 +104,29 @@
     #sn-help a.step.first .num { background:rgba(255,255,255,.25); color:#fff; }
     #sn-help .calm { background:#dff1e6; color:#0f5530; border-radius:16px; padding:14px; font-size:18px; margin-top:16px; font-weight:600; }
     #sn-help button.x { width:100%; margin-top:14px; padding:18px; border-radius:16px; border:2px solid #d3cdbf; background:#fff; color:#17201e; font:inherit; font-size:19px; font-weight:700; }
-    #sn-lang { display:none; position:fixed; inset:0; z-index:21; background:#f5f3ee; color:#17201e; padding:40px 20px; text-align:center; }
-    #sn-lang.show { display:flex; flex-direction:column; justify-content:center; gap:14px; }
-    #sn-lang img { width:72px; height:72px; border-radius:18px; margin:0 auto 6px; }
-    #sn-lang .q { font-size:20px; color:#424d4a; line-height:1.6; font-weight:600; }
-    #sn-lang button { max-width:420px; width:100%; margin:0 auto; padding:22px; font:inherit; font-size:28px; font-weight:800; color:#0b5d4b;
-                      background:#fff; border:3px solid #0b5d4b; border-radius:20px; cursor:pointer; box-shadow:0 3px 12px -6px rgba(0,0,0,.3); }
+    #sn-lang { display:none; position:fixed; inset:0; z-index:21; background:#f5f3ee; color:#17201e; overflow:auto;
+               padding:max(24px, env(safe-area-inset-top)) 18px 30px; text-align:center; }
+    #sn-lang.show { display:block; }
+    #sn-lang .in { max-width:460px; margin:0 auto; display:flex; flex-direction:column; gap:12px; }
+    #sn-lang img { width:72px; height:72px; border-radius:18px; margin:0 auto 2px; }
+    #sn-lang .q { font-size:20px; color:#424d4a; line-height:1.6; font-weight:700; }
+    #sn-lang h3 { margin:12px 0 0; font-size:15px; text-transform:uppercase; letter-spacing:.06em; color:#424d4a; text-align:left; }
+    #sn-lang button.lg { width:100%; margin:0; padding:16px 18px; font:inherit; color:#0b5d4b; background:#fff; border:3px solid #0b5d4b;
+                         border-radius:20px; cursor:pointer; box-shadow:0 3px 12px -6px rgba(0,0,0,.3);
+                         display:flex; align-items:center; justify-content:space-between; gap:10px; text-align:left; }
+    #sn-lang button.lg b { font-size:28px; } #sn-lang button.lg small { font-size:16px; color:#424d4a; font-weight:600; }
+    #sn-lang button.lg.on { background:#0b5d4b; color:#fff; } #sn-lang button.lg.on small { color:#e3efea; }
+    #sn-lang .soon { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    #sn-lang .soon span { padding:12px 8px; border-radius:16px; border:2px dashed #c9c3b5; color:#56615e; background:#efece5; font-size:19px; font-weight:700; }
+    #sn-lang .soon small { display:block; font-size:13px; font-weight:600; }
+    #sn-lang .note { font-size:15px; color:#56615e; margin:0; }
+    #sn-lang button.x { width:100%; margin-top:6px; padding:16px; border-radius:16px; border:2px solid #d3cdbf; background:#fff;
+                        color:#17201e; font:inherit; font-size:19px; font-weight:700; cursor:pointer; }
+    #sn-langbtn { width:auto !important; flex:none; margin:0 0 0 auto !important; display:inline-flex; align-items:center; gap:6px;
+                  min-height:46px; padding:0 12px; border-radius:14px; border:2px solid rgba(255,255,255,.55);
+                  background:rgba(255,255,255,.16); color:#fff; font:inherit; font-size:17px; font-weight:800; cursor:pointer; }
+    body.sn-incall #sn-langbtn { display:none; }
+    header .pill { order:9; }
   `;
   document.head.append(css);
 
@@ -137,6 +162,7 @@
     sos.append(el("span", { className: "ic" }, "🆘"), el("span", {}, words.help));
     bar.append(size, sos);
     renderHelp();
+    renderLangBtn();
   }
 
   // ---- "I was cheated" help screen ----
@@ -166,18 +192,36 @@
   // ---- first visit: choose the language before anything else ----
   const picker = el("div", { id: "sn-lang" });
   function askLang(done) {
+    const current = getLang(), words = WORDS[current || "kn"];
     picker.innerHTML = "";
-    picker.append(el("img", { src: "/icons/icon-192.png", alt: "" }),
-                  el("div", { className: "q" }, `${WORDS.kn.pick} · ${WORDS.hi.pick} · ${WORDS.en.pick}`));
+    const box = el("div", { className: "in" });
+    box.append(el("img", { src: "/icons/icon-192.png", alt: "" }),
+               el("div", { className: "q" }, current ? "🌐 " + words.pick : `${WORDS.kn.pick} · ${WORDS.hi.pick} · ${WORDS.en.pick}`),
+               el("h3", {}, current ? words.now : `${WORDS.kn.now} · ${WORDS.en.now}`));
     for (const [code, name] of Object.entries(NAMES)) {
-      picker.append(el("button", { type: "button", onclick: () => { picker.classList.remove("show"); setLang(code); done && done(code); } }, name));
+      const b = el("button", { type: "button", className: "lg" + (code === current ? " on" : ""),
+                               onclick: () => { picker.classList.remove("show"); setLang(code); done && done(code); } });
+      b.append(el("b", {}, name), el("small", {}, (code === current ? "✓ " : "") + ENGLISH[code]));
+      box.append(b);
     }
+    box.append(el("h3", {}, current ? words.soon : `${WORDS.kn.soon} · ${WORDS.en.soon}`));
+    const soon = el("div", { className: "soon" });
+    for (const [name, english] of SOON) { const c = el("span", {}, name); c.append(el("small", {}, english)); soon.append(c); }
+    box.append(soon, el("p", { className: "note" }, (current ? words : WORDS.en).soonNote));
+    if (current) box.append(el("button", { type: "button", className: "x", onclick: () => picker.classList.remove("show") }, words.close));
+    picker.append(box);
     picker.classList.add("show");
+    picker.scrollTop = 0;
   }
+
+  // ---- 🌐 language button in every page header: one place to change the language of the whole site ----
+  const langBtn = el("button", { id: "sn-langbtn", type: "button", onclick: () => askLang() });
+  function renderLangBtn() { langBtn.textContent = "🌐 " + NAMES[getLang() || "kn"]; }
 
   function start() {
     document.body.append(bar, help, picker);
     document.querySelector("header")?.prepend(back);
+    document.querySelector("header")?.append(langBtn);
     applySize();
     document.documentElement.lang = getLang() || "kn";
     render();
