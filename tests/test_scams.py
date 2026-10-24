@@ -61,6 +61,16 @@ def test_audio_is_made_once_and_only_with_yes(tmp_path, monkeypatch, capsys):
     assert len(calls) == len(DATA["scams"])
 
 
+def test_every_phone_page_loads_the_shared_help_bar_first(tmp_path):
+    async def body(http, fake, _):
+        js = await http.get("/common.js")
+        assert js.content_type == "application/javascript" and "tel:1930" in await js.text()
+        for path in ("/", "/practice", "/scams", "/guardian"):
+            html = await (await http.get(path)).text()
+            assert html.index('<script src="/common.js">') < html.index("<body")   # before the page's own script
+    run(body, tmp_path)
+
+
 def test_scams_page_is_served(tmp_path):
     async def body(http, fake, _):
         assert "Real scams" in await (await http.get("/scams")).text()

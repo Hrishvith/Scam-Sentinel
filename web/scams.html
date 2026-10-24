@@ -7,6 +7,7 @@
 <link rel="icon" href="/icons/favicon.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <title>Real scams</title>
+<script src="/common.js"></script>
 <style>
   :root { --bg:#0b1416; --bg2:#112023; --card:#16282b; --line:#24393c; --ink:#f2f5f4; --ink2:#a9bcb8;
           --good:#19b37d; --warn:#f5a524; --bad:#e5484d; --accent:#3b8cf0; --risk:var(--good); }
@@ -240,9 +241,11 @@ function setLang(code) {
   if (data) { renderStats(); renderFilters(); renderList(); }
 }
 for (const [code, name] of Object.entries(LANGS)) {
-  const b = el("button", "", name); b.dataset.lang = code; b.onclick = () => setLang(code); $("langs").append(b);
+  const b = el("button", "", name); b.dataset.lang = code;
+  b.onclick = () => (window.Sentinel ? Sentinel.setLang(code) : setLang(code)); $("langs").append(b);
 }
 $("q").oninput = () => renderList();
+window.addEventListener("sentinel-lang", (e) => setLang(e.detail));   // one language for the whole site
 Promise.all([fetch("/scams.json").then((r) => r.json()),
              fetch("/audio/scams/index.json").then((r) => (r.ok ? r.json() : { files: [] })).catch(() => ({ files: [] }))])
   .then(([d, a]) => { data = d; voices = new Set(a.files); setLang(lang); });
