@@ -8,7 +8,7 @@ swaps (they disqualify). Replace the `[brackets]`. Say "simulated" for the demo 
 
 > **My uncle got a call from an unknown number: "This is the police. We've arrested your son in a serious criminal case. Pay ₹5 lakh and we'll release him."**
 >
-> None of it was true. My cousin was fine. But for [N] minutes, my uncle believed it, and he was terrified. [How it ended, one line.]
+> None of it was true. My cousin was fine. My uncle didn't pay, but while that call lasted he was terrified. Many families in the same situation do pay.
 >
 > What struck me: nobody could warn him *during* the call. Caller-ID apps check a number before; recordings are checked after. The damage happens in between.
 >
