@@ -120,6 +120,8 @@ class Relay:
         app.router.add_static("/icons", WEB / "icons")
         (WEB / "audio").mkdir(exist_ok=True)
         app.router.add_static("/audio", WEB / "audio")        # saved Timbre explanations (free to play)
+        (WEB / "download").mkdir(exist_ok=True)
+        app.router.add_static("/download", WEB / "download")  # the Android call-test app, to install from the phone
         app.router.add_get("/info", self.info)
         app.router.add_get("/ws/call", self.call_ws)
         app.router.add_get("/ws/ops", self.ops_ws)
