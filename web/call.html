@@ -88,6 +88,16 @@
   .steps a, .steps div { display:block; background:var(--bg2); border:1px solid var(--line); color:var(--ink); text-decoration:none; border-radius:14px; padding:14px; margin:8px 0; font-size:18px; }
   .steps a { border-color:var(--accent); }
   .steps.urgent a:first-child { background:var(--bad); border-color:var(--bad); color:#fff; font-weight:700; }
+  .tricks { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:12px; min-height:4px; }
+  .trick { font-size:15px; padding:7px 12px; border-radius:20px; background:color-mix(in srgb, var(--risk) 22%, var(--card));
+           border:1px solid color-mix(in srgb, var(--risk) 60%, transparent); animation:chip .45s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes chip { from { transform:scale(.4); opacity:0; } }
+  .trickhead { color:var(--ink2); font-size:13px; text-transform:uppercase; letter-spacing:.05em; margin-top:14px; }
+  .overlay .tip { font-size:19px; font-weight:700; background:rgba(255,255,255,.16); border-radius:14px; padding:12px; }
+  .contact { display:grid; grid-template-columns:1fr 1.4fr; gap:8px; }
+  .contact input { width:100%; padding:13px; font:inherit; font-size:17px; border-radius:14px; border:1px solid var(--line); background:var(--bg2); color:var(--ink); }
+  a.practice { display:block; text-align:center; color:var(--ink); text-decoration:none; background:var(--bg2); border:1px solid var(--line);
+               border-radius:16px; padding:14px; margin:10px 0; font-weight:600; }
   #install { background:var(--bg2); border:1px dashed var(--line); color:var(--ink); font-size:16px; padding:12px; }
 </style>
 </head>
@@ -100,6 +110,7 @@
     <button class="role" data-role="receiver"><span class="i">🛡️</span><span>Protect this phone<small>The person who might get a scam call</small></span></button>
     <button class="role" data-role="caller"><span class="i">📞</span><span>Caller<small>Plays the scammer in a simulated call</small></span></button>
     <button class="role" data-role="listener"><span class="i">🔊</span><span>Listen to a real call on speaker<small>Put this device next to the phone</small></span></button>
+    <a class="practice" id="practice1" href="#">🎓 Practise spotting scam calls (free, no call needed)</a>
   </section>
 
   <section id="ready" class="card hidden">
@@ -111,10 +122,14 @@
         <span>🧬 Final warning in <b id="famname"></b>'s voice<small>AI voice clone, made with consent</small></span></label>
       <label class="toggle hidden" id="guardrow"><input type="checkbox" id="guard">
         <span id="guardtext">✋ Stop me if I start saying an OTP or numbers to the caller</span></label>
+      <div class="label">Family member to call if a caller frightens you (optional)</div>
+      <div class="contact"><input id="cname" placeholder="Name" autocomplete="off"><input id="cnum" type="tel" inputmode="tel" placeholder="Phone number" autocomplete="off"></div>
+      <p class="note" style="margin:6px 0 0">Saved only on this phone. The red warning shows a button to call them yourself.</p>
     </div>
     <button id="start" class="go">📞 Join the call</button>
     <button id="install" class="hidden">📲 Add Scam Sentinel to the home screen</button>
     <p class="note">Allow the microphone when asked. Keep this screen open during the call.</p>
+    <a class="practice hidden" id="practice2" href="#">🎓 Practise spotting scam calls first</a>
   </section>
 
   <section id="incall" class="hidden">
@@ -124,6 +139,8 @@
     <div id="riskcard" class="hidden" style="width:100%">
       <div id="risktext"></div>
       <div class="meter"><div id="bar"></div></div>
+      <div class="trickhead hidden" id="trickhead"></div>
+      <div class="tricks" id="tricks"></div>
     </div>
     <div id="status">Connecting…</div>
     <div id="watch" class="chip hidden"></div>
@@ -147,7 +164,9 @@
   <div class="type" id="bannertype"></div>
   <div class="msg" id="bannermsg"></div>
   <div class="msg" id="bannervoice"></div>
+  <div class="tip" id="bannertip"></div>
   <div class="msg" id="bannerfamily"></div>
+  <a id="bannercheck" class="hidden" href="#"></a>
   <button id="bannerhang"></button>
   <a id="helpline" class="soft" href="tel:1930"></a>
 </div>
@@ -173,21 +192,27 @@ const UI = {
         stopListen: "Stop listening", banner: "⚠️ SCAM CALL<br>HANG UP NOW", told: "👪 Your family has been told",
         watch: "👪 A family member is watching over this call", stop: "✋ STOP", cut: "🔇 The caller cannot hear you now.",
         ok: "I understand, I will not say it", unmute: "Let the caller hear me again", helpline: "📞 Call 1930 (cyber crime helpline)",
-        ended: "Call ended", caller: "Caller", speaker: "Phone call on speaker", voice: "🧬 Spoken in an " },
+        ended: "Call ended", caller: "Caller", speaker: "Phone call on speaker", voice: "🧬 Spoken in an ",
+        tricks: "Tricks spotted", check: "📞 Hang up and call {name} yourself" },
   kn: { low: "ಸದ್ಯಕ್ಕೆ ಸುರಕ್ಷಿತ", medium: "ಎಚ್ಚರ: ಅನುಮಾನಾಸ್ಪದ ಕರೆ", high: "ಮೋಸದ ಕರೆ ಇರಬಹುದು", protected: "🛡️ ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ರಕ್ಷಣೆಯಲ್ಲಿದೆ",
         waiting: "ಕರೆಗಾಗಿ ಕಾಯುತ್ತಿದೆ…", listening: "ಕೇಳುತ್ತಿದೆ · ಕರೆಯನ್ನು ಸ್ಪೀಕರ್‌ನಲ್ಲಿ ಈ ಸಾಧನದ ಹತ್ತಿರ ಇಡಿ", hang: "ಕರೆ ಕಟ್ ಮಾಡಿ",
         stopListen: "ಕೇಳುವುದನ್ನು ನಿಲ್ಲಿಸಿ", banner: "⚠️ ಮೋಸದ ಕರೆ<br>ಈಗಲೇ ಕರೆ ಕಟ್ ಮಾಡಿ", told: "👪 ನಿಮ್ಮ ಮನೆಯವರಿಗೆ ತಿಳಿಸಲಾಗಿದೆ",
         watch: "👪 ಮನೆಯವರು ಈ ಕರೆಯನ್ನು ಗಮನಿಸುತ್ತಿದ್ದಾರೆ", stop: "✋ ನಿಲ್ಲಿಸಿ", cut: "🔇 ಈಗ ಕರೆ ಮಾಡಿದವರಿಗೆ ನಿಮ್ಮ ಧ್ವನಿ ಕೇಳುವುದಿಲ್ಲ.",
         ok: "ಸರಿ, ನಾನು ಹೇಳುವುದಿಲ್ಲ", unmute: "ಕರೆ ಮಾಡಿದವರಿಗೆ ಮತ್ತೆ ನನ್ನ ಧ್ವನಿ ಕೇಳಿಸಲಿ", helpline: "📞 1930 ಗೆ ಕರೆ ಮಾಡಿ (ಸೈಬರ್ ಅಪರಾಧ ಸಹಾಯವಾಣಿ)",
-        ended: "ಕರೆ ಮುಗಿಯಿತು", caller: "ಕರೆ ಮಾಡುತ್ತಿರುವವರು", speaker: "ಸ್ಪೀಕರ್‌ನಲ್ಲಿರುವ ಕರೆ", voice: "🧬 " },
+        ended: "ಕರೆ ಮುಗಿಯಿತು", caller: "ಕರೆ ಮಾಡುತ್ತಿರುವವರು", speaker: "ಸ್ಪೀಕರ್‌ನಲ್ಲಿರುವ ಕರೆ", voice: "🧬 ",
+        tricks: "ಕಂಡುಬಂದ ಮೋಸದ ತಂತ್ರಗಳು", check: "📞 ಕರೆ ಕಟ್ ಮಾಡಿ, {name} ಅವರಿಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ" },
   hi: { low: "अभी तक सुरक्षित", medium: "सावधान: संदिग्ध कॉल", high: "धोखाधड़ी कॉल हो सकती है", protected: "🛡️ स्कैम सेंटिनल से सुरक्षित",
         waiting: "कॉल का इंतज़ार…", listening: "सुन रहा है · कॉल को स्पीकर पर इस डिवाइस के पास रखें", hang: "कॉल काटें",
         stopListen: "सुनना बंद करें", banner: "⚠️ धोखाधड़ी कॉल<br>अभी कॉल काटें", told: "👪 आपके घरवालों को बता दिया गया है",
         watch: "👪 घरवाले इस कॉल पर नज़र रख रहे हैं", stop: "✋ रुकिए", cut: "🔇 अब कॉल करने वाला आपकी आवाज़ नहीं सुन सकता।",
         ok: "ठीक है, नहीं बताना है", unmute: "कॉल करने वाले को फिर से मेरी आवाज़ सुनाएँ", helpline: "📞 1930 पर कॉल करें (साइबर अपराध हेल्पलाइन)",
-        ended: "कॉल खत्म", caller: "कॉल करने वाला", speaker: "स्पीकर पर कॉल", voice: "🧬 " },
+        ended: "कॉल खत्म", caller: "कॉल करने वाला", speaker: "स्पीकर पर कॉल", voice: "🧬 ",
+        tricks: "पकड़ी गई चालें", check: "📞 कॉल काटें और {name} को खुद फ़ोन करें" },
 };
 const COLOR = { low: "var(--good)", medium: "var(--warn)", high: "var(--bad)" };
+const ICON = { authority: "👮", threat: "⚠️", urgency: "⏰", secrecy: "🤫", credentials: "🔑", otp_request: "🔢",
+               payment: "💸", remote_access: "📲", lure: "🎁" };
+const shownTricks = new Set();
 
 let ctx, ws, capture, player, stream, wakeLock, startedAt, timerId, installPrompt;
 const warnings = {};
@@ -206,6 +231,9 @@ function setManifest() {             // "Add to home screen" opens straight into
 }
 window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; if (protectedRole()) $("install").classList.remove("hidden"); });
 $("install").onclick = async () => { if (!installPrompt) return; installPrompt.prompt(); await installPrompt.userChoice; installPrompt = null; $("install").classList.add("hidden"); };
+
+for (const id of ["practice1", "practice2"]) $(id).href = `/practice?key=${encodeURIComponent(key)}`;
+$("cname").value = prefs.cname || ""; $("cnum").value = prefs.cnum || "";
 
 function pickLang(code) {
   lang = code;
@@ -240,6 +268,7 @@ function chooseRole(r) {
     $("start").textContent = "🎧 Start listening";
   }
   if (installPrompt && protectedRole()) $("install").classList.remove("hidden");
+  $("practice2").classList.toggle("hidden", !protectedRole());
   setManifest();
   show("ready");
 }
@@ -254,13 +283,14 @@ function applyWords() {
   $("hanglabel").textContent = role === "listener" ? w.stopListen : w.hang;
   $("bannerbig").innerHTML = w.banner; $("bannerhang").textContent = w.hang; $("helpline").textContent = w.helpline;
   $("stopbig").textContent = w.stop; $("stopcut").textContent = w.cut; $("stopok").textContent = w.ok; $("unmute").textContent = w.unmute;
-  $("watch").textContent = w.watch;
+  $("watch").textContent = w.watch; $("trickhead").textContent = w.tricks;
   $("orbicon").textContent = protectedRole() ? "🛡️" : "📞";
 }
 
 $("start").onclick = async () => {
   $("start").disabled = true;
-  if (protectedRole()) stored("sentinel-prefs", JSON.stringify({ lang, fam: $("fam").checked, guard: $("guard").checked }));
+  if (protectedRole()) stored("sentinel-prefs", JSON.stringify({ lang, fam: $("fam").checked, guard: $("guard").checked,
+                                                             cname: $("cname").value.trim(), cnum: $("cnum").value.trim() }));
   try {
     ctx = new (window.AudioContext || window.webkitAudioContext)();
     await ctx.resume();
@@ -302,7 +332,7 @@ async function onControl(m) {
     timerId = setInterval(() => { const s = Math.floor((Date.now() - startedAt) / 1000); $("timer").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 500);
   } else if (m.type === "warnings") {
     for (const [lvl, b64] of Object.entries(m.audio)) warnings[lvl] = await ctx.decodeAudioData(b64ToBuffer(b64));
-  } else if (m.type === "risk") setRisk(m.level, m.score);
+  } else if (m.type === "risk") { setRisk(m.level, m.score); showTricks(m.tricks || []); }
   else if (m.type === "guardians") showWatch(m.count);
   else if (m.type === "guard") onGuard(m);
   else if (m.type === "alert") onAlert(m);
@@ -315,6 +345,17 @@ function setRisk(level, score) {
   document.documentElement.style.setProperty("--risk", COLOR[level]);
   $("bar").style.width = Math.min(100, score * 10) + "%";
   $("risktext").textContent = t()[level];
+}
+
+function showTricks(list) {          // each scam trick lights up as a chip the moment it is heard
+  for (const tr of list) {
+    if (shownTricks.has(tr.id)) continue;
+    shownTricks.add(tr.id);
+    const c = document.createElement("span");
+    c.className = "trick"; c.textContent = (ICON[tr.id] || "•") + " " + tr.label;
+    $("tricks").append(c);
+    $("trickhead").classList.remove("hidden");
+  }
 }
 
 function showWatch(n) { if (protectedRole()) $("watch").classList.toggle("hidden", !n); }
@@ -357,6 +398,11 @@ function onAlert(m) {
     $("bannervoice").textContent = m.voice ? t().voice + m.voice : "";
     $("bannertype").textContent = m.scam_label || "";
     $("bannerfamily").textContent = m.family_told ? t().told : "";
+    $("bannertip").textContent = m.tip || "";
+    $("bannertip").classList.toggle("hidden", !m.tip);
+    const cname = $("cname").value.trim(), cnum = $("cnum").value.trim().replace(/[^0-9+]/g, "");
+    $("bannercheck").classList.toggle("hidden", !cnum);
+    if (cnum) { $("bannercheck").textContent = t().check.replace("{name}", cname || "family"); $("bannercheck").href = "tel:" + cnum; }
     $("banner").classList.add("show");
   }
   playWarning(m.level);
@@ -367,6 +413,7 @@ function alertBox(text) { const d = document.createElement("div"); d.className =
 function hangup() { try { ws?.send(JSON.stringify({ type: "hangup" })); } catch (_) {} end(t().ended); }
 $("hang").onclick = hangup;
 $("bannerhang").onclick = () => { $("banner").classList.remove("show"); hangup(); };
+$("bannercheck").onclick = () => { $("banner").classList.remove("show"); hangup(); };   // then the phone dials them
 
 function end(text) {
   if (startedAt === null) return;

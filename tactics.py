@@ -88,6 +88,7 @@ TACTICS: dict[str, dict] = {
                      "वेरिफिकेशन राशि",
                      "transfer money", "send money", "transfer the amount", "safe account", "verification amount",
                      "upi", "u p i", "gift card", "bitcoin", "pay immediately",
+                     "re:\\b(transfer|send|pay)\\s+(\\w+\\s+){0,3}(rupees|lakh|lakhs|thousand|crore)\\b",
                      # Hinglish
                      "paise transfer", "paise bhejo", "paise bhej do", "paisa transfer"],
     },
@@ -210,6 +211,9 @@ SAFETY_PHRASES = [
     # Code-mixed Hindi: "share" in Devanagari. REVIEW with a native speaker.
     "शेयर न करें", "शेयर ना करें", "शेयर मत करें", "शेयर मत कीजिए", "शेयर मत करना", "नेवर शेयर", "डोंट शेयर",
     "re:share\\s+(mat|matt|mark|na|nahi|nahin)\\b",   # "share mat" is often heard as "share mark"
+    # "We will never ask for your OTP" (the bank's own safety message). REVIEW with a native speaker.
+    "re:ಎಂದಿಗೂ.{0,40}ಕೇಳುವುದಿಲ್ಲ", "re:ಯಾವತ್ತೂ.{0,40}ಕೇಳುವುದಿಲ್ಲ",
+    "re:कभी.{0,40}नहीं\\s?(मांगते|मांगता|माँगते|माँगता|पूछते|पूछता)",
 ]
 
 # One-word list for Prisma word boosting (letters only, one word per entry, per the docs).

@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1416">
+<link rel="icon" href="/icons/favicon.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<title>Spot the scam</title>
+<style>
+  :root { --bg:#0b1416; --bg2:#112023; --card:#16282b; --line:#24393c; --ink:#f2f5f4; --ink2:#a9bcb8;
+          --good:#19b37d; --warn:#f5a524; --bad:#e5484d; --accent:#3b8cf0; --risk:var(--good); }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:radial-gradient(120% 60% at 50% 0%, #15302f 0%, var(--bg) 60%) fixed, var(--bg); color:var(--ink);
+         font:18px/1.45 system-ui,-apple-system,"Segoe UI","Noto Sans Kannada","Noto Sans Devanagari",sans-serif; }
+  main { max-width:560px; margin:0 auto; padding:max(14px, env(safe-area-inset-top)) 16px 40px; }
+  header { display:flex; align-items:center; gap:10px; padding:4px 0 10px; }
+  header img { width:36px; height:36px; border-radius:9px; } header b { font-size:19px; }
+  .pill { margin-left:auto; font-size:12px; color:var(--ink2); border:1px solid var(--line); border-radius:20px; padding:3px 9px; white-space:nowrap; }
+  h1 { font-size:26px; margin:6px 0 2px; } .sub { color:var(--ink2); margin:0 0 12px; font-size:16px; }
+  .hidden { display:none !important; }
+  button { font:inherit; border:0; border-radius:16px; color:#fff; cursor:pointer; }
+  .seg { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:8px 0; }
+  .seg button { padding:11px 4px; font-size:17px; background:var(--bg2); border:1px solid var(--line); }
+  .seg button.on { background:var(--accent); border-color:var(--accent); }
+  .tabs { display:grid; grid-template-columns:1fr 1fr; gap:6px; background:var(--bg2); border:1px solid var(--line); border-radius:16px; padding:4px; margin:12px 0; }
+  .tabs button { padding:11px; background:transparent; font-weight:700; color:var(--ink2); border-radius:12px; }
+  .tabs button.on { background:var(--card); color:var(--ink); box-shadow:0 2px 10px -4px #000; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:20px; padding:18px; margin:10px 0; }
+  .dots { display:flex; gap:6px; justify-content:center; margin-bottom:12px; }
+  .dots i { width:10px; height:10px; border-radius:50%; background:var(--line); transition:background .3s, transform .3s; }
+  .dots i.now { background:var(--ink2); transform:scale(1.3); } .dots i.ok { background:var(--good); } .dots i.no { background:var(--bad); }
+  .says { color:var(--ink2); font-size:14px; text-transform:uppercase; letter-spacing:.05em; display:flex; align-items:center; }
+  .says button { margin-left:auto; background:var(--bg2); border:1px solid var(--line); padding:6px 12px; font-size:15px; }
+  .quote { font-size:21px; line-height:1.5; margin:10px 0 16px; padding-left:14px; border-left:4px solid var(--accent); animation:slide .35s ease-out; }
+  @keyframes slide { from { opacity:0; transform:translateX(16px); } }
+  .answer { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .answer button { padding:18px 8px; font-size:21px; font-weight:800; transition:transform .1s; }
+  .answer button:active { transform:scale(.96); }
+  .b-scam { background:var(--bad); } .b-safe { background:var(--good); } .b-next { background:var(--accent); width:100%; padding:16px; font-size:19px; font-weight:700; margin-top:12px; }
+  .answer button:disabled { opacity:.35; }
+  .verdict { margin-top:14px; animation:pop .3s ease-out; }
+  @keyframes pop { from { opacity:0; transform:scale(.97); } }
+  .verdict .big { font-size:24px; font-weight:800; }
+  .gauge { height:10px; background:var(--bg2); border-radius:5px; overflow:hidden; margin:10px 0; }
+  .gauge div { height:100%; width:0; background:var(--risk); transition:width .5s, background .5s; }
+  .lvl { font-weight:800; color:var(--risk); font-size:20px; }
+  .label { font-weight:700; }
+  .tricks { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+  .trick { font-size:15px; padding:7px 12px; border-radius:20px; background:color-mix(in srgb, var(--risk) 22%, var(--card));
+           border:1px solid color-mix(in srgb, var(--risk) 60%, transparent); animation:chip .45s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes chip { from { transform:scale(.4); opacity:0; } }
+  .tip { background:var(--bg2); border-radius:14px; padding:12px; font-weight:600; }
+  .score { text-align:center; } .score .n { font-size:64px; font-weight:900; line-height:1; margin:10px 0; }
+  textarea { width:100%; min-height:120px; font:inherit; font-size:19px; padding:14px; border-radius:16px; border:1px solid var(--line); background:var(--bg2); color:var(--ink); resize:vertical; }
+  .ex { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; }
+  .ex button { background:var(--bg2); border:1px solid var(--line); padding:8px 12px; font-size:15px; color:var(--ink); }
+  .note { color:var(--ink2); font-size:14px; }
+  a.back { color:var(--ink2); }
+</style>
+</head>
+<body>
+<main>
+  <header><img src="/icons/icon-192.png" alt=""><b>Scam Sentinel</b><span class="pill">Practice · simulated lines</span></header>
+  <h1 id="title">🎓 Spot the scam</h1>
+  <p class="sub" id="sub"></p>
+  <div class="seg" id="langs"></div>
+  <div class="tabs"><button id="t-quiz" class="on"></button><button id="t-check"></button></div>
+
+  <section id="quiz">
+    <div class="card" id="qcard">
+      <div class="dots" id="dots"></div>
+      <div class="says"><span id="says"></span><button id="speak" class="hidden" aria-label="Read aloud">🔊</button></div>
+      <div class="quote" id="quote"></div>
+      <div class="answer"><button class="b-scam" id="a-scam"></button><button class="b-safe" id="a-safe"></button></div>
+      <div class="verdict hidden" id="verdict">
+        <div class="big" id="vbig"></div>
+        <div id="vtruth"></div>
+        <div class="gauge"><div id="vgauge"></div></div>
+        <div><span class="lvl" id="vlvl"></span> <span class="label" id="vlabel"></span></div>
+        <div class="tricks" id="vtricks"></div>
+        <div class="tip hidden" id="vtip"></div>
+        <button class="b-next" id="next"></button>
+      </div>
+    </div>
+    <div class="card score hidden" id="done">
+      <div id="donetext"></div>
+      <div class="n" id="donen"></div>
+      <button class="b-next" id="again"></button>
+      <button class="b-next" id="share" style="background:var(--good)"></button>
+      <p class="note" id="shared"></p>
+    </div>
+  </section>
+
+  <section id="check" class="hidden">
+    <div class="card">
+      <label for="text" class="label" id="checklabel"></label>
+      <p class="note" id="checkhint" style="margin:4px 0 10px"></p>
+      <textarea id="text" autocomplete="off"></textarea>
+      <div class="note" id="extitle" style="margin-top:8px"></div>
+      <div class="ex" id="examples"></div>
+      <div class="gauge"><div id="cgauge"></div></div>
+      <div><span class="lvl" id="clvl"></span> <span class="label" id="clabel"></span></div>
+      <div class="tricks" id="ctricks"></div>
+      <div class="tip hidden" id="ctip"></div>
+    </div>
+  </section>
+
+  <p class="note" id="foot"></p>
+  <p class="note"><a class="back" id="back" href="/">← Scam Sentinel protected line</a></p>
+</main>
+
+<script>
+const key = new URLSearchParams(location.search).get("key") || "";
+const $ = (id) => document.getElementById(id);
+const ICON = { authority: "👮", threat: "⚠️", urgency: "⏰", secrecy: "🤫", credentials: "🔑", otp_request: "🔢",
+               payment: "💸", remote_access: "📲", lure: "🎁" };
+const COLOR = { low: "var(--good)", medium: "var(--warn)", high: "var(--bad)" };
+const LANGS = { kn: "ಕನ್ನಡ", hi: "हिन्दी", en: "English" };
+// REVIEW kn/hi with native speakers
+const UI = {
+  en: { title: "🎓 Spot the scam", sub: "Practise with short simulated calls. Would you hang up?", quiz: "🎯 Quiz", check: "🔍 Check a call", says: "The caller says",
+        scam: "🚨 Scam", safe: "✅ Safe", right: "✅ Right!", wrong: "❌ Not quite", wasScam: "This was a scam call.", wasSafe: "This was a normal call.",
+        next: "Next call →", last: "See my score →", done: "You spotted", again: "↻ Try again", share: "📤 Send these tips to family",
+        shared: "Copied. Paste it into WhatsApp for your family.", checkLabel: "Type what the caller is saying",
+        checkHint: "It is checked as you type. Nothing you type is saved.", examples: "Try an example:", none: "No scam tricks found yet.",
+        low: "Safe so far", medium: "Suspicious", high: "Likely scam", says2: "Scam Sentinel says:",
+        foot: "Runs on Scam Sentinel's offline rules: free, no AI credits, nothing saved. A real scam call? Hang up and call 1930.",
+        tips: "Scam call tips from Scam Sentinel:\n1. Police never ask for money on the phone, and there is no 'digital arrest'.\n2. Banks never ask for your OTP or PIN.\n3. If a caller says a family member is in trouble, hang up and call that person yourself.\n4. Never install an app because a caller asks.\n5. Report scam calls at 1930 or cybercrime.gov.in." },
+  kn: { title: "🎓 ಮೋಸದ ಕರೆ ಗುರುತಿಸಿ", sub: "ಸಣ್ಣ ಕರೆಗಳೊಂದಿಗೆ ಅಭ್ಯಾಸ ಮಾಡಿ. ನೀವು ಕರೆ ಕಟ್ ಮಾಡುತ್ತೀರಾ?", quiz: "🎯 ಅಭ್ಯಾಸ", check: "🔍 ಕರೆ ಪರಿಶೀಲಿಸಿ", says: "ಕರೆ ಮಾಡಿದವರು ಹೇಳುತ್ತಾರೆ",
+        scam: "🚨 ಮೋಸ", safe: "✅ ಸುರಕ್ಷಿತ", right: "✅ ಸರಿ!", wrong: "❌ ತಪ್ಪು", wasScam: "ಇದು ಮೋಸದ ಕರೆ.", wasSafe: "ಇದು ಸಾಮಾನ್ಯ ಕರೆ.",
+        next: "ಮುಂದಿನ ಕರೆ →", last: "ನನ್ನ ಅಂಕ ನೋಡಿ →", done: "ನೀವು ಸರಿಯಾಗಿ ಗುರುತಿಸಿದ್ದು", again: "↻ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ", share: "📤 ಈ ಸಲಹೆಗಳನ್ನು ಮನೆಯವರಿಗೆ ಕಳುಹಿಸಿ",
+        shared: "ಕಾಪಿ ಆಯಿತು. ಮನೆಯವರಿಗೆ ವಾಟ್ಸ್‌ಆ್ಯಪ್‌ನಲ್ಲಿ ಪೇಸ್ಟ್ ಮಾಡಿ.", checkLabel: "ಕರೆ ಮಾಡಿದವರು ಏನು ಹೇಳುತ್ತಿದ್ದಾರೆ ಎಂದು ಟೈಪ್ ಮಾಡಿ",
+        checkHint: "ಟೈಪ್ ಮಾಡುತ್ತಿದ್ದಂತೆ ಪರಿಶೀಲಿಸುತ್ತದೆ. ನೀವು ಟೈಪ್ ಮಾಡಿದ್ದು ಉಳಿಸಲಾಗುವುದಿಲ್ಲ.", examples: "ಉದಾಹರಣೆ:", none: "ಇನ್ನೂ ಯಾವುದೇ ಮೋಸದ ತಂತ್ರ ಕಂಡಿಲ್ಲ.",
+        low: "ಸದ್ಯಕ್ಕೆ ಸುರಕ್ಷಿತ", medium: "ಅನುಮಾನಾಸ್ಪದ", high: "ಮೋಸದ ಕರೆ ಇರಬಹುದು", says2: "ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ಹೇಳುತ್ತದೆ:",
+        foot: "ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್‌ನ ಆಫ್‌ಲೈನ್ ನಿಯಮಗಳಿಂದ ನಡೆಯುತ್ತದೆ: ಉಚಿತ, ಏನೂ ಉಳಿಸುವುದಿಲ್ಲ. ನಿಜವಾದ ಮೋಸದ ಕರೆ ಬಂದರೆ ಕರೆ ಕಟ್ ಮಾಡಿ, 1930 ಗೆ ಕರೆ ಮಾಡಿ.",
+        tips: "ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್‌ನಿಂದ ಮೋಸದ ಕರೆ ಸಲಹೆಗಳು:\n1. ಪೊಲೀಸರು ಫೋನಿನಲ್ಲಿ ಹಣ ಕೇಳುವುದಿಲ್ಲ. 'ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್' ಎಂಬುದೇ ಇಲ್ಲ.\n2. ಬ್ಯಾಂಕ್ ಎಂದಿಗೂ ಒಟಿಪಿ ಅಥವಾ ಪಿನ್ ಕೇಳುವುದಿಲ್ಲ.\n3. ಮನೆಯವರು ತೊಂದರೆಯಲ್ಲಿದ್ದಾರೆ ಎಂದು ಯಾರಾದರೂ ಹೇಳಿದರೆ, ಕರೆ ಕಟ್ ಮಾಡಿ ಅವರಿಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ.\n4. ಕರೆ ಮಾಡಿದವರು ಹೇಳಿದರು ಎಂದು ಯಾವ ಆ್ಯಪ್ ಕೂಡ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಬೇಡಿ.\n5. ಮೋಸದ ಕರೆಗಳನ್ನು 1930 ಅಥವಾ cybercrime.gov.in ನಲ್ಲಿ ವರದಿ ಮಾಡಿ." },
+  hi: { title: "🎓 धोखे की कॉल पहचानें", sub: "छोटी सिम्युलेटेड कॉल से अभ्यास करें। क्या आप कॉल काटेंगे?", quiz: "🎯 अभ्यास", check: "🔍 कॉल जाँचें", says: "कॉल करने वाला कहता है",
+        scam: "🚨 धोखा", safe: "✅ सुरक्षित", right: "✅ सही!", wrong: "❌ गलत", wasScam: "यह धोखाधड़ी की कॉल थी।", wasSafe: "यह आम कॉल थी।",
+        next: "अगली कॉल →", last: "मेरा स्कोर देखें →", done: "आपने सही पहचानीं", again: "↻ फिर से खेलें", share: "📤 ये सलाह घरवालों को भेजें",
+        shared: "कॉपी हो गया। घरवालों को व्हाट्सऐप पर पेस्ट करें।", checkLabel: "कॉल करने वाला क्या कह रहा है, टाइप करें",
+        checkHint: "टाइप करते ही जाँच होती है। आपका लिखा सेव नहीं होता।", examples: "उदाहरण:", none: "अभी तक कोई चाल नहीं मिली।",
+        low: "अभी तक सुरक्षित", medium: "संदिग्ध", high: "धोखाधड़ी कॉल हो सकती है", says2: "स्कैम सेंटिनल कहता है:",
+        foot: "स्कैम सेंटिनल के ऑफ़लाइन नियमों से चलता है: मुफ़्त, कुछ सेव नहीं होता। असली धोखाधड़ी कॉल? कॉल काटें और 1930 पर कॉल करें।",
+        tips: "स्कैम सेंटिनल की ओर से धोखाधड़ी कॉल से बचने की सलाह:\n1. पुलिस फ़ोन पर पैसे नहीं मांगती, और 'डिजिटल अरेस्ट' जैसा कुछ नहीं होता।\n2. बैंक कभी ओटीपी या पिन नहीं मांगता।\n3. अगर कोई कहे कि घर का कोई सदस्य मुसीबत में है, तो कॉल काटें और उन्हें खुद फ़ोन करें।\n4. किसी कॉल करने वाले के कहने पर कोई ऐप इंस्टॉल न करें।\n5. धोखाधड़ी कॉल की शिकायत 1930 या cybercrime.gov.in पर करें।" },
+};
+let lang = "kn", items = [], order = [], at = 0, right = 0, results = [];
+const t = () => UI[lang];
+function stored(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (_) { return null; } }
+lang = stored("sentinel-practice-lang") || (JSON.parse(stored("sentinel-prefs") || "{}").lang || "kn-IN").split("-")[0];
+if (!UI[lang]) lang = "kn";
+$("back").href = `/?key=${encodeURIComponent(key)}`;
+
+async function check(text) {
+  const r = await fetch(`/api/check?key=${encodeURIComponent(key)}`, { method: "POST", headers: { "Content-Type": "application/json" },
+                                                                         body: JSON.stringify({ text, lang: lang + "-IN" }) });
+  if (!r.ok) throw new Error(r.status === 403 ? "This link is missing its key." : "Could not check");
+  return r.json();
+}
+
+function render(res, p) {             // gauge, level, scam type, trick chips and tip; p = element id prefix
+  const box = $(p + "gauge").closest(".card, .verdict");
+  box.style.setProperty("--risk", COLOR[res.level]);
+  $(p + "gauge").style.width = Math.min(100, res.score * 10) + "%";
+  $(p + "lvl").textContent = t()[res.level];
+  $(p + "label").textContent = res.scam_label && res.level !== "low" ? "· " + res.scam_label : "";
+  const old = new Set([...$(p + "tricks").children].map((c) => c.dataset.id));
+  $(p + "tricks").innerHTML = "";
+  for (const tr of res.tricks) {
+    const c = document.createElement("span");
+    c.className = "trick"; c.dataset.id = tr.id; c.textContent = (ICON[tr.id] || "•") + " " + tr.label;
+    if (old.has(tr.id)) c.style.animation = "none";              // only new tricks pop in
+    $(p + "tricks").append(c);
+  }
+  if (!res.tricks.length) { const n = document.createElement("span"); n.className = "note"; n.textContent = t().none; $(p + "tricks").append(n); }
+  $(p + "tip").textContent = res.tip ? "💡 " + res.tip : "";
+  $(p + "tip").classList.toggle("hidden", !res.tip);
+}
+
+// ---- quiz ----
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function startQuiz() {
+  order = shuffle(items.map((_, i) => i)); at = 0; right = 0; results = [];
+  $("qcard").classList.remove("hidden"); $("done").classList.add("hidden");
+  showItem();
+}
+function showItem() {
+  const it = items[order[at]];
+  $("dots").innerHTML = order.map((_, i) => `<i class="${results[i] === true ? "ok" : results[i] === false ? "no" : i === at ? "now" : ""}"></i>`).join("");
+  $("quote").textContent = "“" + it[lang] + "”";
+  $("quote").style.animation = "none"; void $("quote").offsetWidth; $("quote").style.animation = "";
+  $("verdict").classList.add("hidden");
+  $("a-scam").disabled = $("a-safe").disabled = false;
+}
+async function answer(saidScam) {
+  const it = items[order[at]];
+  $("a-scam").disabled = $("a-safe").disabled = true;
+  const ok = saidScam === it.scam;
+  results[at] = ok; if (ok) right++;
+  navigator.vibrate?.(ok ? 40 : [80, 60, 80]);
+  $("vbig").textContent = ok ? t().right : t().wrong;
+  $("vtruth").textContent = (it.scam ? t().wasScam : t().wasSafe) + " " + t().says2;
+  $("next").textContent = at === order.length - 1 ? t().last : t().next;
+  $("verdict").classList.remove("hidden");
+  $("dots").children[at].className = ok ? "ok" : "no";
+  try { render(await check(it[lang]), "v"); } catch (e) { $("vtruth").textContent += " " + e.message; }
+}
+$("a-scam").onclick = () => answer(true);
+$("a-safe").onclick = () => answer(false);
+$("next").onclick = () => {
+  if (++at < order.length) return showItem();
+  $("qcard").classList.add("hidden"); $("done").classList.remove("hidden");
+  $("donen").textContent = `${right} / ${order.length}`;
+};
+$("again").onclick = startQuiz;
+$("share").onclick = async () => {
+  try { await navigator.share({ text: t().tips }); }
+  catch (_) { try { await navigator.clipboard.writeText(t().tips); $("shared").textContent = t().shared; } catch (_) { $("shared").textContent = t().tips; } }
+};
+
+// read the line aloud, if this phone has a voice for the language (browser speech: free, on the device)
+function voiceFor() { return speechSynthesis?.getVoices().find((v) => v.lang.toLowerCase().startsWith(lang)); }
+$("speak").onclick = () => {
+  const u = new SpeechSynthesisUtterance(items[order[at]][lang]);
+  u.lang = lang + "-IN"; u.voice = voiceFor() || null; u.rate = 0.95;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+};
+function updateSpeak() { $("speak").classList.toggle("hidden", !(window.speechSynthesis && voiceFor())); }
+if (window.speechSynthesis) speechSynthesis.onvoiceschanged = updateSpeak;
+
+// ---- check a call (live, as you type) ----
+let timer;
+$("text").oninput = () => { clearTimeout(timer); timer = setTimeout(runCheck, 350); };
+async function runCheck() {
+  const text = $("text").value.trim();
+  try { render(text ? await check(text) : { level: "low", score: 0, tricks: [], tip: null }, "c"); }
+  catch (e) { $("clvl").textContent = e.message; }
+}
+function examples() {
+  $("examples").innerHTML = "";
+  for (const i of [4, 2, 3]) {           // fake police, KYC + OTP, the bank's own safety message
+    if (!items[i]) continue;
+    const b = document.createElement("button");
+    b.textContent = items[i][lang].slice(0, 28) + "…";
+    b.onclick = () => { $("text").value = items[i][lang]; runCheck(); };
+    $("examples").append(b);
+  }
+}
+
+// ---- language + tabs ----
+function setLang(code) {
+  lang = code; stored("sentinel-practice-lang", code);
+  document.documentElement.lang = code;
+  document.querySelectorAll("#langs button").forEach((b) => b.classList.toggle("on", b.dataset.lang === code));
+  const w = t();
+  $("title").textContent = w.title; $("sub").textContent = w.sub; $("t-quiz").textContent = w.quiz; $("t-check").textContent = w.check; $("says").textContent = w.says;
+  $("a-scam").textContent = w.scam; $("a-safe").textContent = w.safe; $("donetext").textContent = w.done;
+  $("again").textContent = w.again; $("share").textContent = w.share; $("checklabel").textContent = w.checkLabel;
+  $("checkhint").textContent = w.checkHint; $("extitle").textContent = w.examples; $("foot").textContent = w.foot;
+  if (items.length) { startQuiz(); examples(); runCheck(); }
+  updateSpeak();
+}
+for (const [code, name] of Object.entries(LANGS)) {
+  const b = document.createElement("button"); b.textContent = name; b.dataset.lang = code; b.onclick = () => setLang(code); $("langs").append(b);
+}
+function tab(name) {
+  $("quiz").classList.toggle("hidden", name !== "quiz"); $("check").classList.toggle("hidden", name !== "check");
+  $("t-quiz").classList.toggle("on", name === "quiz"); $("t-check").classList.toggle("on", name === "check");
+}
+$("t-quiz").onclick = () => tab("quiz");
+$("t-check").onclick = () => tab("check");
+
+fetch("/practice.json").then((r) => r.json()).then((d) => { items = d.items; setLang(lang); });
+setLang(lang);
+</script>
+</body>
+</html>

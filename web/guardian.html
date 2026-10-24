@@ -55,6 +55,7 @@
     <label for="num" class="note">Their phone number, for a one-tap call back (optional, saved only on this phone)</label>
     <input id="num" type="tel" inputmode="tel" autocomplete="off">
     <button id="start" class="go">👁️ Start watching</button>
+    <a class="btn" id="practice" href="#" style="background:var(--bg2);border:1px solid var(--line);font-size:17px;font-weight:600">🎓 Practise spotting scams together</a>
   </section>
 
   <section id="watching" class="hidden">
@@ -70,6 +71,7 @@
   <div class="big">🚨 Your family member is on a likely SCAM call</div>
   <div class="type" id="atype"></div>
   <div id="areasons"></div>
+  <div class="type hidden" id="atip" style="font-size:18px"></div>
   <div class="said hidden" id="asaid"></div>
   <a id="callback" class="btn hidden" href="#">📞 Call them now</a>
   <button id="ack">I've seen it</button>
@@ -86,6 +88,7 @@ function stored(k, v) {               // browser storage can be unavailable: nev
   try { if (v === undefined) return localStorage.getItem(k) || ""; localStorage.setItem(k, v); } catch (_) { return ""; }
 }
 $("num").value = stored("sentinel-guardian-number");
+$("practice").href = `/practice?key=${encodeURIComponent(key)}`;
 if (key) $("manifest").href = `/manifest.webmanifest?app=guardian&key=${encodeURIComponent(key)}`;   // installable as its own app
 
 function setStatus(text, color, sub) { $("status").textContent = text; $("dot").style.background = color; $("sub").textContent = sub || ""; }
@@ -133,6 +136,7 @@ function onAlert(m) {
   add("high", `<b>🔴 ${now()} · Likely scam</b> · ${esc(m.scam_label)}<br>${lines}<br><small>Their phone already warned them.</small>`);
   $("atype").textContent = m.scam_label;
   $("areasons").innerHTML = lines;
+  $("atip").textContent = m.tip ? "💡 " + m.tip : ""; $("atip").classList.toggle("hidden", !m.tip);
   const said = (m.caller_said || []).map((t) => "“" + esc(t) + "”").join("<br>");
   $("asaid").innerHTML = said ? "<b>The caller said:</b><br>" + said : "";
   $("asaid").classList.toggle("hidden", !said);
