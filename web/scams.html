@@ -235,7 +235,7 @@ async function simulate(s, sim, play) {
   const lvl = el("span", "lvl", t().low), label = el("span", "label");
   status.append(lvl, document.createTextNode(" "), label);
   sim.append(el("p", "note reenact", "🎭 " + t().reenact), chat, gauge, status, tricks, tip);
-  const audio = sceneVoices.has(`${s.id}-${lang}`), seen = new Set(), said = [];
+  const voiced = sceneVoices.has(`${s.id}-${lang}`), seen = new Set(), said = [];
   let last = { level: "low", tip: null };
   for (const [n, [who, text]] of s.scene[lang].entries()) {
     if (run !== sceneRun) break;
@@ -258,7 +258,7 @@ async function simulate(s, sim, play) {
         if (res.tip) { tip.textContent = "💡 " + res.tip; tip.classList.remove("hidden"); }
       }).catch((e) => { lvl.textContent = e.message; });
     }
-    await say(audio ? `/audio/scenes/${s.id}-${lang}-${n}.mp3` : null, text || "..........");
+    await say(voiced ? `/audio/scenes/${s.id}-${lang}-${n}.mp3` : null, text || "..........");
     b.classList.remove("now");
     await new Promise((r) => setTimeout(r, 250));
   }
