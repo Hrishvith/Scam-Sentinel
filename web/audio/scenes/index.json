@@ -1,0 +1,22 @@
+{
+ "scenes": [
+  "courier-en",
+  "courier-hi",
+  "courier-kn",
+  "digital_arrest-en",
+  "digital_arrest-hi",
+  "digital_arrest-kn",
+  "electricity-en",
+  "electricity-hi",
+  "electricity-kn",
+  "family_emergency-en",
+  "family_emergency-hi",
+  "family_emergency-kn",
+  "kyc_bank-en",
+  "kyc_bank-hi",
+  "kyc_bank-kn",
+  "remote_access-en",
+  "remote_access-hi",
+  "remote_access-kn"
+ ]
+}
