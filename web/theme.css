@@ -94,3 +94,6 @@ ul.do li { background: #e6f2ec !important; color: var(--ink); }
 h3 { font-size: 15px !important; }
 .case a, .stat a { padding: 12px 0 !important; }
 #setup a.btn { background: var(--card) !important; color: var(--ink) !important; border: 2px solid var(--line) !important; }
+
+/* one language section for the whole site (header 🌐); the per-page rows are not needed */
+#langs.seg { display: none !important; }
