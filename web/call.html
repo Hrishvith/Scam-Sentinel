@@ -116,7 +116,6 @@
   .tile.big .tt { font-size:25px; }
   .tile.sos { background:#fdecec; border-color:var(--bad); }
   .tile.sos .ti { background:var(--bad); }
-  .role.demo { margin-top:22px; border-style:dashed !important; box-shadow:none !important; }
   #install { background:var(--bg2); border:1px dashed var(--line); color:var(--ink); font-size:16px; padding:12px; }
 </style>
 <link rel="stylesheet" href="/theme.css">
@@ -134,7 +133,6 @@
       <a class="tile" id="scams1" href="#"><span class="ti">📰</span><span class="tt" data-w="scamsT"></span><span class="ts" data-w="scamsS"></span></a>
       <button class="tile sos" id="sos1" type="button"><span class="ti">🆘</span><span class="tt" data-w="sosT"></span><span class="ts" data-w="sosS"></span></button>
     </div>
-    <button class="role demo" data-role="caller"><span class="i">🎭</span><span><span data-w="rCaller"></span><small data-w="rCallerS"></small></span></button>
   </section>
 
   <section id="ready" class="card hidden">
@@ -264,7 +262,7 @@ $("cname").value = prefs.cname || ""; $("cnum").value = prefs.cnum || "";
 // Home and setup screens, in the language chosen for the whole site (REVIEW kn/hi with native speakers)
 const HOME = {
   en: { choose: "Which phone is this?", rProtect: "Protect this phone", rProtectS: "For the person who might get a scam call",
-        rCaller: "Demo: play the scammer", rCallerS: "Only to show how it works, from a second phone", rListen: "Listen to a real call on speaker",
+        rListen: "Listen to a real call on speaker",
         rListenS: "Put this phone next to the other phone", practice: "🎓 Practise spotting scam calls",
         listenT: "Listen to a call on speaker", practiceT: "Practice", practiceS: "Learn to spot scam calls",
         scamsT: "Real scams", scamsS: "How they work, what to do", sosT: "I was cheated", sosS: "What to do now",
@@ -282,7 +280,7 @@ const HOME = {
         noaudio: "The microphone could not start. Please open this page in Chrome and tap Allow for the microphone.",
         pill: "Prototype · practice calls" },
   kn: { choose: "ಇದು ಯಾರ ಫೋನ್?", rProtect: "ಈ ಫೋನ್ ರಕ್ಷಿಸಿ", rProtectS: "ಮೋಸದ ಕರೆ ಬರಬಹುದಾದವರಿಗೆ",
-        rCaller: "ಡೆಮೊ: ಮೋಸಗಾರನ ಪಾತ್ರ", rCallerS: "ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ ಎಂದು ತೋರಿಸಲು ಮಾತ್ರ, ಇನ್ನೊಂದು ಫೋನಿನಿಂದ", rListen: "ಸ್ಪೀಕರ್‌ನಲ್ಲಿರುವ ನಿಜವಾದ ಕರೆ ಕೇಳಿ",
+        rListen: "ಸ್ಪೀಕರ್‌ನಲ್ಲಿರುವ ನಿಜವಾದ ಕರೆ ಕೇಳಿ",
         rListenS: "ಈ ಫೋನನ್ನು ಇನ್ನೊಂದು ಫೋನಿನ ಪಕ್ಕ ಇಡಿ", practice: "🎓 ಮೋಸದ ಕರೆ ಗುರುತಿಸುವ ಅಭ್ಯಾಸ",
         listenT: "ಸ್ಪೀಕರ್‌ನಲ್ಲಿರುವ ಕರೆ ಕೇಳಿ", practiceT: "ಅಭ್ಯಾಸ", practiceS: "ಮೋಸದ ಕರೆ ಗುರುತಿಸಲು ಕಲಿಯಿರಿ",
         scamsT: "ನಿಜವಾದ ಮೋಸಗಳು", scamsS: "ಹೇಗೆ ನಡೆಯುತ್ತವೆ, ಏನು ಮಾಡಬೇಕು", sosT: "ನನಗೆ ಮೋಸ ಆಯಿತು", sosS: "ಈಗ ಏನು ಮಾಡಬೇಕು",
@@ -300,7 +298,7 @@ const HOME = {
         noaudio: "ಮೈಕ್ರೋಫೋನ್ ಶುರುವಾಗಲಿಲ್ಲ. ಈ ಪುಟವನ್ನು Chrome ನಲ್ಲಿ ತೆರೆದು, ಮೈಕ್ರೋಫೋನ್‌ಗೆ Allow ಒತ್ತಿ.",
         pill: "ಪ್ರೋಟೋಟೈಪ್ · ಅಭ್ಯಾಸ ಕರೆಗಳು" },
   hi: { choose: "यह किसका फ़ोन है?", rProtect: "इस फ़ोन को सुरक्षित करें", rProtectS: "जिसे धोखे की कॉल आ सकती है, उसके लिए",
-        rCaller: "डेमो: धोखेबाज़ का किरदार", rCallerS: "सिर्फ़ यह दिखाने के लिए कि यह कैसे काम करता है, दूसरे फ़ोन से", rListen: "स्पीकर पर चल रही असली कॉल सुनें",
+        rListen: "स्पीकर पर चल रही असली कॉल सुनें",
         rListenS: "इस फ़ोन को दूसरे फ़ोन के पास रखें", practice: "🎓 धोखे की कॉल पहचानने का अभ्यास",
         listenT: "स्पीकर पर कॉल सुनें", practiceT: "अभ्यास", practiceS: "धोखे की कॉल पहचानना सीखें",
         scamsT: "असली धोखे", scamsS: "कैसे होते हैं, क्या करें", sosT: "मेरे साथ धोखा हुआ", sosS: "अब क्या करें",
