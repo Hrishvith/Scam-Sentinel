@@ -115,6 +115,7 @@ class Relay:
         app.router.add_post("/api/check", self.check)
         app.router.add_get("/pcm-worklet.js", self.page("pcm-worklet.js", "application/javascript"))
         app.router.add_get("/common.js", self.page("common.js", "application/javascript"))
+        app.router.add_get("/theme.css", self.page("theme.css", "text/css"))
         app.router.add_get("/manifest.webmanifest", self.manifest)
         app.router.add_static("/icons", WEB / "icons")
         (WEB / "audio").mkdir(exist_ok=True)
