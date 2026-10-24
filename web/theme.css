@@ -97,3 +97,4 @@ h3 { font-size: 15px !important; }
 
 /* one language section for the whole site (header 🌐); the per-page rows are not needed */
 #langs.seg { display: none !important; }
+#options .label[data-w=warnLang], #options #langs.langs { display: none !important; }
