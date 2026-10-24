@@ -1,0 +1,96 @@
+/* Light, warm, high-contrast theme for the phone pages: made for older eyes and daylight.
+   Loaded after each page's own styles, so it sets the colours and minimum sizes everywhere.
+   Every text/background pair here is at least 4.5:1 (WCAG AA); the main buttons are 5.9:1 or more. */
+:root {
+  --bg: #f5f3ee;        /* warm paper */
+  --bg2: #edeae3;       /* inputs, inner panels */
+  --card: #ffffff;
+  --line: #d3cdbf;
+  --ink: #17201e;       /* text: 16:1 on white */
+  --ink2: #424d4a;      /* secondary text: 9:1 on white */
+  --muted: #56615e;
+  --brand: #0b5d4b;     /* deep teal: the header band, white text 7.6:1 */
+  --good: #17703f;      /* safe / go: white text 6.0:1 */
+  --warn: #a14d00;      /* careful: white text 5.9:1 */
+  --bad: #c0262d;       /* danger: white text 5.9:1 */
+  --accent: #1b5fbf;    /* actions: white text 6.4:1 */
+  color-scheme: light;
+}
+html, body { background: var(--bg) !important; }
+body { color: var(--ink); background: linear-gradient(180deg, #e3efea 0, var(--bg) 320px) no-repeat, var(--bg) !important; }
+
+/* header: a brand band people recognise on every page */
+header { background: var(--brand); color: #fff; margin: 0 -16px 14px !important; padding: 12px 16px !important; border-radius: 0 0 20px 20px; }
+header b { color: #fff; font-size: 20px !important; }
+header img { background: #fff; padding: 2px; }
+.pill { color: #e6f2ee !important; border-color: rgba(255,255,255,.45) !important; font-size: 13px !important; }
+
+/* cards and panels */
+.card, .scam, .stat, .role { background: var(--card) !important; border: 1px solid var(--line) !important; box-shadow: 0 2px 10px -6px rgba(23,32,30,.25); }
+.role { color: var(--ink) !important; }
+.role .i, .scam .i { background: #e6f0ec !important; }
+
+/* text sizes: nothing important below 15px */
+.note, .sub, .label, small, .role small, .stat .d, .scam .n, .case, .says, #extitle, #checkhint { font-size: max(15px, 1em) !important; }
+.note, .sub, .label, .role small, .scam .n, .says, h3 { color: var(--ink2) !important; }
+.label, h3 { font-weight: 700 !important; }
+
+/* buttons: strong colours with white text */
+.go, .b-safe, .listen, button.go { background: var(--good) !important; color: #fff !important; }
+.stopbtn, .b-scam { background: var(--bad) !important; color: #fff !important; }
+.play, .b-next, .pick, .langs button.on, .seg button.on { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; }
+.listen.on { background: #0f5530 !important; }
+.langs button, .seg button { background: var(--card) !important; border: 2px solid var(--line) !important; color: var(--ink) !important; }
+.ghost, #install, a.practice, .ex button, .says button { background: var(--card) !important; border: 2px solid var(--line) !important; color: var(--ink) !important; }
+a.practice { min-height: 56px; display: flex !important; align-items: center; justify-content: center; font-size: 18px; }
+.tabs { background: var(--bg2) !important; border-color: var(--line) !important; }
+.tabs button { color: var(--ink2) !important; }
+.tabs button.on { background: var(--card) !important; color: var(--ink) !important; }
+.filters button { background: var(--card) !important; border: 2px solid var(--line) !important; color: var(--ink) !important; min-height: 46px; font-size: 16px !important; }
+.filters button.on { background: var(--ink) !important; color: #fff !important; border-color: var(--ink) !important; }
+input, textarea { background: var(--card) !important; border: 2px solid var(--line) !important; color: var(--ink) !important; }
+input::placeholder, textarea::placeholder { color: #6a7471; }
+.toggle { background: var(--card) !important; border: 2px solid var(--line) !important; color: var(--ink); }
+.toggle input { background: #aab4b1 !important; }
+.toggle input:checked { background: var(--good) !important; }
+
+/* links: big enough to tap */
+a { color: var(--accent); }
+.case a, .stat a, a.back { display: inline-block; padding: 10px 0; font-size: 15px !important; color: var(--accent) !important; font-weight: 600; }
+a.back { display: block; text-align: center; background: var(--card); border: 2px solid var(--line); border-radius: 16px; text-decoration: none; padding: 14px !important; }
+
+/* warnings and status, as light tints with a strong edge */
+#alerts .a, #events .e { color: var(--ink) !important; }
+#alerts .medium, #events .medium { background: #fff1de !important; border-color: var(--warn) !important; }
+#alerts .high, #events .high, #events .guard { background: #fde8e8 !important; border-color: var(--bad) !important; }
+#events .info { background: var(--card) !important; border-color: var(--line) !important; }
+.chip { color: #0f5530 !important; background: #dff1e6 !important; font-weight: 600; }
+.tip { background: #fff7e0 !important; color: var(--ink) !important; border: 1px solid #ecd9a6; }
+.gauge, .meter { background: #e2ded5 !important; }
+.lvl, #risktext { filter: none; }
+.trick { color: var(--ink) !important; }
+
+/* real scams page */
+.stat .v { color: var(--bad) !important; }
+.case { border-left-color: var(--bad) !important; }
+ul.do li { background: #e6f2ec !important; color: var(--ink); }
+.sim { background: var(--bg2) !important; border-color: var(--line) !important; }
+.bubble { background: var(--card) !important; color: var(--ink); border: 1px solid var(--line); }
+.bubble.v { background: #e3f2e8 !important; }
+.bubble.w { background: var(--bad) !important; color: #fff !important; border: 0; }
+.bubble.w small { color: #ffe3e3 !important; }
+.bubble.now { outline: 3px solid var(--accent) !important; }
+
+/* practice page */
+.quote { border-left-color: var(--accent) !important; color: var(--ink); }
+.dots i { background: var(--line) !important; }
+.dots i.now { background: var(--ink2) !important; } .dots i.ok { background: var(--good) !important; } .dots i.no { background: var(--bad) !important; }
+
+/* protected phone during a call: the ring and shield keep their risk colour */
+#hanglabel, #timer, #who2, #status { color: var(--ink2) !important; }
+#hang { background: var(--bad) !important; }
+
+/* second audit pass */
+h3 { font-size: 15px !important; }
+.case a, .stat a { padding: 12px 0 !important; }
+#setup a.btn { background: var(--card) !important; color: var(--ink) !important; border: 2px solid var(--line) !important; }

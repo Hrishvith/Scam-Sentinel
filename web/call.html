@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b1416">
+<meta name="theme-color" content="#0b5d4b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Scam Sentinel">
 <link rel="icon" href="/icons/favicon.png">
@@ -99,8 +99,12 @@
   .contact input { width:100%; padding:13px; font:inherit; font-size:17px; border-radius:14px; border:1px solid var(--line); background:var(--bg2); color:var(--ink); }
   a.practice { display:block; text-align:center; color:var(--ink); text-decoration:none; background:var(--bg2); border:1px solid var(--line);
                border-radius:16px; padding:14px; margin:10px 0; font-weight:600; }
+  .role[data-role=receiver] { border:3px solid var(--good) !important; }
+  .role[data-role=receiver] .i { background:var(--good) !important; }
+  .role.demo { margin-top:22px; border-style:dashed !important; box-shadow:none !important; }
   #install { background:var(--bg2); border:1px dashed var(--line); color:var(--ink); font-size:16px; padding:12px; }
 </style>
+<link rel="stylesheet" href="/theme.css">
 </head>
 <body data-level="low">
 <main>
@@ -109,10 +113,10 @@
   <section id="choose" class="hidden">
     <h2 data-w="choose"></h2>
     <button class="role" data-role="receiver"><span class="i">🛡️</span><span><span data-w="rProtect"></span><small data-w="rProtectS"></small></span></button>
-    <button class="role" data-role="caller"><span class="i">📞</span><span><span data-w="rCaller"></span><small data-w="rCallerS"></small></span></button>
     <button class="role" data-role="listener"><span class="i">🔊</span><span><span data-w="rListen"></span><small data-w="rListenS"></small></span></button>
     <a class="practice" id="practice1" href="#" data-w="practice"></a>
     <a class="practice" id="scams1" href="#" data-w="scams"></a>
+    <button class="role demo" data-role="caller"><span class="i">🎭</span><span><span data-w="rCaller"></span><small data-w="rCallerS"></small></span></button>
   </section>
 
   <section id="ready" class="card hidden">
@@ -241,7 +245,7 @@ $("cname").value = prefs.cname || ""; $("cnum").value = prefs.cnum || "";
 // Home and setup screens, in the language chosen for the whole site (REVIEW kn/hi with native speakers)
 const HOME = {
   en: { choose: "Which phone is this?", rProtect: "Protect this phone", rProtectS: "For the person who might get a scam call",
-        rCaller: "Caller", rCallerS: "Plays the scammer in a practice call", rListen: "Listen to a real call on speaker",
+        rCaller: "Demo: play the scammer", rCallerS: "Only to show how it works, from a second phone", rListen: "Listen to a real call on speaker",
         rListenS: "Put this phone next to the other phone", practice: "🎓 Practise spotting scam calls",
         scams: "📰 Real scams: how they work, what to do",
         whoReceiver: "This phone is protected. If a caller sounds like a scammer, it warns you during the call, in your language.",
@@ -257,7 +261,7 @@ const HOME = {
         noaudio: "The microphone could not start. Please open this page in Chrome and tap Allow for the microphone.",
         pill: "Prototype · practice calls" },
   kn: { choose: "ಇದು ಯಾರ ಫೋನ್?", rProtect: "ಈ ಫೋನ್ ರಕ್ಷಿಸಿ", rProtectS: "ಮೋಸದ ಕರೆ ಬರಬಹುದಾದವರಿಗೆ",
-        rCaller: "ಕರೆ ಮಾಡುವವರು", rCallerS: "ಅಭ್ಯಾಸ ಕರೆಯಲ್ಲಿ ಮೋಸಗಾರನ ಪಾತ್ರ", rListen: "ಸ್ಪೀಕರ್‌ನಲ್ಲಿರುವ ನಿಜವಾದ ಕರೆ ಕೇಳಿ",
+        rCaller: "ಡೆಮೊ: ಮೋಸಗಾರನ ಪಾತ್ರ", rCallerS: "ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ ಎಂದು ತೋರಿಸಲು ಮಾತ್ರ, ಇನ್ನೊಂದು ಫೋನಿನಿಂದ", rListen: "ಸ್ಪೀಕರ್‌ನಲ್ಲಿರುವ ನಿಜವಾದ ಕರೆ ಕೇಳಿ",
         rListenS: "ಈ ಫೋನನ್ನು ಇನ್ನೊಂದು ಫೋನಿನ ಪಕ್ಕ ಇಡಿ", practice: "🎓 ಮೋಸದ ಕರೆ ಗುರುತಿಸುವ ಅಭ್ಯಾಸ",
         scams: "📰 ನಿಜವಾದ ಮೋಸಗಳು: ಹೇಗೆ ನಡೆಯುತ್ತವೆ, ಏನು ಮಾಡಬೇಕು",
         whoReceiver: "ಈ ಫೋನ್ ರಕ್ಷಣೆಯಲ್ಲಿದೆ. ಕರೆ ಮಾಡಿದವರು ಮೋಸಗಾರರಂತೆ ಕಂಡರೆ, ಕರೆಯ ಸಮಯದಲ್ಲೇ ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಎಚ್ಚರಿಸುತ್ತದೆ.",
@@ -273,7 +277,7 @@ const HOME = {
         noaudio: "ಮೈಕ್ರೋಫೋನ್ ಶುರುವಾಗಲಿಲ್ಲ. ಈ ಪುಟವನ್ನು Chrome ನಲ್ಲಿ ತೆರೆದು, ಮೈಕ್ರೋಫೋನ್‌ಗೆ Allow ಒತ್ತಿ.",
         pill: "ಪ್ರೋಟೋಟೈಪ್ · ಅಭ್ಯಾಸ ಕರೆಗಳು" },
   hi: { choose: "यह किसका फ़ोन है?", rProtect: "इस फ़ोन को सुरक्षित करें", rProtectS: "जिसे धोखे की कॉल आ सकती है, उसके लिए",
-        rCaller: "कॉल करने वाला", rCallerS: "अभ्यास कॉल में धोखेबाज़ का किरदार", rListen: "स्पीकर पर चल रही असली कॉल सुनें",
+        rCaller: "डेमो: धोखेबाज़ का किरदार", rCallerS: "सिर्फ़ यह दिखाने के लिए कि यह कैसे काम करता है, दूसरे फ़ोन से", rListen: "स्पीकर पर चल रही असली कॉल सुनें",
         rListenS: "इस फ़ोन को दूसरे फ़ोन के पास रखें", practice: "🎓 धोखे की कॉल पहचानने का अभ्यास",
         scams: "📰 असली धोखे: कैसे होते हैं, क्या करें",
         whoReceiver: "यह फ़ोन सुरक्षित है। कॉल करने वाला धोखेबाज़ लगे, तो कॉल के दौरान ही आपकी भाषा में चेतावनी देता है।",
