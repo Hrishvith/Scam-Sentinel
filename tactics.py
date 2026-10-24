@@ -130,6 +130,14 @@ SCAM_TYPES: dict[str, dict] = {
                   "your son", "your daughter", "your husband", "your wife", "your grandson", "accident",
                   "hospital", "aapka beta", "aapki beti"],
     },
+    # Before digital_arrest: the parcel story usually turns into a fake-police threat, and the parcel is what
+    # people recognise. A customs mention alone is not enough (it is in many digital-arrest calls).
+    "courier": {
+        "labels": {"kn": "ನಕಲಿ ಕೊರಿಯರ್ / ಪಾರ್ಸೆಲ್ ಮೋಸ", "hi": "नकली कूरियर / पार्सल धोखा",
+                   "en": "Fake courier / customs parcel"},
+        "evidence": {"ಪಾರ್ಸೆಲ್", "ಕೊರಿಯರ್", "पार्सल", "कूरियर", "parcel", "courier", "fedex"},
+        "needs": {"threat", "payment", "authority"},
+    },
     "digital_arrest": {
         "labels": {"kn": "ನಕಲಿ ಪೊಲೀಸ್ / ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್", "hi": "नकली पुलिस / डिजिटल अरेस्ट",
                    "en": "Fake police / digital arrest"},
@@ -139,12 +147,6 @@ SCAM_TYPES: dict[str, dict] = {
     "remote_access": {
         "labels": {"kn": "ರಿಮೋಟ್ ಆ್ಯಪ್ ಮೋಸ", "hi": "रिमोट ऐप वाला धोखा", "en": "Remote-control app scam"},
         "needs": {"remote_access"},
-    },
-    "courier": {
-        "labels": {"kn": "ನಕಲಿ ಕೊರಿಯರ್ / ಪಾರ್ಸೆಲ್ ಮೋಸ", "hi": "नकली कूरियर / पार्सल धोखा",
-                   "en": "Fake courier / customs parcel"},
-        "evidence": {"ಪಾರ್ಸೆಲ್", "ಕೊರಿಯರ್", "ಕಸ್ಟಮ್ಸ್", "पार्सल", "कूरियर", "कस्टम", "parcel", "courier", "fedex",
-                     "customs"},
     },
     "kyc_bank": {
         "labels": {"kn": "ನಕಲಿ ಬ್ಯಾಂಕ್ / ಕೆವೈಸಿ ಮೋಸ", "hi": "नकली बैंक / केवाईसी धोखा", "en": "Fake bank / KYC update"},

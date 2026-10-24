@@ -110,6 +110,8 @@ class Relay:
         app.router.add_get("/guardian", self.page("guardian.html"))
         app.router.add_get("/practice", self.page("practice.html"))
         app.router.add_get("/practice.json", self.page("practice.json", "application/json"))
+        app.router.add_get("/scams", self.page("scams.html"))
+        app.router.add_get("/scams.json", self.page("scams.json", "application/json"))
         app.router.add_post("/api/check", self.check)
         app.router.add_get("/pcm-worklet.js", self.page("pcm-worklet.js", "application/javascript"))
         app.router.add_get("/manifest.webmanifest", self.manifest)

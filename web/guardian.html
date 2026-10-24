@@ -56,6 +56,7 @@
     <input id="num" type="tel" inputmode="tel" autocomplete="off">
     <button id="start" class="go">👁️ Start watching</button>
     <a class="btn" id="practice" href="#" style="background:var(--bg2);border:1px solid var(--line);font-size:17px;font-weight:600">🎓 Practise spotting scams together</a>
+    <a class="btn" id="scams" href="#" style="background:var(--bg2);border:1px solid var(--line);font-size:17px;font-weight:600">📰 Real scams to warn your family about</a>
   </section>
 
   <section id="watching" class="hidden">
@@ -88,7 +89,7 @@ function stored(k, v) {               // browser storage can be unavailable: nev
   try { if (v === undefined) return localStorage.getItem(k) || ""; localStorage.setItem(k, v); } catch (_) { return ""; }
 }
 $("num").value = stored("sentinel-guardian-number");
-$("practice").href = `/practice?key=${encodeURIComponent(key)}`;
+$("practice").href = `/practice?key=${encodeURIComponent(key)}`; $("scams").href = `/scams?key=${encodeURIComponent(key)}`;
 if (key) $("manifest").href = `/manifest.webmanifest?app=guardian&key=${encodeURIComponent(key)}`;   // installable as its own app
 
 function setStatus(text, color, sub) { $("status").textContent = text; $("dot").style.background = color; $("sub").textContent = sub || ""; }
