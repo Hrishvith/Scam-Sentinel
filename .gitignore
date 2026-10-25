@@ -14,3 +14,6 @@ android/**/build/
 android/**/.gradle/
 android/**/local.properties
 web/download/*.apk
+
+# video build files (the finished video is saved on the Desktop)
+video/build/
