@@ -35,7 +35,6 @@ WORK = ROOT / "video" / "build3"
 base.WORK = ROOT / "video" / "build2"            # where make_promo2 keeps its word images and cached voice files
 DESKTOP = Path(r"C:\Users\Welcome\Desktop")
 OUTS = [DESKTOP / "Scam Sentinel - explainer 16x9.mp4", DESKTOP / "Scam Sentinel - explainer 9x16.mp4"]
-TEMPO = 1.07
 MUSIC = ROOT / "video" / "music" / "Inspired.mp3"
 MUSIC_CREDIT = "Music: “Inspired” by Kevin MacLeod (incompetech.com) · CC BY 4.0"
 # the user's other recordings (base.CLIP already has A-E)
@@ -145,6 +144,25 @@ def write(path: Path, x: np.ndarray) -> Path:
     return path
 
 
+def squeeze(x: np.ndarray) -> np.ndarray:
+    """Shorten long pauses inside a line (sentence breaks to 0.30 s, others to 0.20 s) instead of speeding the voice up."""
+    quiet = np.convolve(np.abs(x), np.ones(480) / 480, "same") < 0.006
+    edges = np.flatnonzero(np.diff(np.r_[0, quiet.astype(int), 0]))
+    fade = int(0.01 * SR); ramp = np.linspace(1, 0, fade, dtype=np.float32)
+    out, pos = [], 0
+    for a, b in zip(edges[::2], edges[1::2]):
+        g = (b - a) / SR
+        keep = 0.30 if g >= 0.45 else min(g, 0.20)
+        if a == 0 or b == len(x) or g - keep < 0.02:
+            continue
+        cut0 = a + int(keep * SR / 2); cut1 = b - int(keep * SR / 2)
+        head = x[pos:cut0].copy(); head[-fade:] *= ramp
+        out.append(head); pos = cut1
+        x = x.copy(); x[cut1:cut1 + fade] *= ramp[::-1]
+    out.append(x[pos:])
+    return np.concatenate(out)
+
+
 def make_voice() -> dict[str, np.ndarray]:
     from gnani_client import GnaniClient
     from pipeline import speak_alert
@@ -154,9 +172,7 @@ def make_voice() -> dict[str, np.ndarray]:
         if audio is None:
             raise RuntimeError(warn)
         p = WORK / f"vo_{key}.mp3"; p.write_bytes(audio)
-        f = WORK / f"vo_{key}_t.wav"
-        run(["-i", str(p), "-af", f"aresample={SR},rubberband=tempo={TEMPO}:pitchq=quality:window=standard", "-ac", "1", "-ar", str(SR), str(f)])
-        out[key] = trim(read_wav(f))
+        out[key] = squeeze(trim(read_wav(p)))     # natural speed: any time-stretch made the voice wobble
     raw = client.synthesize(SCAMMER, language="en-IN", voice="Pranav", model="timbre-v2.5")
     p = WORK / "scammer.mp3"; p.write_bytes(raw)
     ph = WORK / "scammer_phone.wav"           # phone-call sound, still easy to understand
