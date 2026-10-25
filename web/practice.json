@@ -3,9 +3,9 @@
  "items": [
   {
    "scam": true,
-   "en": "Sir, this is the cyber crime branch. There is an arrest warrant in your name. Don't tell anyone and don't cut the call.",
-   "kn": "ಸರ್, ನಾನು ಸೈಬರ್ ಕ್ರೈಮ್ ವಿಭಾಗದಿಂದ ಮಾತಾಡ್ತಾ ಇದ್ದೀನಿ. ನಿಮ್ಮ ಹೆಸರಲ್ಲಿ ಅರೆಸ್ಟ್ ವಾರಂಟ್ ಇದೆ. ಯಾರಿಗೂ ಹೇಳಬೇಡಿ, ಕರೆ ಕಟ್ ಮಾಡಬೇಡಿ.",
-   "hi": "सर, मैं साइबर क्राइम ब्रांच से बोल रहा हूँ। आपके नाम पर अरेस्ट वारंट है। किसी को मत बताइए और कॉल मत काटिए।"
+   "en": "Hello, this is the cyber crime branch. There is an arrest warrant in your name. Don't tell anyone and don't cut the call.",
+   "kn": "ನಮಸ್ಕಾರ, ನಾನು ಸೈಬರ್ ಕ್ರೈಮ್ ವಿಭಾಗದಿಂದ ಮಾತಾಡ್ತಾ ಇದ್ದೀನಿ. ನಿಮ್ಮ ಹೆಸರಲ್ಲಿ ಅರೆಸ್ಟ್ ವಾರಂಟ್ ಇದೆ. ಯಾರಿಗೂ ಹೇಳಬೇಡಿ, ಕರೆ ಕಟ್ ಮಾಡಬೇಡಿ.",
+   "hi": "नमस्ते, मैं साइबर क्राइम ब्रांच से बोल रहा हूँ। आपके नाम पर अरेस्ट वारंट है। किसी को मत बताइए और कॉल मत काटिए।"
   },
   {
    "scam": false,
@@ -45,9 +45,9 @@
   },
   {
    "scam": true,
-   "en": "Sir, your bank account will be blocked today. Please install the AnyDesk app right now so I can fix it.",
-   "kn": "ಸರ್, ಇವತ್ತೇ ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಖಾತೆ ಬ್ಲಾಕ್ ಆಗುತ್ತೆ. ಸರಿ ಮಾಡೋಕೆ ಈಗಲೇ ಎನಿಡೆಸ್ಕ್ ಆ್ಯಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿ.",
-   "hi": "सर, आज ही आपका बैंक खाता ब्लॉक हो जाएगा। ठीक करने के लिए अभी एनीडेस्क ऐप इंस्टॉल कीजिए।"
+   "en": "Hello, your bank account will be blocked today. Please install the AnyDesk app right now so I can fix it.",
+   "kn": "ನಮಸ್ಕಾರ, ಇವತ್ತೇ ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಖಾತೆ ಬ್ಲಾಕ್ ಆಗುತ್ತೆ. ಸರಿ ಮಾಡೋಕೆ ಈಗಲೇ ಎನಿಡೆಸ್ಕ್ ಆ್ಯಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿ.",
+   "hi": "नमस्ते, आज ही आपका बैंक खाता ब्लॉक हो जाएगा। ठीक करने के लिए अभी एनीडेस्क ऐप इंस्टॉल कीजिए।"
   }
  ]
 }
