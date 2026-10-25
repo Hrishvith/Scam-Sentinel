@@ -109,8 +109,11 @@ SCENES = [
     Scene("learn", "05 · LEARN + PRACTISE", ["Real scams,", "*re-enacted*"],
           [Media("clip", "A", 37.0, 43.0), Media("clip", "B", 22.0, 30.0), Media("clip", "C", 13.0, 18.0)],
           chips=["6 real scam types", "8-question quiz", "Check a call by typing", "Practice is free and offline"]),
-    Scene("sos", "06 · SOS + EASY TO USE", ["Cheated?", "*One tap.*"], [Media("clip", "D", 26.0, 27.3), Media("clip", "D", 30.0, 32.8)],
-          chips=["Big buttons, high contrast, text-size control", "Back button + bottom bar on every page"], chip_color=RED),
+    # the complaint step opens the official portal (cropped above its banner, so no officials' photos are shown)
+    Scene("sos", "06 · SOS + COMPLAINT", ["Cheated?", "*One tap.*"],
+          [Media("clip", "D", 26.0, 27.3), Media("clip", "D", 30.0, 32.8), Media("screen", "portal")],
+          chips=["Call 1930", "Register a complaint at cybercrime.gov.in", "Big buttons + text-size control"], chip_color=RED,
+          note="The complaint link opens the official National Cyber Crime Reporting Portal.", pad=1.7),
     Scene("proof", "07 · OPERATOR VIEW + PROOF", ["Tested, and", "*it works*"], [Media("screen", "operator")], layout="laptop",
           chips=["Operator / telecom view", "Only the caller's side is transcribed"]),
     Scene("close", "", [], [], layout="close", pad=1.1),
