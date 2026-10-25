@@ -36,6 +36,8 @@ base.WORK = ROOT / "video" / "build2"            # where make_promo2 keeps its w
 DESKTOP = Path(r"C:\Users\Welcome\Desktop")
 OUTS = [DESKTOP / "Scam Sentinel - explainer 16x9.mp4", DESKTOP / "Scam Sentinel - explainer 9x16.mp4"]
 TEMPO = 1.07
+MUSIC = ROOT / "video" / "music" / "Inspired.mp3"
+MUSIC_CREDIT = "Music: “Inspired” by Kevin MacLeod (incompetech.com) · CC BY 4.0"
 # the user's other recordings (base.CLIP already has A-E)
 CLIP.update({"F": "Record_2026-10-25-14-13-20_40deb401b9ffe8e1df2f1cc5ba480b12.mp4",
              "G": "Record_2026-10-25-15-55-54_40deb401b9ffe8e1df2f1cc5ba480b12.mp4"})
@@ -218,8 +220,21 @@ def master(tl: Timeline, v: dict[str, np.ndarray]) -> Path:
     duck = np.convolve(duck, np.ones(int(0.12 * SR)) / int(0.12 * SR), "same")
     lift = np.ones(n)
     first, last = int(tl.spans[0][1] * SR), int((tl.total - 4.0) * SR)
-    lift[:first] = 10 ** (4 / 20); lift[last:] = 10 ** (4 / 20)
-    music = np.zeros(n, np.float32)                       # no music: the synthesized pad sounded like beeping
+    lift[last:] = 10 ** (4 / 20)
+    # "Inspired" by Kevin MacLeod (incompetech.com), CC BY 4.0. Starts after the hook; placed so the track's own
+    # ending (it resolves and fades at about 4:32-4:40) lands on the end of the video.
+    start = tl.spans[0][1]
+    length = tl.total + 0.3 - start
+    offset = max(0.0, 280.0 - length)
+    mraw = WORK / "bus_music_raw.wav"
+    run(["-ss", f"{offset:.2f}", "-t", f"{length:.2f}", "-i", str(MUSIC), "-af", "afade=t=in:st=0:d=1.2",
+         "-ac", "1", "-ar", str(SR), str(mraw)])
+    placed = np.zeros(n, np.float32); m = read_wav(mraw); s0 = int(start * SR)
+    placed[s0:s0 + len(m)] = m[: n - s0]
+    mpl = write(WORK / "bus_music_placed.wav", placed)
+    mbus = WORK / "bus_music.wav"; loudnorm(mpl, mbus, -28.0, -6.0)
+    music = read_wav(mbus)[:n]; music = np.pad(music, (0, n - len(music)))
+    music *= duck * lift
     fx = {"ring": sfx_ring(), "heart": sfx_heart(), "whoosh": sfx_whoosh(), "tick": sfx_tick(), "alarm": sfx_alarm()}
     sfx = np.zeros(n, np.float32)
     for at, key in tl.sounds:
@@ -230,7 +245,7 @@ def master(tl: Timeline, v: dict[str, np.ndarray]) -> Path:
     mix = write(WORK / "mix_raw.wav", voice + music + sfx)
     final = WORK / "mix.wav"
     run(["-i", str(mix), "-af", "alimiter=limit=0.89:level=false", "-ar", str(SR), "-ac", "1", str(final)])
-    print(f"  loudness: voice {lufs(vbus):.1f} LUFS, mix {lufs(final):.1f} LUFS (no music)")
+    print(f"  loudness: voice {lufs(vbus):.1f} LUFS, music {lufs(mbus):.1f} LUFS (before ducking), mix {lufs(final):.1f} LUFS")
     return final
 
 
@@ -460,7 +475,8 @@ def draw(L: Layout, tl: Timeline, t: float, readers: dict) -> Image.Image:
                 rows = [("More languages coming: Tamil · Telugu · Malayalam · Marathi · Bengali · Gujarati · Punjabi · Odia", 28, "sb", SOFT),
                         ("Try it: demo link in the comments  ·  Always call 1930 · cybercrime.gov.in", 32, "sb", WHITE),
                         ("#GnaniAI   #GreatIndianAIInternshipChallenge", 34, "b", GREEN),
-                        ("Prototype · re-enacted calls · AI voices · a decision aid, not a guarantee", 26, "", DIM)]
+                        ("Prototype · re-enacted calls · AI voices · a decision aid, not a guarantee", 26, "", DIM),
+                        (MUSIC_CREDIT, 24, "", DIM)]
                 for text, sz2, wgt, col in rows:
                     if L.portrait and len(text) > 60:
                         for part in wrap(ImageDraw.Draw(img), text, font(sz2 - 2, wgt), L.W - 140):
