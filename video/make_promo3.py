@@ -37,6 +37,7 @@ DESKTOP = Path(r"C:\Users\Welcome\Desktop")
 OUT_FULL = DESKTOP / "Scam Sentinel - explainer 16x9.mp4"            # (A) full cut, 66-70 s
 OUT_DEMO = DESKTOP / "Scam Sentinel - demo day 60s 16x9.mp4"          # (B) Demo Day cut, 60 s max
 OUT_VERT = DESKTOP / "Scam Sentinel - explainer 9x16.mp4"             # (C) vertical, same content as (A)
+OUT_DEMO_VERT = DESKTOP / "Scam Sentinel - demo day 60s 9x16.mp4"     # (B) as 9:16
 MUSIC = ROOT / "video" / "music" / "Inspired.mp3"
 MUSIC_CREDIT = "Music: “Inspired” by Kevin MacLeod (incompetech.com) · CC BY 4.0"
 # the user's other recordings (base.CLIP already has A-E)
@@ -55,6 +56,7 @@ VO = {
     "guardian": "Family can watch as guardians, and get a live alarm.",
     "learn": "Learn real Indian scams, hear them re-enacted, and practise spotting them with a quiz.",
     "sos": "Cheated? One tap shows exactly what to do.",
+    "help": "Learn real scams, practise spotting them, and get help in one tap.",
     "proof": "In our tests, twenty-four of twenty-four scam calls were caught, none of thirty-six normal calls were flagged, "
              "and it still works on noisy phone audio.",
     "close": "Scam Sentinel. Hang up on fear, not on your family.",
@@ -67,6 +69,8 @@ BIG_CHIPS = {"Understands Hinglish and mixed speech"}
 CARDS = [("24 / 24", "test scam calls caught"), ("0 / 36", "normal calls flagged"),
          ("4", "languages, incl. Hinglish and code-mixed speech"), ("100% at 13 dB · 88% at 5 dB", "scams caught on noisy phone audio")]
 CARDS_NOTE = "Noise test: 8 of 8 scams at 13 dB, 7 of 8 at 5 dB · 1 of 12 normal calls got a false alert"
+CARDS_NOTE_DEMO = ("Detector test: 0 of 36 normal calls flagged · Noisy audio: 8/8 scams caught at 13 dB, 7/8 at 5 dB, "
+                   "1 of 12 normal calls false-alerted")
 
 
 @dataclass
@@ -130,23 +134,26 @@ SCENES = [
           [Media("clip", "D", 26.0, 27.3), Media("clip", "D", 30.0, 32.8), Media("screen", "portal")],
           chips=["Call 1930", "Register a complaint at cybercrime.gov.in", "Big buttons + text-size control"], chip_color=RED,
           note="The complaint link opens the official National Cyber Crime Reporting Portal.", pad=0.7),
+    Scene("help", "03 · LEARN + GET HELP", ["Learn. Practise.", "*Get help.*"],          # Demo Day cut only
+          [Media("screen", "scams_open"), Media("screen", "quiz_right"), Media("screen", "sos")],
+          chips=["Real scams, re-enacted", "Spot-the-scam quiz", "SOS: Call 1930"], pad=0.9),
     Scene("proof", "07 · OPERATOR VIEW + PROOF", ["Tested, and", "*it works*"], [Media("screen", "operator")], layout="laptop",
           chips=["Operator / telecom view", "Only the caller's side is transcribed"]),
     Scene("close", "", [], [], layout="close", pad=2.3),            # the end card holds about 5 s
 ]
-DEMO = ["hook", "problem", "reveal", "live", "alert", "otp", "proof", "close"]
+DEMO = ["hook", "problem", "reveal", "live", "alert", "otp", "help", "proof", "close"]
 
 
 def cut(name: str) -> list[Scene]:
     """The scenes of one cut, with the feature numbers in the tags renumbered for it."""
     from dataclasses import replace
-    scenes = [replace(s) for s in SCENES if name == "full" or s.key in DEMO]
+    scenes = [replace(s) for s in SCENES if (name == "full" and s.key != "help") or (name == "demo" and s.key in DEMO)]
     if name == "demo":
         for s in scenes:
             if s.key == "proof":
-                s.layout, s.tag = "results", "IN OUR TESTS"
+                s.layout, s.tag, s.pad = "results", "IN OUR TESTS", 1.1      # held 1 s longer so the note can be read
             if s.key == "otp":
-                s.pad = 1.3
+                s.pad = 0.5
     n, last = 0, None
     for s in scenes:
         m = re.match(r"(\d\d) · (.*)", s.tag)
@@ -231,6 +238,7 @@ class Timeline:
     subs: list[tuple[float, float, str]]
     sounds: list[tuple[float, str]]
     total: float
+    name: str = "full"
 
 
 def split_sub(t0, t1, text):
@@ -245,7 +253,7 @@ def split_sub(t0, t1, text):
     return out
 
 
-def timeline(v: dict[str, np.ndarray], scenes: list[Scene]) -> Timeline:
+def timeline(v: dict[str, np.ndarray], scenes: list[Scene], name: str = "full") -> Timeline:
     spans, voice_at, subs, sounds = [], {}, [], []
     t = 0.0
     for s in scenes:
@@ -262,7 +270,7 @@ def timeline(v: dict[str, np.ndarray], scenes: list[Scene]) -> Timeline:
         if s.key == "alert":
             sounds.append((t - 0.05, "alarm"))
         t += d
-    return Timeline(spans, voice_at, subs, sounds, t)
+    return Timeline(spans, voice_at, subs, sounds, t, name)
 
 
 def chip_groups(s: Scene) -> list[list[int]]:
@@ -475,7 +483,7 @@ def note_box(img, L, text, lt, y):
     img.alpha_composite(box, (x, int(y)))
 
 
-def cards(img, L, t):
+def cards(img, L, t, note=CARDS_NOTE, note_size=26):
     """The results card: four boxes, 2 x 2."""
     put_text(img, (0, 120 if not L.portrait else 190), "In our tests", 64, alpha=ease(t / 0.4), center=True)
     cw, ch, gap = (790, 236, 36) if not L.portrait else (455, 340, 30)
@@ -504,11 +512,14 @@ def cards(img, L, t):
     k = ease((t - 1.4) / 0.4)
     if k > 0:
         y = top + 2 * ch + gap + 26; dn = ImageDraw.Draw(img)
-        for line in wrap(dn, CARDS_NOTE, font(26, ""), L.W - 160):
-            put_text(img, (0, y), line, 26, "", SOFT, k, True); y += 38
+        parts = note.split(" · Noisy") if note_size > 26 else [note]          # the larger note: one line per test
+        parts = [parts[0]] + ["Noisy" + x for x in parts[1:]]
+        for line in (ln for part in parts for ln in wrap(dn, part, font(note_size, "sb" if note_size > 26 else ""), L.W - 160)):
+            put_text(img, (0, y), line, note_size, "sb" if note_size > 26 else "", SOFT if note_size <= 26 else WHITE, k, True)
+            y += int(note_size * 1.45)
 
 
-def end_card(img, L, lt, d):
+def end_card(img, L, lt, d, big_footer=False):
     """Logo, tagline, Gnani line, demo link, hashtags, one honest footer line, and the music credit."""
     P = L.portrait
     sz = 150 if not P else 200
@@ -529,10 +540,12 @@ def end_card(img, L, lt, d):
         for text, size, wgt, col in rows:
             put_text(img, (0, y), text, size, wgt, col, k, True); y += int(size * 1.6)
         foot = "Prototype · re-enacted calls · AI voices · a decision aid, not a guarantee · Always call 1930 · cybercrime.gov.in"
-        y = 905 if not P else y + 60
-        for line in ([foot] if not P else wrap(ImageDraw.Draw(img), foot, font(28, "sb"), L.W - 120)):
-            put_text(img, (0, y), line, 27 if not P else 28, "sb", SOFT, k, True); y += 42
-        put_text(img, (0, y + 6), MUSIC_CREDIT, 21 if not P else 22, "", DIM, k, True)
+        fsz = (27 if not P else 28) * (1.2 if big_footer else 1); csz = (21 if not P else 22) * (1.2 if big_footer else 1)
+        fsz, csz = round(fsz), round(csz)
+        y = (905 if not big_footer else 860) if not P else y + 60
+        for line in wrap(ImageDraw.Draw(img), foot, font(fsz, "sb"), L.W - 120):
+            put_text(img, (0, y), line, fsz, "sb", SOFT, k, True); y += int(fsz * 1.5)
+        put_text(img, (0, y + 6), MUSIC_CREDIT, csz, "", DIM, k, True)
     fade = max(0.0, (lt - (d - 0.5)) / 0.5)
     if fade > 0:
         img.alpha_composite(Image.new("RGBA", (L.W, L.H), (0, 0, 0, int(255 * fade))))
@@ -552,10 +565,29 @@ def draw(L: Layout, tl: Timeline, t: float, readers: dict) -> Image.Image:
         shake = (random.Random(int(t * 30)).randint(-5, 5), random.Random(int(t * 31)).randint(-5, 5)) if talking else (0, 0)
         beat = max(0.0, math.sin(t * 7.4)) ** 6 if t > talk[0] - 0.2 else 0
         img.alpha_composite(Image.new("RGBA", (L.W, L.H), (120, 10, 10, int(70 * beat))))
-        phone(img, L, incoming_call(L, t, talk), zoom=1.0 + 0.06 * ease(lt / d), shake=shake)
+        centred = tl.name == "demo"
+        H = L
+        if centred:                                   # a copy of the layout with the phone in the middle
+            import copy
+            H = copy.copy(L); w, h = (330, 690) if not P else (L.screen[2] - L.screen[0], L.screen[3] - L.screen[1])
+            H.screen = ((L.W - w) // 2, 92 if not P else L.screen[1], (L.W - w) // 2 + w, (92 if not P else L.screen[1]) + h)
+        phone(img, H, incoming_call(H, t, talk), zoom=1.0 + 0.06 * ease(lt / d), shake=shake)
         if t > 0.3:
-            tag(img, L, "Re-enacted call · AI voices", y=300 if not P else 880)
-        if t > talk[0] + 0.6:
+            if centred:
+                f = font(26, "sb"); tw = int(ImageDraw.Draw(img).textlength("Re-enacted call · AI voices", font=f))
+                H.tx = (L.W - tw - 44) // 2
+                tag(img, H, "Re-enacted call · AI voices", y=H.screen[3] + 44)
+            else:
+                tag(img, L, "Re-enacted call · AI voices", y=300 if not P else 880)
+        if t > talk[0] + 0.6 and centred and not P:
+            k = ease((t - talk[0] - 0.6) / 0.4)
+            put_text(img, (1210, 330), "A real kind of call.", 58, alpha=k)
+            put_text(img, (1210, 410), "*Re-enacted.*", 58, alpha=k)
+        elif t > talk[0] + 0.6 and centred and P:
+            k = ease((t - talk[0] - 0.6) / 0.4)
+            put_text(img, (0, 1000), "A real kind of call.", 66, alpha=k, center=True)
+            put_text(img, (0, 1090), "*Re-enacted.*", 66, alpha=k, center=True)
+        elif t > talk[0] + 0.6:
             k = ease((t - talk[0] - 0.6) / 0.4)
             if P:
                 put_text(img, (0, 960), "A real kind of call.", 66, alpha=k, center=True)
@@ -646,9 +678,9 @@ def draw(L: Layout, tl: Timeline, t: float, readers: dict) -> Image.Image:
                 y = kinetic(img, L, ["Operator /", "*telecom view*"], lt, size, L.ty + 66)
                 chips_block(img, L, s, lt, split, y + 18)
             else:
-                cards(img, L, lt - split)
+                cards(img, L, lt - split, *((CARDS_NOTE_DEMO, 32) if tl.name == "demo" else ()))
         elif s.layout == "close":
-            end_card(img, L, lt, d)
+            end_card(img, L, lt, d, big_footer=tl.name == "demo")
     if s.layout != "close":
         sub = next((x for x in tl.subs if x[0] <= t < x[1] + 0.12), None)
         if sub:
@@ -691,7 +723,7 @@ def layout(w: int, h: int) -> Layout:
 
 def main() -> int:
     ap = argparse.ArgumentParser(); ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--stills", action="store_true")
-    ap.add_argument("--only", choices=["full", "demo", "vertical"], action="append")
+    ap.add_argument("--only", choices=["full", "demo", "vertical", "demo-vertical"], action="append")
     a = ap.parse_args()
     WORK.mkdir(parents=True, exist_ok=True)
     chars = sum(len(x) for x in VO.values())
@@ -701,15 +733,16 @@ def main() -> int:
     if a.dry_run:
         return 0
     v = make_voice()
-    jobs = [("full", layout(1920, 1080), OUT_FULL), ("demo", layout(1920, 1080), OUT_DEMO), ("vertical", layout(1080, 1920), OUT_VERT)]
+    jobs = [("full", layout(1920, 1080), OUT_FULL), ("demo", layout(1920, 1080), OUT_DEMO), ("vertical", layout(1080, 1920), OUT_VERT),
+            ("demo-vertical", layout(1080, 1920), OUT_DEMO_VERT)]
     tls = {}
     for name in ("full", "demo"):
-        tl = timeline(v, cut(name)); tls[name] = (tl, master(tl, v, name))
+        tl = timeline(v, cut(name), name); tls[name] = (tl, master(tl, v, name))
         print(f"  {name}: {tl.total:.1f} s  " + "  ".join(f"{s.key} {t1 - t0:.1f}" for t0, t1, s in tl.spans))
     for name, L, out in jobs:
         if a.only and name not in a.only:
             continue
-        tl, audio = tls["demo" if name == "demo" else "full"]
+        tl, audio = tls["demo" if name.startswith("demo") else "full"]
         if a.stills:
             times = [2.0, 4.5] + [t0 + (t1 - t0) * f for t0, t1, s in tl.spans[1:] for f in (0.35, 0.85)]
             render(L, tl, None, audio, times, tag=name)
