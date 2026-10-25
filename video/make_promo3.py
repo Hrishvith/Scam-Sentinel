@@ -35,7 +35,11 @@ WORK = ROOT / "video" / "build3"
 base.WORK = ROOT / "video" / "build2"            # where make_promo2 keeps its word images and cached voice files
 DESKTOP = Path(r"C:\Users\Welcome\Desktop")
 OUTS = [DESKTOP / "Scam Sentinel - explainer 16x9.mp4", DESKTOP / "Scam Sentinel - explainer 9x16.mp4"]
-TEMPO = 1.04
+TEMPO = 1.07
+# the user's other recordings (base.CLIP already has A-E)
+CLIP.update({"F": "Record_2026-10-25-14-13-20_40deb401b9ffe8e1df2f1cc5ba480b12.mp4",
+             "G": "Record_2026-10-25-15-55-54_40deb401b9ffe8e1df2f1cc5ba480b12.mp4"})
+ALERT = (16.7, 20.7)          # clip E: the real red alarm and its spoken warning
 
 SCAMMER = "We've arrested your son. Pay five lakh rupees now."
 VO = {
@@ -81,29 +85,33 @@ SCENES = [
     Scene("problem", "THE PROBLEM", ["The scam works", "*DURING* the call"], [], layout="stats",
           chips=["Source: Ministry of Home Affairs", "Source: Parliament reply, 2024", "Source: Karnataka Home Minister"]),
     Scene("reveal", "SCAM SENTINEL", ["A shield for", "*every call*"],
-          [Media("screen", "home_kn"), Media("screen", "home_hi"), Media("screen", "home_en")], layout="reveal",
+          [Media("clip", "B", 0.3, 2.8), Media("clip", "G", 0.2, 2.6), Media("clip", "E", 0.2, 2.6)], layout="reveal",
           chips=["Opens in any phone browser", "Add to home screen", "One tap changes the whole site", "Built on Gnani AI: Prisma + Timbre"]),
     Scene("live", "01 · LIVE PROTECTION", ["Spots scam tricks", "*as they build up*"],
-          [Media("screen", "setup_en"), Media("screen", "protection_on"), Media("screen", "call_safe"),
-           Media("screen", "call_careful"), Media("screen", "call_scam")],
+          [Media("clip", "F", 0.5, 9.0), Media("clip", "E", 8.0, 15.8)],
           chips=["Spoken warning — only YOU hear it", "Caller's voice turns down", "Names the scam type",
                  "Understands Hinglish and mixed speech", "Optional family-member voice clone (made with consent)"]),
+    Scene("alert", "01 · THE REAL WARNING", ["It warns you", "*DURING* the call"], [Media("clip", "E", *ALERT)],
+          chips=["pretending to be police", "threat of arrest", "pushing you to transfer money"], chip_color=RED,
+          note="Spoken in an AI clone of a family member's voice · made with consent", pad=0.1),
     Scene("otp", "02 · OTP GUARD", ["Reading out an OTP?", "*STOP.*"], [Media("screen", "otp_stop")],
           chips=["OTP Guard ON by default", "Your words are never shown or saved", "Digits are only counted"], chip_color=RED),
     Scene("normal", "03 · NORMAL CALLS + AFTER", ["Speaker mode,", "then *next steps*"],
-          [Media("clip", "E", 8.0, 15.0), Media("screen", "after_yes"), Media("screen", "after_no")],
-          chips=["Speaker mode for normal calls", "Ready-made complaint text"], note="A phone can't listen to its own normal call."),
+          [Media("clip", "E", 3.6, 7.6), Media("clip", "E", 25.0, 31.0)],
+          chips=["Speaker mode for normal calls", "Ready-made complaint text"],
+          note="WHY A SECOND DEVICE? Phones don't let apps hear their own calls (Android privacy permissions). "
+               "So today, Scam Sentinel listens from a second device on speaker."),
     Scene("guardian", "04 · FAMILY GUARDIAN", ["Family gets a", "*live alarm*"],
           [Media("screen", "guardian_watch"), Media("screen", "guardian_alarm")],
           chips=["Alerts on OTP-guard stops", "What-to-do steps for the family"]),
     Scene("learn", "05 · LEARN + PRACTISE", ["Real scams,", "*re-enacted*"],
-          [Media("screen", "scams_open"), Media("screen", "scams_scene"), Media("screen", "quiz_right"), Media("screen", "check_call")],
+          [Media("clip", "A", 37.0, 43.0), Media("clip", "B", 22.0, 30.0), Media("clip", "C", 13.0, 18.0)],
           chips=["6 real scam types", "8-question quiz", "Check a call by typing", "Practice is free and offline"]),
-    Scene("sos", "06 · SOS + EASY TO USE", ["Cheated?", "*One tap.*"], [Media("screen", "sos"), Media("screen", "textsize_2")],
+    Scene("sos", "06 · SOS + EASY TO USE", ["Cheated?", "*One tap.*"], [Media("clip", "D", 26.0, 27.3), Media("clip", "D", 30.0, 32.8)],
           chips=["Big buttons, high contrast, text-size control", "Back button + bottom bar on every page"], chip_color=RED),
     Scene("proof", "07 · OPERATOR VIEW + PROOF", ["Tested, and", "*it works*"], [Media("screen", "operator")], layout="laptop",
           chips=["Operator / telecom view", "Only the caller's side is transcribed"]),
-    Scene("close", "", [], [], layout="close", pad=1.4),
+    Scene("close", "", [], [], layout="close", pad=1.1),
 ]
 
 
@@ -147,6 +155,10 @@ def make_voice() -> dict[str, np.ndarray]:
     ph = WORK / "scammer_phone.wav"           # phone-call sound, still easy to understand
     run(["-i", str(p), "-af", "highpass=f=300,lowpass=f=3400,acompressor=threshold=-20dB:ratio=3", "-ac", "1", "-ar", str(SR), str(ph)])
     out["hook"] = trim(read_wav(ph))
+    al = WORK / "alert.wav"
+    run(["-ss", str(ALERT[0]), "-t", str(ALERT[1] - ALERT[0]), "-i", str(CLIPS / CLIP["E"]), "-vn",
+         "-af", "afade=t=out:st=%.2f:d=0.25" % (ALERT[1] - ALERT[0] - 0.25), "-ac", "1", "-ar", str(SR), str(al)])
+    out["alert"] = read_wav(al)
     print(f"  Gnani: {client.stats['tts_calls']} new, {client.stats['cache_hits']} from cache")
     return out
 
@@ -175,16 +187,15 @@ def timeline(v: dict[str, np.ndarray]) -> Timeline:
         lead = 1.45 if s.key == "hook" else (0.15 if s.key == "reveal" else 0.0)
         d = lead + len(v[s.key]) / SR + s.pad
         spans.append((t, t + d, s)); voice_at[s.key] = t + lead
-        text = "“" + SCAMMER + "”" if s.key == "hook" else SUBS.get(s.key, VO[s.key])
+        text = ("“" + SCAMMER + "”" if s.key == "hook" else
+                "“Hi, it's me. This call is a scam. Please hang up right now.”" if s.key == "alert" else SUBS.get(s.key, VO[s.key]))
         subs += split_sub(t + lead, t + lead + len(v[s.key]) / SR, text)
         if s.key == "hook":
             sounds += [(0.0, "ring")] + [(lead - 0.1 + i * 0.95, "heart") for i in range(4)]
         else:
             sounds.append((t - 0.08, "whoosh"))
-        for i in range(len(s.chips)):
-            sounds.append((t + chip_time(s, i, d), "tick"))
-        if s.key == "live":
-            sounds.append((t + d * 0.86, "alarm"))
+        if s.key == "alert":
+            sounds.append((t - 0.05, "alarm"))
         t += d
     return Timeline(spans, voice_at, subs, sounds, t)
 
@@ -208,11 +219,7 @@ def master(tl: Timeline, v: dict[str, np.ndarray]) -> Path:
     lift = np.ones(n)
     first, last = int(tl.spans[0][1] * SR), int((tl.total - 4.0) * SR)
     lift[:first] = 10 ** (4 / 20); lift[last:] = 10 ** (4 / 20)
-    reveal = next(t0 for t0, t1, s in tl.spans if s.key == "reveal")
-    m = base.music(tl.total + 0.3, reveal, tl.total - 4.0)[:n]
-    mraw = write(WORK / "bus_music_raw.wav", m / max(1e-6, np.abs(m).max()) * 0.5)
-    mbus = WORK / "bus_music.wav"; loudnorm(mraw, mbus, -28.0, -6.0)
-    music = read_wav(mbus)[:n]; music = np.pad(music, (0, n - len(music))) * duck * lift
+    music = np.zeros(n, np.float32)                       # no music: the synthesized pad sounded like beeping
     fx = {"ring": sfx_ring(), "heart": sfx_heart(), "whoosh": sfx_whoosh(), "tick": sfx_tick(), "alarm": sfx_alarm()}
     sfx = np.zeros(n, np.float32)
     for at, key in tl.sounds:
@@ -223,7 +230,7 @@ def master(tl: Timeline, v: dict[str, np.ndarray]) -> Path:
     mix = write(WORK / "mix_raw.wav", voice + music + sfx)
     final = WORK / "mix.wav"
     run(["-i", str(mix), "-af", "alimiter=limit=0.89:level=false", "-ar", str(SR), "-ac", "1", str(final)])
-    print(f"  loudness: voice {lufs(vbus):.1f} LUFS, music {lufs(mbus):.1f} LUFS (before ducking), mix {lufs(final):.1f} LUFS")
+    print(f"  loudness: voice {lufs(vbus):.1f} LUFS, mix {lufs(final):.1f} LUFS (no music)")
     return final
 
 
@@ -356,9 +363,17 @@ def draw(L: Layout, tl: Timeline, t: float, readers: dict) -> Image.Image:
             y = kinetic(img, L, s.headline, lt, size, L.ty + 66)
             y = chips_block(img, L, s, lt, d, y + 18)
             if s.note:
-                ImageDraw.Draw(img).text((L.tx, y + 6), s.note, font=font(26, "sb"), fill=AMBER)
-            if s.key == "live" and lt > d * 0.86:                     # the red scam moment
-                k = 1 - ease((lt - d * 0.86) / 0.6)
+                dn = ImageDraw.Draw(img, "RGBA"); fn = font(28 if L.portrait else 27, "sb")
+                lines = wrap(dn, s.note, fn, L.tw - 40)
+                box = Image.new("RGBA", (L.tw, 24 + 40 * len(lines)), (0, 0, 0, 0)); db = ImageDraw.Draw(box)
+                db.rounded_rectangle((0, 0, L.tw - 1, box.height - 1), radius=16, fill=AMBER + (34,), outline=AMBER + (255,), width=2)
+                for j, line in enumerate(lines):
+                    db.text((20, 12 + 40 * j), line, font=fn, fill=WHITE if j or not line.startswith("WHY") else AMBER)
+                k = ease((lt - 0.4) / 0.4)
+                box.putalpha(box.getchannel("A").point(lambda a: int(a * k)))
+                img.alpha_composite(box, (L.tx, int(y + 10)))
+            if s.key == "alert":                                      # the red scam moment
+                k = 1 - ease(lt / 0.6)
                 if k > 0:
                     img.alpha_composite(Image.new("RGBA", (L.W, L.H), RED + (int(120 * k),)))
         elif s.layout == "stats":
