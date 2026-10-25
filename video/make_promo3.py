@@ -122,12 +122,14 @@ SCENES = [
 
 # ---------------------------------------------------------------- audio
 def loudnorm(src: Path, dst: Path, target: float, tp: float = -1.5, pre: str = "") -> None:
-    """Two-pass EBU R128 loudness normalisation (ffmpeg loudnorm), with an optional filter chain before it."""
-    chain = (pre + "," if pre else "") + f"loudnorm=I={target}:TP={tp}:LRA=9:print_format=json"
+    """Loudness to `target` LUFS with ONE fixed gain, then a fast peak limiter for the few peaks above `tp`.
+    (ffmpeg's loudnorm fell back to its "dynamic" mode here, and its gain-riding made the voice wobble.)"""
+    chain = (pre + "," if pre else "") + "loudnorm=print_format=json"
     r = subprocess.run([ffmpeg(), "-hide_banner", "-i", str(src), "-af", chain, "-f", "null", "-"], capture_output=True, text=True)
     m = json.loads(r.stderr[r.stderr.rindex("{"):r.stderr.rindex("}") + 1])
-    second = ((pre + ",") if pre else "") + (f"loudnorm=I={target}:TP={tp}:LRA=9:measured_I={m['input_i']}:measured_TP={m['input_tp']}:"
-                                            f"measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}:linear=true")
+    gain = target - float(m["input_i"])
+    print(f"    {dst.name}: {float(m['input_i']):.1f} LUFS, gain {gain:+.1f} dB, peaks to limit {float(m['input_tp']) + gain - tp:+.1f} dB")
+    second = ((pre + ",") if pre else "") + f"volume={gain:.2f}dB,alimiter=limit={10 ** (tp / 20):.4f}:attack=5:release=100:asc=1:level=false"
     run(["-i", str(src), "-af", second, "-ar", str(SR), "-ac", "1", str(dst)])
 
 
@@ -153,7 +155,7 @@ def make_voice() -> dict[str, np.ndarray]:
             raise RuntimeError(warn)
         p = WORK / f"vo_{key}.mp3"; p.write_bytes(audio)
         f = WORK / f"vo_{key}_t.wav"
-        run(["-i", str(p), "-af", f"atempo={TEMPO}", "-ac", "1", "-ar", str(SR), str(f)])
+        run(["-i", str(p), "-af", f"aresample={SR},rubberband=tempo={TEMPO}:pitchq=quality:window=standard", "-ac", "1", "-ar", str(SR), str(f)])
         out[key] = trim(read_wav(f))
     raw = client.synthesize(SCAMMER, language="en-IN", voice="Pranav", model="timbre-v2.5")
     p = WORK / "scammer.mp3"; p.write_bytes(raw)
@@ -214,9 +216,10 @@ def master(tl: Timeline, v: dict[str, np.ndarray]) -> Path:
     voice = np.zeros(n, np.float32)
     for key, at in tl.voice_at.items():
         s = int(at * SR); x = v[key][: n - s]; voice[s:s + len(x)] += x
+    voice *= 0.5 / max(1e-6, np.abs(voice).max())        # -6 dBFS headroom, so nothing clips before mastering
     vraw = write(WORK / "bus_voice_raw.wav", voice)
     vbus = WORK / "bus_voice.wav"
-    loudnorm(vraw, vbus, -16.0, -1.5, "highpass=f=80,deesser=i=0.4,acompressor=threshold=-21dB:ratio=2.5:attack=8:release=120:makeup=2")
+    loudnorm(vraw, vbus, -16.0, -1.0, "highpass=f=80,deesser=i=0.4,acompressor=threshold=-21dB:ratio=2.5:attack=8:release=120:makeup=2")
     voice = read_wav(vbus)[:n]; voice = np.pad(voice, (0, n - len(voice)))
     active = np.convolve((np.abs(voice) > 0.02).astype(np.float32), np.ones(int(0.25 * SR)), "same") > 0
     duck = np.where(active, 10 ** (-13 / 20), 1.0)
@@ -232,7 +235,7 @@ def master(tl: Timeline, v: dict[str, np.ndarray]) -> Path:
     mraw = WORK / "bus_music_raw.wav"
     run(["-ss", f"{offset:.2f}", "-t", f"{length:.2f}", "-i", str(MUSIC), "-af", "afade=t=in:st=0:d=1.2",
          "-ac", "1", "-ar", str(SR), str(mraw)])
-    placed = np.zeros(n, np.float32); m = read_wav(mraw); s0 = int(start * SR)
+    placed = np.zeros(n, np.float32); m = read_wav(mraw); m *= 0.5 / max(1e-6, np.abs(m).max()); s0 = int(start * SR)
     placed[s0:s0 + len(m)] = m[: n - s0]
     mpl = write(WORK / "bus_music_placed.wav", placed)
     mbus = WORK / "bus_music.wav"; loudnorm(mpl, mbus, -28.0, -6.0)
