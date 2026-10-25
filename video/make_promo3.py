@@ -34,7 +34,9 @@ SCREENS = ROOT / "video" / "screens"
 WORK = ROOT / "video" / "build3"
 base.WORK = ROOT / "video" / "build2"            # where make_promo2 keeps its word images and cached voice files
 DESKTOP = Path(r"C:\Users\Welcome\Desktop")
-OUTS = [DESKTOP / "Scam Sentinel - explainer 16x9.mp4", DESKTOP / "Scam Sentinel - explainer 9x16.mp4"]
+OUT_FULL = DESKTOP / "Scam Sentinel - explainer 16x9.mp4"            # (A) full cut, 66-70 s
+OUT_DEMO = DESKTOP / "Scam Sentinel - demo day 60s 16x9.mp4"          # (B) Demo Day cut, 60 s max
+OUT_VERT = DESKTOP / "Scam Sentinel - explainer 9x16.mp4"             # (C) vertical, same content as (A)
 MUSIC = ROOT / "video" / "music" / "Inspired.mp3"
 MUSIC_CREDIT = "Music: “Inspired” by Kevin MacLeod (incompetech.com) · CC BY 4.0"
 # the user's other recordings (base.CLIP already has A-E)
@@ -53,11 +55,18 @@ VO = {
     "guardian": "Family can watch as guardians, and get a live alarm.",
     "learn": "Learn real Indian scams, hear them re-enacted, and practise spotting them with a quiz.",
     "sos": "Cheated? One tap shows exactly what to do.",
-    "proof": "In our tests, twenty-four of twenty-four scam calls were caught, and none of thirty-six normal calls flagged.",
+    "proof": "In our tests, twenty-four of twenty-four scam calls were caught, none of thirty-six normal calls were flagged, "
+             "and it still works on noisy phone audio.",
     "close": "Scam Sentinel. Hang up on fear, not on your family.",
 }
 SUBS = {"problem": "None of it was true. Indians lost ₹22,845 crore to cyber fraud in 2024. And it happens during the call.",
-        "proof": "In our tests, 24 of 24 scam calls were caught, and none of 36 normal calls flagged."}
+        "proof": "In our tests, 24 of 24 scam calls were caught, none of 36 normal calls were flagged, and it still works on noisy phone audio."}
+GNANI_LINE = ["Built on *Gnani AI*: Prisma (speech-to-text)", "+ Timbre (voices)"]
+BIG_CHIPS = {"Understands Hinglish and mixed speech"}
+# results from results/benchmark.md (noise test: 8/8 scams at 13 dB, 7/8 at 5 dB; 1 of 12 normal calls got a false alert)
+CARDS = [("24 / 24", "test scam calls caught"), ("0 / 36", "normal calls flagged"),
+         ("4", "languages, incl. Hinglish and code-mixed speech"), ("100% at 13 dB · 88% at 5 dB", "scams caught on noisy phone audio")]
+CARDS_NOTE = "Noise test: 8 of 8 scams at 13 dB, 7 of 8 at 5 dB · 1 of 12 normal calls got a false alert"
 
 
 @dataclass
@@ -66,6 +75,7 @@ class Media:
     name: str = ""
     c0: float = 0.0
     c1: float = 0.0
+    mask: bool = False           # cover the line on the red alarm that names the person whose voice was cloned
 
 
 @dataclass
@@ -78,27 +88,34 @@ class Scene:
     chip_color: tuple = GREEN
     note: str = ""
     layout: str = "phone"        # phone | stats | reveal | laptop | close | hook
-    pad: float = 0.25
+    pad: float = 0.08
+    line: list[str] = field(default_factory=list)   # a clear text line under the headline
+    label: tuple = ()            # (media index, from local time, title, text, colour, y fraction): a label on the phone screen
 
 
 SCENES = [
-    Scene("hook", "", [], [Media("drawn")], layout="hook", pad=0.9),
+    Scene("hook", "", [], [Media("drawn")], layout="hook", pad=0.4),
     Scene("problem", "THE PROBLEM", ["The scam works", "*DURING* the call"], [], layout="stats",
           chips=["Source: Ministry of Home Affairs", "Source: Parliament reply, 2024", "Source: Karnataka Home Minister"]),
+    # clip B is the Kannada home screen: with this scene length it holds for about 1.7 s
     Scene("reveal", "SCAM SENTINEL", ["A shield for", "*every call*"],
           [Media("clip", "B", 0.3, 2.8), Media("clip", "G", 0.2, 2.6), Media("clip", "E", 0.2, 2.6)], layout="reveal",
-          chips=["Opens in any phone browser", "Add to home screen", "One tap changes the whole site", "Built on Gnani AI: Prisma + Timbre"]),
+          chips=["Kannada · Hindi · English: spoken warnings too", "Opens in any phone browser", "One tap changes the whole site"],
+          line=GNANI_LINE, pad=0.3),                 # keeps the Kannada screen up for 1.5 s or more
     Scene("live", "01 · LIVE PROTECTION", ["Spots scam tricks", "*as they build up*"],
           [Media("clip", "F", 0.5, 9.0), Media("clip", "E", 8.0, 15.8)],
-          chips=["Spoken warning — only YOU hear it", "Caller's voice turns down", "Names the scam type",
-                 "Understands Hinglish and mixed speech", "Optional family-member voice clone (made with consent)"]),
-    Scene("alert", "01 · THE REAL WARNING", ["It warns you", "*DURING* the call"], [Media("clip", "E", *ALERT)],
+          chips=["Spoken warning: only YOU hear it", "Caller's voice turns down", "Names the scam type",
+                 "Understands Hinglish and mixed speech", "AI voice clone option, made with consent"],
+          label=(1, 0.0, "GNANI PRISMA", "listening", GREEN, 0.70)),
+    Scene("alert", "01 · THE REAL WARNING", ["It warns you", "*DURING* the call"], [Media("clip", "E", *ALERT, mask=True)],
           chips=["pretending to be police", "threat of arrest", "pushing you to transfer money"], chip_color=RED,
-          note="Spoken in an AI clone of a family member's voice · made with consent", pad=0.1),
+          note="AI voice clone, made with consent", pad=0.1,
+          label=(0, 0.75, "GNANI TIMBRE", "speaking the warning", AMBER, 0.09)),
     Scene("otp", "02 · OTP GUARD", ["Reading out an OTP?", "*STOP.*"], [Media("screen", "otp_stop")],
           chips=["OTP Guard ON by default", "Your words are never shown or saved", "Digits are only counted"], chip_color=RED),
+    # E 29.7-32.6: the after-call card once the line naming the cloned voice has scrolled off
     Scene("normal", "03 · NORMAL CALLS + AFTER", ["Speaker mode,", "then *next steps*"],
-          [Media("clip", "E", 3.6, 7.6), Media("clip", "E", 25.0, 31.0)],
+          [Media("clip", "E", 3.6, 7.6), Media("clip", "E", 29.7, 32.6)],
           chips=["Speaker mode for normal calls", "Ready-made complaint text"],
           note="WHY A SECOND DEVICE? Phones don't let apps hear their own calls (Android privacy permissions). "
                "So today, Scam Sentinel listens from a second device on speaker."),
@@ -112,11 +129,32 @@ SCENES = [
     Scene("sos", "06 · SOS + COMPLAINT", ["Cheated?", "*One tap.*"],
           [Media("clip", "D", 26.0, 27.3), Media("clip", "D", 30.0, 32.8), Media("screen", "portal")],
           chips=["Call 1930", "Register a complaint at cybercrime.gov.in", "Big buttons + text-size control"], chip_color=RED,
-          note="The complaint link opens the official National Cyber Crime Reporting Portal.", pad=1.7),
+          note="The complaint link opens the official National Cyber Crime Reporting Portal.", pad=0.7),
     Scene("proof", "07 · OPERATOR VIEW + PROOF", ["Tested, and", "*it works*"], [Media("screen", "operator")], layout="laptop",
           chips=["Operator / telecom view", "Only the caller's side is transcribed"]),
-    Scene("close", "", [], [], layout="close", pad=1.1),
+    Scene("close", "", [], [], layout="close", pad=2.3),            # the end card holds about 5 s
 ]
+DEMO = ["hook", "problem", "reveal", "live", "alert", "otp", "proof", "close"]
+
+
+def cut(name: str) -> list[Scene]:
+    """The scenes of one cut, with the feature numbers in the tags renumbered for it."""
+    from dataclasses import replace
+    scenes = [replace(s) for s in SCENES if name == "full" or s.key in DEMO]
+    if name == "demo":
+        for s in scenes:
+            if s.key == "proof":
+                s.layout, s.tag = "results", "IN OUR TESTS"
+            if s.key == "otp":
+                s.pad = 1.3
+    n, last = 0, None
+    for s in scenes:
+        m = re.match(r"(\d\d) · (.*)", s.tag)
+        if m:
+            if m.group(1) != last:
+                n += 1; last = m.group(1)
+            s.tag = f"{n:02d} · {m.group(2)}"
+    return scenes
 
 
 # ---------------------------------------------------------------- audio
@@ -152,7 +190,7 @@ def squeeze(x: np.ndarray) -> np.ndarray:
     out, pos = [], 0
     for a, b in zip(edges[::2], edges[1::2]):
         g = (b - a) / SR
-        keep = 0.30 if g >= 0.45 else min(g, 0.20)
+        keep = 0.27 if g >= 0.45 else min(g, 0.18)
         if a == 0 or b == len(x) or g - keep < 0.02:
             continue
         cut0 = a + int(keep * SR / 2); cut1 = b - int(keep * SR / 2)
@@ -196,17 +234,21 @@ class Timeline:
 
 
 def split_sub(t0, t1, text):
-    parts = [p.strip() for p in re.split(r"(?<=[.!?:])\s+", text) if p.strip()]
+    parts = []
+    for sent in (p.strip() for p in re.split(r"(?<=[.!?:])\s+", text) if p.strip()):
+        while len(sent) > 70 and ", " in sent[:70]:                # long sentence: break at a comma, so it fits two lines
+            k = sent.rindex(", ", 0, 70) + 1; parts.append(sent[:k]); sent = sent[k:].strip()
+        parts.append(sent)
     n = sum(len(p) for p in parts); out, t = [], t0
     for p in parts:
         d = (t1 - t0) * len(p) / n; out.append((t, t + d, p)); t += d
     return out
 
 
-def timeline(v: dict[str, np.ndarray]) -> Timeline:
+def timeline(v: dict[str, np.ndarray], scenes: list[Scene]) -> Timeline:
     spans, voice_at, subs, sounds = [], {}, [], []
     t = 0.0
-    for s in SCENES:
+    for s in scenes:
         lead = 1.45 if s.key == "hook" else (0.15 if s.key == "reveal" else 0.0)
         d = lead + len(v[s.key]) / SR + s.pad
         spans.append((t, t + d, s)); voice_at[s.key] = t + lead
@@ -223,11 +265,19 @@ def timeline(v: dict[str, np.ndarray]) -> Timeline:
     return Timeline(spans, voice_at, subs, sounds, t)
 
 
+def chip_groups(s: Scene) -> list[list[int]]:
+    """At most 3 chips on screen at once: more chips are shown in beats (5 -> 3 + 2, 4 -> 2 + 2)."""
+    n = len(s.chips); size = math.ceil(n / max(1, math.ceil(n / 3)))
+    return [list(range(i, min(n, i + size))) for i in range(0, n, size)] or [[]]
+
+
 def chip_time(s: Scene, i: int, d: float) -> float:
-    return d * (0.18 + 0.62 * i / max(1, len(s.chips)))
+    groups = chip_groups(s); gd = d / len(groups)
+    g = next(k for k, gr in enumerate(groups) if i in gr); j = groups[g].index(i)
+    return g * gd + gd * (0.1 + 0.45 * j / max(1, len(groups[g])))      # the last chip is up by 40% of its beat
 
 
-def master(tl: Timeline, v: dict[str, np.ndarray]) -> Path:
+def master(tl: Timeline, v: dict[str, np.ndarray], name: str) -> Path:
     n = int((tl.total + 0.3) * SR)
     voice = np.zeros(n, np.float32)
     for key, at in tl.voice_at.items():
@@ -265,7 +315,7 @@ def master(tl: Timeline, v: dict[str, np.ndarray]) -> Path:
     sfx *= (vpeak * 10 ** (-10 / 20)) / max(1e-6, np.abs(sfx).max())          # 10 dB under the voice
     sfx = np.where(active, sfx * 0.7, sfx)                                       # and a little lower while it speaks
     mix = write(WORK / "mix_raw.wav", voice + music + sfx)
-    final = WORK / "mix.wav"
+    final = WORK / f"mix_{name}.wav"
     run(["-i", str(mix), "-af", "alimiter=limit=0.89:level=false", "-ar", str(SR), "-ac", "1", str(final)])
     print(f"  loudness: voice {lufs(vbus):.1f} LUFS, music {lufs(mbus):.1f} LUFS (before ducking), mix {lufs(final):.1f} LUFS")
     return final
@@ -296,13 +346,14 @@ def dots(img, L, i, n):
             d.ellipse((x - r, y - r, x + r, y + r), fill=(255, 255, 255, 120 if k < i else 50))
 
 
-def subtitle(img, L, text, column):
+def subtitle(img, L, text):
+    """Centred, always in the same place: under the phone in 16:9, at about 70% of the height in 9:16."""
     if not text:
         return
     d = ImageDraw.Draw(img); f = font(34 if L.portrait else 31, "sb")
-    left, width = (L.tx, L.tw) if (column and not L.portrait) else (80, L.W - 160)
-    lines = wrap(d, text, f, width)[:2]; lh = 46
-    y = (L.H - 150 - lh * len(lines)) if L.portrait else (L.H - 74 - lh * len(lines))
+    left, width = 80, L.W - 160
+    lines = wrap(d, text, f, width - 40)[:2]; lh = 46
+    y = int(L.sub_c - lh * len(lines) / 2)
     for k, line in enumerate(lines):
         tw = int(d.textlength(line, font=f)); x = left + (width - tw) // 2
         layer = Image.new("RGBA", (tw + 32, 44), (0, 0, 0, 0)); dl = ImageDraw.Draw(layer)
@@ -311,15 +362,42 @@ def subtitle(img, L, text, column):
 
 
 def chips_block(img, L, s: Scene, lt, d, y):
-    fsize = 26 if L.portrait else 27
-    x = L.tx; row_h = fsize + 40
-    for i, label in enumerate(s.chips):
-        w = ImageDraw.Draw(img).textlength(label, font=font(fsize, "sb")) + 44
+    """The current beat's chips (at most 3), 40% larger than before; a key chip is larger still."""
+    if not s.chips:
+        return y
+    groups = chip_groups(s); g = min(len(groups) - 1, int(lt / (d / len(groups))))
+    x = L.tx; row_h = 0; dr = ImageDraw.Draw(img)
+    for i in groups[g]:
+        label = s.chips[i]
+        fsize = (46 if label in BIG_CHIPS else 37) if L.portrait else (48 if label in BIG_CHIPS else 38)
+        while dr.textlength(label, font=font(fsize, "sb")) + 44 > L.tw and fsize > 24:
+            fsize -= 1
+        w = dr.textlength(label, font=font(fsize, "sb")) + 44
         if x + w > L.tx + L.tw:
-            x = L.tx; y += row_h
+            x = L.tx; y += row_h; row_h = 0
         chip(img, x, y, label, s.chip_color, t=lt - chip_time(s, i, d), size=fsize)
-        x += w + 14
+        x += w + 14; row_h = max(row_h, fsize + 36)
     return y + row_h
+
+
+def screen_label(img, L, title, text, color, yfrac, k):
+    """A two-line label on the phone screen, e.g. GNANI PRISMA / listening."""
+    if k <= 0:
+        return
+    x0, y0, x1, y1 = L.screen; ft, fx = font(24, "b"), font(26, "sb")
+    dr = ImageDraw.Draw(img)
+    w = int(max(dr.textlength(title, font=ft), dr.textlength(text, font=fx) + 26)) + 44; h = 84
+    layer = Image.new("RGBA", (w, h), (0, 0, 0, 0)); dl = ImageDraw.Draw(layer)
+    dl.rounded_rectangle((0, 0, w - 1, h - 1), radius=20, fill=(8, 22, 20, 225), outline=color + (255,), width=3)
+    tw = dl.textlength(title, font=ft); dl.text(((w - tw) / 2, 10), title, font=ft, fill=color)
+    tw = dl.textlength(text, font=fx) + 26; xx = (w - tw) / 2
+    pulse = 0.55 + 0.45 * abs(math.sin(_now[0] * 4))
+    dl.ellipse((xx, 50, xx + 14, 64), fill=color + (int(255 * pulse),)); dl.text((xx + 26, 40), text, font=fx, fill=WHITE)
+    layer.putalpha(layer.getchannel("A").point(lambda a: int(a * k)))
+    img.alpha_composite(layer, ((x0 + x1 - w) // 2, int(y0 + (y1 - y0) * yfrac - h / 2)))
+
+
+_now = [0.0]
 
 
 def kinetic(img, L, lines, lt, size, y):
@@ -329,6 +407,25 @@ def kinetic(img, L, lines, lt, size, y):
             put_text(img, (L.tx, y + (1 - k) * 30), line, size, alpha=k)
         y += int(size * 1.16)
     return y
+
+
+class MaskedClip(ClipReader):
+    """The red alarm names the person whose voice was cloned: cover that line with the label, on the red screen only."""
+    BOX = (0.055, 0.468, 0.945, 0.535)               # fractions of the screen, measured on clip E at 720x1608
+
+    def get(self, i):
+        fr = super().get(i)
+        if fr is None:
+            return fr
+        w, h = fr.size; px = fr.getpixel((int(w * 0.03), int(h * 0.75)))
+        if not (px[0] > 130 and px[1] < 80):         # not the red alarm screen yet
+            return fr
+        fr = fr.copy(); d = ImageDraw.Draw(fr)
+        x0, y0, x1, y1 = (int(self.BOX[0] * w), int(self.BOX[1] * h), int(self.BOX[2] * w), int(self.BOX[3] * h))
+        d.rectangle((x0, y0, x1, y1), fill=fr.getpixel((int(w * 0.02), (y0 + y1) // 2)))
+        f = font(max(14, int(w * 0.046)), "sb"); t = "AI voice clone, made with consent"
+        tw = d.textlength(t, font=f); d.text(((w - tw) / 2, (y0 + y1) / 2 - f.size * 0.62), t, font=f, fill=WHITE)
+        return fr
 
 
 def media_frame(L, s: Scene, lt, d, readers, size):
@@ -343,18 +440,18 @@ def media_frame(L, s: Scene, lt, d, readers, size):
         if r is None:
             for k in list(readers):
                 readers.pop(k).close()
-            r = readers[(id(s), idx)] = ClipReader(m.name, m.c0, m.c1, size)
+            r = readers[(id(s), idx)] = (MaskedClip if m.mask else ClipReader)(m.name, m.c0, m.c1, size)
         speed = max(1.0, (m.c1 - m.c0) / (d / n))
         return r.get(int(local * FPS * speed)), local
     return None, local
 
 
 def laptop(img, L, shot, k):
-    """The operator dashboard in a simple laptop frame."""
+    """The operator dashboard in a simple laptop frame (kept clear of the subtitle line)."""
     if L.portrait:
-        w = 940; x = (L.W - w) // 2; y = 780
+        w = 700; x = (L.W - w) // 2; y = 110
     else:
-        w = 760; x = 90; y = 210
+        w = 640; x = 150; y = 150
     h = int(w * shot.height / shot.width)
     d = ImageDraw.Draw(img, "RGBA")
     d.rounded_rectangle((x - 18, y - 18, x + w + 18, y + h + 18), radius=22, fill=(16, 20, 22, 255), outline=(96, 116, 112, 255), width=3)
@@ -365,10 +462,88 @@ def laptop(img, L, shot, k):
     img.paste(im, (x, y))
 
 
+def note_box(img, L, text, lt, y):
+    dn = ImageDraw.Draw(img, "RGBA"); fn = font(30 if L.portrait else 28, "sb")
+    width = L.tw if not L.portrait else L.W - 160; x = L.tx if not L.portrait else 80
+    lines = wrap(dn, text, fn, width - 40)
+    box = Image.new("RGBA", (width, 24 + 42 * len(lines)), (0, 0, 0, 0)); db = ImageDraw.Draw(box)
+    db.rounded_rectangle((0, 0, width - 1, box.height - 1), radius=16, fill=AMBER + (34,), outline=AMBER + (255,), width=2)
+    for j, line in enumerate(lines):
+        db.text((20, 12 + 42 * j), line, font=fn, fill=WHITE if j or not line.startswith("WHY") else AMBER)
+    k = ease((lt - 0.4) / 0.4)
+    box.putalpha(box.getchannel("A").point(lambda a: int(a * k)))
+    img.alpha_composite(box, (x, int(y)))
+
+
+def cards(img, L, t):
+    """The results card: four boxes, 2 x 2."""
+    put_text(img, (0, 120 if not L.portrait else 190), "In our tests", 64, alpha=ease(t / 0.4), center=True)
+    cw, ch, gap = (790, 236, 36) if not L.portrait else (455, 340, 30)
+    top = 240 if not L.portrait else 320
+    for j, (big, small) in enumerate(CARDS):
+        kk = ease((t - 0.2 - j * 0.25) / 0.3)
+        if kk <= 0:
+            continue
+        x = (L.W - 2 * cw - gap) // 2 + (j % 2) * (cw + gap); y = top + (j // 2) * (ch + gap)
+        layer = Image.new("RGBA", (cw, ch), (0, 0, 0, 0)); dl = ImageDraw.Draw(layer)
+        dl.rounded_rectangle((0, 0, cw - 1, ch - 1), radius=26, fill=(255, 255, 255, 22), outline=GREEN, width=3)
+        bigs = big.split(" · ")
+        fb = font(100 if len(bigs) == 1 else 60, "b")
+        while max(dl.textlength(b, font=fb) for b in bigs) > cw - 40:
+            fb = font(fb.size - 2, "b")
+        fs = font(32 if not L.portrait else 30, "sb"); smalls = wrap(dl, small, fs, cw - 40)
+        hb = int(fb.size * 1.12); total = hb * len(bigs) + 14 + 40 * len(smalls)
+        yy = (ch - total) // 2
+        for b in bigs:
+            tw = dl.textlength(b, font=fb); dl.text(((cw - tw) / 2, yy), b, font=fb, fill=AMBER); yy += hb
+        yy += 14
+        for sm in smalls:
+            tw = dl.textlength(sm, font=fs); dl.text(((cw - tw) / 2, yy), sm, font=fs, fill=WHITE); yy += 40
+        layer.putalpha(layer.getchannel("A").point(lambda a: int(a * kk)))
+        img.alpha_composite(layer, (x, y))
+    k = ease((t - 1.4) / 0.4)
+    if k > 0:
+        y = top + 2 * ch + gap + 26; dn = ImageDraw.Draw(img)
+        for line in wrap(dn, CARDS_NOTE, font(26, ""), L.W - 160):
+            put_text(img, (0, y), line, 26, "", SOFT, k, True); y += 38
+
+
+def end_card(img, L, lt, d):
+    """Logo, tagline, Gnani line, demo link, hashtags, one honest footer line, and the music credit."""
+    P = L.portrait
+    sz = 150 if not P else 200
+    y = 60 if not P else 230
+    img.alpha_composite(asset("logo", sz), ((L.W - sz) // 2, y)); y += sz + 14
+    put_text(img, (0, y), "Scam Sentinel", 100 if not P else 96, center=True); y += 130 if not P else 125
+    tagline = "Hang up on fear, not on your family."
+    nch = int(len(tagline) * ease((lt - 0.15) / 0.7))
+    if nch:
+        put_text(img, (0, y), tagline[:nch], 62 if not P else 50, "sb", AMBER, center=True)
+    y += 100 if not P else 95
+    k = ease((lt - 0.4) / 0.35)
+    if k > 0:
+        rows = [("Built on *Gnani AI*: Prisma + Timbre", 54 if not P else 46, "b", WHITE),
+                ("Try it: demo link in the comments", 46 if not P else 42, "sb", WHITE)]
+        rows += ([("#GnaniAI   #GreatIndianAIInternshipChallenge", 44, "b", GREEN)] if not P else
+                 [("#GnaniAI", 44, "b", GREEN), ("#GreatIndianAIInternshipChallenge", 42, "b", GREEN)])
+        for text, size, wgt, col in rows:
+            put_text(img, (0, y), text, size, wgt, col, k, True); y += int(size * 1.6)
+        foot = "Prototype · re-enacted calls · AI voices · a decision aid, not a guarantee · Always call 1930 · cybercrime.gov.in"
+        y = 905 if not P else y + 60
+        for line in ([foot] if not P else wrap(ImageDraw.Draw(img), foot, font(28, "sb"), L.W - 120)):
+            put_text(img, (0, y), line, 27 if not P else 28, "sb", SOFT, k, True); y += 42
+        put_text(img, (0, y + 6), MUSIC_CREDIT, 21 if not P else 22, "", DIM, k, True)
+    fade = max(0.0, (lt - (d - 0.5)) / 0.5)
+    if fade > 0:
+        img.alpha_composite(Image.new("RGBA", (L.W, L.H), (0, 0, 0, int(255 * fade))))
+
+
 def draw(L: Layout, tl: Timeline, t: float, readers: dict) -> Image.Image:
+    _now[0] = t
     span = next((sp for sp in tl.spans if sp[0] <= t < sp[1]), tl.spans[-1])
     t0, t1, s = span; lt, d = t - t0, t1 - t0
     i = tl.spans.index(span)
+    P = L.portrait
     if s.layout == "hook":
         img = Image.new("RGBA", (L.W, L.H), (0, 0, 0, 255))
         talk = (tl.voice_at["hook"], tl.voice_at["hook"] + (d - 1.45 - s.pad))
@@ -378,45 +553,42 @@ def draw(L: Layout, tl: Timeline, t: float, readers: dict) -> Image.Image:
         beat = max(0.0, math.sin(t * 7.4)) ** 6 if t > talk[0] - 0.2 else 0
         img.alpha_composite(Image.new("RGBA", (L.W, L.H), (120, 10, 10, int(70 * beat))))
         phone(img, L, incoming_call(L, t, talk), zoom=1.0 + 0.06 * ease(lt / d), shake=shake)
+        if t > 0.3:
+            tag(img, L, "Re-enacted call · AI voices", y=300 if not P else 880)
         if t > talk[0] + 0.6:
             k = ease((t - talk[0] - 0.6) / 0.4)
-            if L.portrait:
-                put_text(img, (0, 130), "A real kind of call.", 66, alpha=k, center=True)
-                put_text(img, (0, 220), "*Re-enacted.*", 66, alpha=k, center=True)
-                put_text(img, (0, 320), "Prototype · re-enacted calls", 30, "sb", SOFT, k, True)
+            if P:
+                put_text(img, (0, 960), "A real kind of call.", 66, alpha=k, center=True)
+                put_text(img, (0, 1050), "*Re-enacted.*", 66, alpha=k, center=True)
             else:
                 put_text(img, (L.tx, 400), "A real kind of call.", 76, alpha=k)
                 put_text(img, (L.tx, 500), "*Re-enacted.*", 76, alpha=k)
-                put_text(img, (L.tx, 610), "Prototype · re-enacted calls", 32, "sb", SOFT, k)
         if t > t1 - 0.1:
             return Image.new("RGB", (L.W, L.H), (0, 0, 0))
     else:
         img = L.bg.convert("RGBA"); header(img, L)
-        frame, local = media_frame(L, s, lt, d, readers, (L.screen[2] - L.screen[0], L.screen[3] - L.screen[1]))
-        size = 84 if not L.portrait else 74
+        size = 84 if not P else 60
+        scr = (L.screen[2] - L.screen[0], L.screen[3] - L.screen[1])
         if s.layout == "phone":
+            frame, local = media_frame(L, s, lt, d, readers, scr)
             phone(img, L, frame, zoom=1.0 + 0.035 * min(1, local / 2.5))
+            if s.label:
+                n = len(s.media); idx = min(n - 1, int(lt / (d / n)))
+                if idx == s.label[0]:
+                    screen_label(img, L, s.label[2], s.label[3], s.label[4], s.label[5], ease((local - s.label[1]) / 0.3))
             tag(img, L, s.tag)
             y = kinetic(img, L, s.headline, lt, size, L.ty + 66)
             y = chips_block(img, L, s, lt, d, y + 18)
             if s.note:
-                dn = ImageDraw.Draw(img, "RGBA"); fn = font(28 if L.portrait else 27, "sb")
-                lines = wrap(dn, s.note, fn, L.tw - 40)
-                box = Image.new("RGBA", (L.tw, 24 + 40 * len(lines)), (0, 0, 0, 0)); db = ImageDraw.Draw(box)
-                db.rounded_rectangle((0, 0, L.tw - 1, box.height - 1), radius=16, fill=AMBER + (34,), outline=AMBER + (255,), width=2)
-                for j, line in enumerate(lines):
-                    db.text((20, 12 + 40 * j), line, font=fn, fill=WHITE if j or not line.startswith("WHY") else AMBER)
-                k = ease((lt - 0.4) / 0.4)
-                box.putalpha(box.getchannel("A").point(lambda a: int(a * k)))
-                img.alpha_composite(box, (L.tx, int(y + 10)))
+                note_box(img, L, s.note, lt, (y + 12) if not P else L.sub_c + 80)
             if s.key == "alert":                                      # the red scam moment
                 k = 1 - ease(lt / 0.6)
                 if k > 0:
                     img.alpha_composite(Image.new("RGBA", (L.W, L.H), RED + (int(120 * k),)))
         elif s.layout == "stats":
             c = L.W // 2
-            top = 230 if not L.portrait else 260
-            put_text(img, (0, top - 120), "None of it was *true.*", 70 if not L.portrait else 66, alpha=ease(lt / 0.4), center=True)
+            top = 230 if not P else 260
+            put_text(img, (0, top - 120), "None of it was *true.*", 70 if not P else 66, alpha=ease(lt / 0.4), center=True)
             stats = [("₹", 22845, " crore", "lost to cyber fraud, 2024", 0), ("₹", 1935, " crore", "lost to ‘digital arrest’", 1),
                      ("", 641, " cases · ₹109 crore", "‘digital arrest’ in Karnataka", 2)]
             for pre, val, unit, label, j in stats:
@@ -425,23 +597,23 @@ def draw(L: Layout, tl: Timeline, t: float, readers: dict) -> Image.Image:
                     continue
                 k = ease((lt - st) / 1.0)
                 txt = f"{pre}{int(val * k):,}{unit}"
-                if L.portrait:
+                if P:
                     y = top + 40 + j * 330
                     put_text(img, (0, y), txt, 88, color=AMBER, alpha=min(1, (lt - st) / 0.3), center=True)
                     put_text(img, (0, y + 110), label, 38, "sb", WHITE, min(1, (lt - st) / 0.3), True)
-                    chip(img, c - 260, y + 170, s.chips[j], GREEN, t=lt - st - 0.3, size=24)
+                    chip(img, c - 280, y + 170, s.chips[j], GREEN, t=lt - st - 0.3, size=30)
                 else:
                     x = 120 + j * 580; y = top + 70
                     put_text(img, (x, y), txt, 70 if j < 2 else 56, color=AMBER, alpha=min(1, (lt - st) / 0.3))
                     put_text(img, (x, y + 100), label, 34, "sb", WHITE, min(1, (lt - st) / 0.3))
-                    chip(img, x, y + 160, s.chips[j], GREEN, t=lt - st - 0.3, size=24)
+                    chip(img, x, y + 160, s.chips[j], GREEN, t=lt - st - 0.3, size=30)
             if lt > d * 0.7:
                 k = ease((lt - d * 0.7) / 0.4)
-                put_text(img, (0, (L.H * 0.7) if not L.portrait else 1420), "The scam works *DURING* the call.",
-                         62 if not L.portrait else 54, alpha=k, center=True)
+                put_text(img, (0, (L.H * 0.7) if not P else 1440), "The scam works *DURING* the call.",
+                         62 if not P else 54, alpha=k, center=True)
         elif s.layout == "reveal":
             if lt < 1.4:                                               # the shield glows first
-                k = ease(lt / 0.6); sz = 240 if not L.portrait else 300
+                k = ease(lt / 0.6); sz = 240 if not P else 300
                 glow = Image.new("RGBA", (sz + 220, sz + 220), (0, 0, 0, 0))
                 ImageDraw.Draw(glow).ellipse((50, 50, sz + 170, sz + 170), fill=GREEN + (int(160 * k),))
                 glow = glow.filter(ImageFilter.GaussianBlur(44))
@@ -449,78 +621,48 @@ def draw(L: Layout, tl: Timeline, t: float, readers: dict) -> Image.Image:
                 img.alpha_composite(glow, ((L.W - glow.width) // 2, ly - 110))
                 logo = asset("logo", sz).copy(); logo.putalpha(logo.getchannel("A").point(lambda a: int(a * k)))
                 img.alpha_composite(logo, ((L.W - sz) // 2, ly))
-                put_text(img, (0, ly + sz + 30), "Scam Sentinel", 110 if not L.portrait else 100, alpha=ease((lt - 0.4) / 0.4), center=True)
+                put_text(img, (0, ly + sz + 30), "Scam Sentinel", 110 if not P else 100, alpha=ease((lt - 0.4) / 0.4), center=True)
             else:
                 lt2 = lt - 1.4; d2 = d - 1.4
-                frame, local = media_frame(L, s, lt2, d2, readers, (L.screen[2] - L.screen[0], L.screen[3] - L.screen[1]))
+                frame, local = media_frame(L, s, lt2, d2, readers, scr)
                 phone(img, L, frame, zoom=1.0 + 0.03 * min(1, local / 2))
                 tag(img, L, s.tag)
                 y = kinetic(img, L, s.headline, lt2, size, L.ty + 66)
-                lang_chips(img, L.tx, y + 10, 30 if L.portrait else 34); y += 76 if L.portrait else 84
-                chips_block(img, L, s, lt2, d2, y + 16)
-        elif s.layout == "laptop":
-            split = d * 0.55
+                kl = ease((lt2 - 0.3) / 0.4)
+                if not P:
+                    lang_chips(img, L.tx, y + 10, 34); y += 84
+                    for j, line in enumerate(s.line):
+                        put_text(img, (L.tx, y + 14 + j * 52), line, 40, "b", WHITE, kl)
+                    y += 14 + 52 * len(s.line)
+                else:
+                    for j, line in enumerate(s.line):
+                        put_text(img, (0, L.sub_c + 90 + j * 52), line, 40, "b", WHITE, kl, True)
+                chips_block(img, L, s, lt2, d2, y + 18)
+        elif s.layout in ("laptop", "results"):
+            split = d * 0.4 if s.layout == "laptop" else 0.0
             if lt < split:
                 laptop(img, L, Image.open(SCREENS / "operator.png").convert("RGB"), lt / split)
                 tag(img, L, s.tag)
                 y = kinetic(img, L, ["Operator /", "*telecom view*"], lt, size, L.ty + 66)
-                chips_block(img, L, s, lt, d, y + 18)
+                chips_block(img, L, s, lt, split, y + 18)
             else:
-                k = ease((lt - split) / 0.4)
-                cards = [("24 / 24", "test scam calls caught"), ("0 / 36", "normal calls flagged"), ("4", "languages incl. Hinglish")]
-                cw, ch = (500, 260) if not L.portrait else (820, 230)
-                for j, (big, small) in enumerate(cards):
-                    kk = ease((lt - split - j * 0.25) / 0.3)
-                    if kk <= 0:
-                        continue
-                    x = ((L.W - 3 * cw - 80) // 2 + j * (cw + 40)) if not L.portrait else (L.W - cw) // 2
-                    y = int(L.H * 0.3) if not L.portrait else 420 + j * (ch + 40)
-                    layer = Image.new("RGBA", (cw, ch), (0, 0, 0, 0)); dl = ImageDraw.Draw(layer)
-                    dl.rounded_rectangle((0, 0, cw - 1, ch - 1), radius=26, fill=(255, 255, 255, 20), outline=GREEN, width=3)
-                    fb = font(96, "b"); tw = dl.textlength(big, font=fb); dl.text(((cw - tw) / 2, 30), big, font=fb, fill=AMBER)
-                    fs = font(34, "sb"); tw = dl.textlength(small, font=fs); dl.text(((cw - tw) / 2, 168), small, font=fs, fill=WHITE)
-                    layer.putalpha(layer.getchannel("A").point(lambda a: int(a * kk)))
-                    img.alpha_composite(layer, (x, y))
-                put_text(img, (0, (L.H * 0.17) if not L.portrait else 250), "In our tests", 60, alpha=k, center=True)
+                cards(img, L, lt - split)
         elif s.layout == "close":
-            sz = 170 if not L.portrait else 220
-            ly = int(L.H * (0.1 if not L.portrait else 0.16))
-            img.alpha_composite(asset("logo", sz), ((L.W - sz) // 2, ly))
-            put_text(img, (0, ly + sz + 20), "Scam Sentinel", 104 if not L.portrait else 96, center=True)
-            tagline = "Hang up on fear, not on your family."
-            nch = int(len(tagline) * ease((lt - 0.3) / 1.4))
-            if nch:
-                put_text(img, (0, ly + sz + 160), tagline[:nch], 56 if not L.portrait else 48, "sb", AMBER, center=True)
-            k = ease((lt - 1.2) / 0.5)
-            if k > 0:
-                y = ly + sz + (260 if not L.portrait else 250)
-                rows = [("More languages coming: Tamil · Telugu · Malayalam · Marathi · Bengali · Gujarati · Punjabi · Odia", 28, "sb", SOFT),
-                        ("Try it: demo link in the comments  ·  Always call 1930 · cybercrime.gov.in", 32, "sb", WHITE),
-                        ("#GnaniAI   #GreatIndianAIInternshipChallenge", 34, "b", GREEN),
-                        ("Prototype · re-enacted calls · AI voices · a decision aid, not a guarantee", 26, "", DIM),
-                        (MUSIC_CREDIT, 24, "", DIM)]
-                for text, sz2, wgt, col in rows:
-                    if L.portrait and len(text) > 60:
-                        for part in wrap(ImageDraw.Draw(img), text, font(sz2 - 2, wgt), L.W - 140):
-                            put_text(img, (0, y), part, sz2 - 2, wgt, col, k, True); y += sz2 + 14
-                    else:
-                        put_text(img, (0, y), text, sz2, wgt, col, k, True); y += sz2 + 26
-            fade = max(0.0, (lt - (d - 0.7)) / 0.7)
-            if fade > 0:
-                img.alpha_composite(Image.new("RGBA", (L.W, L.H), (0, 0, 0, int(255 * fade))))
-    sub = next((x for x in tl.subs if x[0] <= t < x[1] + 0.12), None)
-    if sub and t < tl.total - 0.7:
-        subtitle(img, L, sub[2], column=s.layout in ("phone", "laptop", "hook") or (s.layout == "reveal" and lt >= 1.4))
-    if s.layout != "hook" and t < tl.total - 0.7:
-        dots(img, L, i, len(tl.spans))
+            end_card(img, L, lt, d)
+    if s.layout != "close":
+        sub = next((x for x in tl.subs if x[0] <= t < x[1] + 0.12), None)
+        if sub:
+            subtitle(img, L, sub[2])
+        if s.layout != "hook":
+            dots(img, L, i, len(tl.spans))
     return img.convert("RGB")
 
 
-def render(L, tl, out: Path, audio: Path, stills=None):
+def render(L, tl, out: Path, audio: Path, stills=None, tag=""):
     readers: dict = {}
     if stills is not None:
         for t in stills:
-            draw(L, tl, t, readers).save(WORK / f"still_{'v' if L.portrait else 'h'}_{t:05.1f}.png")
+            draw(L, tl, t, readers).save(WORK / f"still_{tag}_{t:05.1f}.png")
         for r in readers.values():
             r.close()
         return
@@ -537,8 +679,19 @@ def render(L, tl, out: Path, audio: Path, stills=None):
     enc.stdin.close(); enc.wait()
 
 
+def layout(w: int, h: int) -> Layout:
+    """This brief's geometry: subtitles centred in one fixed place, clear of the phone."""
+    L = Layout(w, h)
+    if L.portrait:                                    # phone in the top half, headline + chips below, subtitles at ~70%
+        L.screen = (374, 96, 374 + 332, 96 + 742); L.tx, L.ty, L.tw = 80, 885, w - 160; L.sub_c = 1366
+    else:                                             # phone on the left, text column on the right, subtitles under both
+        L.screen = (330, 110, 330 + 352, 110 + 786); L.tx, L.ty, L.tw = 880, 200, w - 880 - 80; L.sub_c = 992
+    return L
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(); ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--stills", action="store_true")
+    ap.add_argument("--only", choices=["full", "demo", "vertical"], action="append")
     a = ap.parse_args()
     WORK.mkdir(parents=True, exist_ok=True)
     chars = sum(len(x) for x in VO.values())
@@ -547,21 +700,20 @@ def main() -> int:
           f"({sum(len(x.split()) for x in VO.values()) + len(SCAMMER.split())} words)")
     if a.dry_run:
         return 0
-    v = make_voice(); tl = timeline(v)
-    print(f"  length {tl.total:.1f} s")
-    audio = master(tl, v)
-    layouts = [Layout(1920, 1080), Layout(1080, 1920)]
-    for L in layouts:                                  # this brief's layout: a little more room for chips
-        if L.portrait:
-            L.screen = (340, 730, 340 + 400, 730 + 893); L.ty = 180
-        else:
-            L.screen = (300, 130, 300 + 405, 130 + 904)
-    if a.stills:
-        times = [3.5] + [(t0 + t1) / 2 for t0, t1, s in tl.spans[1:]] + [tl.spans[3][0] + (tl.spans[3][1] - tl.spans[3][0]) * 0.9]
-        for L in layouts:
-            render(L, tl, None, audio, times)
-        return 0
-    for L, out in zip(layouts, OUTS):
+    v = make_voice()
+    jobs = [("full", layout(1920, 1080), OUT_FULL), ("demo", layout(1920, 1080), OUT_DEMO), ("vertical", layout(1080, 1920), OUT_VERT)]
+    tls = {}
+    for name in ("full", "demo"):
+        tl = timeline(v, cut(name)); tls[name] = (tl, master(tl, v, name))
+        print(f"  {name}: {tl.total:.1f} s  " + "  ".join(f"{s.key} {t1 - t0:.1f}" for t0, t1, s in tl.spans))
+    for name, L, out in jobs:
+        if a.only and name not in a.only:
+            continue
+        tl, audio = tls["demo" if name == "demo" else "full"]
+        if a.stills:
+            times = [2.0, 4.5] + [t0 + (t1 - t0) * f for t0, t1, s in tl.spans[1:] for f in (0.35, 0.85)]
+            render(L, tl, None, audio, times, tag=name)
+            continue
         render(L, tl, out, audio); print("  done:", out)
     return 0
 
