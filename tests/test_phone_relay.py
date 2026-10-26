@@ -10,7 +10,7 @@ from websockets.asyncio.server import serve
 
 from alerts import FAMILY_WARNINGS
 from budget import read_ledger
-from phone_relay import Relay
+from phone_relay import PublicQuota, Relay
 from test_live import FakeGnani
 from test_sentinel import FakeResp, make_client
 
@@ -70,7 +70,7 @@ def tts_server(url, kw, n):
     return FakeResp(content=(b"RIFFcloned" if cloned else b"RIFFstandard") + bytes(40))
 
 
-def run(body, tmp_path, script=SCRIPT, family=None):
+def run(body, tmp_path, script=SCRIPT, family=None, public=None):
     async def main():
         fake = FakeGnani(script=list(script), frames_per_segment=10)
         async with serve(fake.handler, "127.0.0.1", 0) as gnani:
@@ -78,10 +78,69 @@ def run(body, tmp_path, script=SCRIPT, family=None):
             client, tts_calls = make_client(tmp_path, tts_server)
             relay = Relay("test-key", key=KEY, lang="en-IN", gnani_url=f"ws://127.0.0.1:{port}", client=client,
                           family=family, save_dir=None, pace=False, flush_seconds=0.1, drain_timeout=2,
-                          settle_seconds=0.1)
+                          settle_seconds=0.1, public=public)
             async with TestClient(TestServer(relay.app())) as http:
                 return await body(http, fake, tts_calls)
     return asyncio.run(main())
+
+
+# ---- public demo: no key, one-device speakerphone listener only, within a daily credit limit ----------------
+
+def test_public_quota_reserves_settles_and_resets_each_day():
+    now = [1_800_000_000.0]
+    q = PublicQuota(daily_credits=2.0, max_seconds=100, rate=0.01, per_ip_seconds=300, clock=lambda: now[0])
+    held, why = q.reserve("1.1.1.1")
+    assert held == 1.0 and why is None and q.left() == 1.0          # the longest session is held up front
+    assert q.reserve("1.1.1.1")[1].startswith("Please wait")          # one free call per visitor every 5 minutes
+    q.settle(held, 30)                                                # only 30 s were really streamed
+    assert abs(q.left() - 1.7) < 1e-9
+    assert q.reserve("2.2.2.2")[1] is None and q.reserve("3.3.3.3")[1].startswith("Today's free")   # 1.7 - 1.0 < 1.0
+    now[0] += 24 * 3600                                               # next day in India: a fresh limit
+    assert q.left() == 2.0 and q.reserve("1.1.1.1")[1] is None
+    assert not PublicQuota(0, 120, 0.007).enabled
+
+
+def test_without_public_demo_no_key_means_no_live_call(tmp_path):
+    async def body(http, fake, _):
+        assert (await http.get("/info")).status == 403
+        assert (await http.get("/ws/call?role=listener")).status == 403
+        assert fake.connections == []
+    run(body, tmp_path)
+
+
+def test_public_demo_allows_only_the_listener_and_counts_credits(tmp_path):
+    quota = PublicQuota(daily_credits=5.0, max_seconds=60, rate=0.01)
+    async def body(http, fake, _):
+        info = await (await http.get("/info")).json()
+        assert info["public"] is True and info["roles"] == ["listener"] and info["max_seconds"] == 60
+        for role in ("receiver", "caller"):                           # never pair strangers in a two-phone call
+            assert (await http.get(f"/ws/call?role={role}")).status == 403
+        assert (await http.get("/ws/guardian")).status == 403 and (await http.get("/ws/ops")).status == 403
+        ws = await http.ws_connect("/ws/call?role=listener&lang=en-IN")
+        seen, _ = await receive_until(ws, "connected")
+        assert seen[-1]["max_seconds"] == 60                         # the shorter public cap
+        assert abs(quota.left() - 4.4) < 1e-9                         # 60 s x 0.01 held while the call runs
+        for i in range(30):
+            await ws.send_bytes(frame(i))
+        await ws.send_json({"type": "hangup"}); await ws.close()
+        for _ in range(100):
+            if quota.left() > 4.4:
+                break
+            await asyncio.sleep(0.05)
+        assert 4.4 < quota.left() <= 5.0                              # settled with the seconds really streamed
+    run(body, tmp_path, public=quota)
+
+
+def test_the_key_holder_takes_the_line_from_a_public_session(tmp_path):
+    async def body(http, fake, _):
+        public = await http.ws_connect("/ws/call?role=listener&lang=en-IN")
+        await receive_until(public, "connected")
+        mine = await http.ws_connect(f"/ws/call?role=listener&lang=en-IN&key={KEY}")
+        seen, _ = await receive_until(public, "ended")
+        assert "needed for a live demo" in seen[-1]["reason"]
+        seen, _ = await receive_until(mine, "connected")             # the private demo gets the line
+        await mine.close()
+    run(body, tmp_path, public=PublicQuota(daily_credits=5.0, max_seconds=60, rate=0.01))
 
 
 def test_wrong_key_is_refused_everywhere(tmp_path):
