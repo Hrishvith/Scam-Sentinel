@@ -56,8 +56,8 @@ def test_tricks_are_ranked_and_labelled():
 def test_checker_scores_typed_words_for_free(tmp_path):
     async def body(http, fake, _):
         assert "Spot the scam" in await (await http.get("/practice")).text()
-        assert (await http.post("/api/check?key=nope", json={"text": "hi"})).status == 403
-        res = await (await http.post(f"/api/check?key={KEY}", json={
+        assert (await http.post("/api/check", json={"text": "hi"})).status == 200   # free check: no key needed
+        res = await (await http.post("/api/check", json={
             "text": "This is the police. We have arrested your son. Transfer five lakh rupees now.", "lang": "en-IN"})).json()
         assert res["level"] == "high" and res["scam_type"] == "family_emergency"
         assert res["tip"].startswith("Police never ask") and any(t["id"] == "authority" for t in res["tricks"])

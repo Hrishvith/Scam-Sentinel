@@ -1,0 +1,5 @@
+# Only what the hosted website needs (phone_relay.py): pages, Practice, Real scams and the live calling line.
+# The full requirements.txt adds the laptop tools (Streamlit demo, microphone capture, charts, tests).
+aiohttp==3.10.11
+requests==2.34.2
+websockets==15.0.1
