@@ -156,9 +156,8 @@ class Relay:
                             headers={"Cache-Control": "no-store"})
 
     async def check(self, request: web.Request) -> web.Response:
-        """Practice page: score typed words with the offline rule detector. Free: no Gnani call, nothing saved."""
-        if not self.authorised(request):
-            raise web.HTTPForbidden(text="bad key")
+        """Practice page: score typed words with the offline rule detector. Free: no Gnani call, nothing saved.
+        Open without a key, so public visitors can use Practice and Real scams; only live calls need the key."""
         try:
             body = await request.json()
         except (ValueError, UnicodeDecodeError):
@@ -499,21 +498,26 @@ def main(argv: list[str] | None = None) -> None:
     if not est.ok:
         raise SystemExit(est.reason)
 
-    key = secrets.token_urlsafe(9)
-    tunnel, public = (start_tunnel(args.port) if args.tunnel else (None, None))
+    # Hosted (e.g. Render): the host sets PORT, the access key comes from SENTINEL_KEY so the private links
+    # survive restarts, and RENDER_EXTERNAL_URL is the public https address. On the laptop nothing changes.
+    hosted = bool(os.getenv("PORT"))
+    port = int(os.getenv("PORT", args.port))
+    key = os.getenv("SENTINEL_KEY") or secrets.token_urlsafe(9)
+    shown = "<SENTINEL_KEY>" if os.getenv("SENTINEL_KEY") else key      # never print a key set by the host
+    tunnel, public = (start_tunnel(port) if args.tunnel else (None, os.getenv("RENDER_EXTERNAL_URL")))
     relay = Relay(api_key, key=key, lang=args.lang, max_seconds=args.max_seconds, family=family, public_url=public,
                   guard=not args.no_guard)
-    base = public or f"http://localhost:{args.port}"
-    print(f"\nOperator dashboard (open on this laptop): http://localhost:{args.port}/operator?key={key}")
-    print(f"Receiver phone (protected): {base}/?role=receiver&key={key}")
-    print(f"Caller phone (simulated scammer): {base}/?role=caller&key={key}")
-    print(f"Family guardian's phone: {base}/guardian?key={key}")
-    print(f"Speakerphone listener (real calls; on this laptop): http://localhost:{args.port}/?role=listener&key={key}")
+    base = public or f"http://localhost:{port}"
+    print(f"\nOperator dashboard: {base if hosted else f'http://localhost:{port}'}/operator?key={shown}")
+    print(f"Receiver phone (protected): {base}/?role=receiver&key={shown}")
+    print(f"Caller phone (simulated scammer): {base}/?role=caller&key={shown}")
+    print(f"Family guardian's phone: {base}/guardian?key={shown}")
+    print(f"Speakerphone listener (real calls): {base if hosted else f'http://localhost:{port}'}/?role=listener&key={shown}")
     if not public:
         print("(No --tunnel: phones cannot reach localhost and need https for the microphone.)")
     print("Ctrl+C to stop.\n")
     try:
-        web.run_app(relay.app(), host="127.0.0.1", port=args.port, print=None)
+        web.run_app(relay.app(), host="0.0.0.0" if hosted else "127.0.0.1", port=port, print=None)
     finally:
         if tunnel:
             tunnel.terminate()
