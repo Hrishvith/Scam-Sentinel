@@ -46,7 +46,7 @@ from pathlib import Path
 from aiohttp import WSMsgType, web
 
 from alerts import GUARD_WARNINGS, HELPLINE, lang_key, scam_label, scam_tip, top_reasons, tricks
-from budget import Budget
+from budget import Budget, load_rates
 from detector import Detection, detect_rules
 from family_voice import load_profile
 from gnani_client import BudgetExceeded, GnaniClient
@@ -58,6 +58,51 @@ WEB = HERE / "web"
 RATE = 16000                      # browsers send 16 kHz mono s16le, 20 ms per message
 ROLES = ("caller", "receiver", "listener")   # listener: a device next to a real call on speaker
 LANGS = {"kn-IN": "ಕನ್ನಡ", "hi-IN": "हिन्दी", "en-IN": "English"}
+
+
+class PublicQuota:
+    """Public demo (no key): only the one-device speakerphone listener, within a daily credit limit.
+
+    The two-phone call stays private: the relay carries one call at a time, so a public caller could otherwise
+    be connected to a stranger. Credits are reserved for the longest public session before it starts and settled
+    with the seconds actually streamed. The count lives in memory: a restart (deploy, or the free host waking up)
+    starts a fresh day's count, so keep the service awake (an uptime pinger) for the limit to hold."""
+
+    def __init__(self, daily_credits: float, max_seconds: float, rate: float, per_ip_seconds: float = 300.0,
+                 clock=time.time):
+        self.daily, self.max_seconds, self.rate, self.per_ip = daily_credits, max_seconds, rate, per_ip_seconds
+        self.clock, self.day, self.used, self.last_start = clock, None, 0.0, {}
+
+    @property
+    def enabled(self) -> bool:
+        return self.daily > 0 and self.max_seconds > 0
+
+    def _roll(self) -> None:
+        day = time.strftime("%Y-%m-%d", time.gmtime(self.clock() + 5.5 * 3600))     # the day in India (IST)
+        if day != self.day:
+            self.day, self.used, self.last_start = day, 0.0, {}
+
+    def left(self) -> float:
+        self._roll()
+        return max(0.0, self.daily - self.used)
+
+    def reserve(self, ip: str) -> tuple[float, str | None]:
+        """(credits reserved, None) or (0, reason)."""
+        self._roll()
+        need = self.max_seconds * self.rate
+        if self.used + need > self.daily:
+            return 0.0, "Today's free live demo time is used up. Please try again tomorrow, or try Practice."
+        last = self.last_start.get(ip)
+        if last is not None and self.clock() - last < self.per_ip:
+            wait = int((self.per_ip - (self.clock() - last)) // 60) + 1
+            return 0.0, f"Please wait about {wait} minute(s) before the next free demo call."
+        self.used += need
+        self.last_start[ip] = self.clock()
+        return need, None
+
+    def settle(self, reserved: float, seconds: float) -> None:
+        self._roll()
+        self.used = max(0.0, self.used - reserved + min(seconds, self.max_seconds) * self.rate)
 
 
 class Call:
@@ -78,6 +123,9 @@ class Call:
         self.receiver_muted = False                # set by the guard: their voice no longer reaches the caller
         self.caller_lines: list[str] = []          # last few things the caller said (for the guardian)
         self.digit_watch: DigitWatch | None = None # speakerphone listener: the OTP guard on the mixed audio
+        self.public = False                        # a no-key demo session (speakerphone listener only)
+        self.reserved = 0.0                        # credits held for it in the public quota
+        self.max_seconds: float | None = None      # per-call cap (shorter for public sessions)
 
     def protected(self) -> web.WebSocketResponse | None:
         """The phone that gets the warnings: the receiver, or the speakerphone listener."""
@@ -90,12 +138,13 @@ class Relay:
     def __init__(self, api_key: str, *, key: str, lang: str = "kn-IN", max_seconds: float = 300.0,
                  family: dict | None = None, gnani_url: str = WS_URL, client: GnaniClient | None = None,
                  save_dir: Path | None = SESSIONS_DIR, public_url: str | None = None, pace: bool = True,
-                 guard: bool = True, **session_opts):
+                 guard: bool = True, public: PublicQuota | None = None, **session_opts):
         self.api_key, self.key, self.lang, self.max_seconds = api_key, key, lang, max_seconds
         self.guard = guard                         # offer the OTP guard on the protected phone
         self.family, self.gnani_url, self.save_dir, self.pace = family, gnani_url, save_dir, pace
         self.client = client or GnaniClient(api_key)
         self.public_url = public_url
+        self.public = public or PublicQuota(0, 0, 0)   # off unless configured
         self.session_opts = session_opts           # e.g. faster flush timings in tests
         self.call = Call()
         self.ops: set[web.WebSocketResponse] = set()
@@ -173,16 +222,23 @@ class Relay:
 
     async def info(self, request: web.Request) -> web.Response:
         if not self.authorised(request):
-            raise web.HTTPForbidden(text="bad key")
+            if not self.public.enabled:
+                raise web.HTTPForbidden(text="bad key")
+            return web.json_response({"public": True, "roles": ["listener"], "lang": self.lang, "langs": LANGS,
+                                      "family": None, "max_seconds": self.public.max_seconds, "guard": self.guard,
+                                      "minutes_left": round(self.public.left() / self.public.rate / 60, 1)})
         return web.json_response({"public_url": self.public_url, "lang": self.lang, "langs": LANGS,
                                   "family": self.family["name"] if self.family else None,
                                   "max_seconds": self.max_seconds, "guard": self.guard})
 
     # ---- call websocket ---------------------------------------------------------------------
     async def call_ws(self, request: web.Request) -> web.WebSocketResponse:
-        if not self.authorised(request):
-            raise web.HTTPForbidden(text="bad key")
+        keyed = self.authorised(request)
         role = request.query.get("role")
+        if not keyed and not (self.public.enabled and role == "listener"):
+            raise web.HTTPForbidden(text="bad key")
+        if keyed and self.call.public and self.call.peers:
+            await self.end_public_call()               # the private demo always gets the line
         if role not in ROLES:
             raise web.HTTPBadRequest(text="role must be caller, receiver or listener")
         lang = request.query.get("lang", self.lang)
@@ -194,6 +250,10 @@ class Relay:
         busy = (f"Someone is already connected as the {role}." if role in call.peers else
                 "The line is busy with another call." if call.peers and (role == "listener" or "listener" in call.peers)
                 else None)
+        if not busy and not keyed:
+            reserved, busy = self.public.reserve(self.client_ip(request))
+            if not busy:
+                call.public, call.reserved, call.max_seconds = True, reserved, self.public.max_seconds
         if busy:
             await ws.send_json({"type": "error", "message": busy})
             await ws.close()
@@ -201,7 +261,7 @@ class Relay:
         call.peers[role] = ws
         if role in ("receiver", "listener"):
             call.lang = lang
-            call.use_family = request.query.get("family") == "1" and self.family is not None
+            call.use_family = request.query.get("family") == "1" and self.family is not None and keyed
             call.use_guard = request.query.get("guard") == "1" and self.guard
         await self.broadcast_ops({"type": "peer", "role": role, "joined": True})
         await ws.send_json({"type": "waiting", "role": role})
@@ -239,7 +299,8 @@ class Relay:
         def on_event(e: LiveEvent) -> None:   # LiveSession runs on this loop: schedule the sends
             loop.create_task(self.forward(call, e))
 
-        session = LiveSession(self.api_key, call.lang, RATE, on_event=on_event, max_seconds=self.max_seconds,
+        limit = call.max_seconds or self.max_seconds
+        session = LiveSession(self.api_key, call.lang, RATE, on_event=on_event, max_seconds=limit,
                               url=self.gnani_url, save_dir=self.save_dir, source_name="phone-relay",
                               pace=self.pace, **self.session_opts)
         call.session = session
@@ -249,7 +310,7 @@ class Relay:
         warnings = {lvl: base64.b64encode(a).decode() for lvl, a in player.audio.items()}
         for role, ws in call.peers.items():
             await ws.send_json({"type": "connected", "role": role, "lang": call.lang,
-                                "max_seconds": self.max_seconds, "guard": call.use_guard,
+                                "max_seconds": limit, "guard": call.use_guard,
                                 "guardians": len(self.guardians)})
         receiver = call.protected()
         if receiver is not None:
@@ -267,13 +328,14 @@ class Relay:
             def on_guard(e: LiveEvent) -> None:
                 loop.create_task(self.forward_guard(call, e))
 
-            guard = GuardSession(self.api_key, call.lang, RATE, on_event=on_guard, max_seconds=self.max_seconds,
+            guard = GuardSession(self.api_key, call.lang, RATE, on_event=on_guard, max_seconds=limit,
                                  url=self.gnani_url, save_dir=self.save_dir, source_name="phone-relay-receiver",
                                  pace=self.pace, armed=lambda: bool(session.tracker.det.tactics.keys() & ARMING_TACTICS),
                                  **self.session_opts)
             call.guard_task = asyncio.create_task(self.listen(call, guard, call.receiver_audio, main=False))
 
     async def listen(self, call: Call, session: LiveSession, source: asyncio.Queue, main: bool = True) -> None:
+        summary = None
         try:
             summary = await session.run(self.frames(source))
         except BudgetExceeded as exc:
@@ -282,7 +344,11 @@ class Relay:
                 for ws in list(call.peers.values()):
                     await self.safe_send(ws, {"type": "error", "message": "Protection unavailable (credit limit)."})
             return
-        if main and summary["seconds_streamed"] >= self.max_seconds:
+        finally:
+            if main and call.public:
+                self.public.settle(call.reserved, (summary or {}).get("seconds_streamed", call.max_seconds or 0))
+                call.reserved = 0.0
+        if main and summary["seconds_streamed"] >= (call.max_seconds or self.max_seconds):
             for ws in list(call.peers.values()):
                 await self.safe_send(ws, {"type": "ended", "reason": "time limit"})
                 await ws.close()
@@ -374,6 +440,22 @@ class Relay:
             await self.broadcast(self.guardians, {"type": "call", "state": "ended"})
         if not call.peers:
             self.call = Call()
+
+    @staticmethod
+    def client_ip(request: web.Request) -> str:
+        fwd = request.headers.get("X-Forwarded-For", "")
+        return fwd.split(",")[0].strip() or (request.remote or "?")
+
+    async def end_public_call(self) -> None:
+        """A key holder needs the line: end the public demo session politely and wait until it is gone."""
+        call = self.call
+        for ws in list(call.peers.values()):
+            await self.safe_send(ws, {"type": "ended", "reason": "the line is needed for a live demo. Please try again later"})
+            await ws.close()
+        for _ in range(170):                       # the sessions flush for up to 15 s
+            if self.call is not call or not call.peers:
+                break
+            await asyncio.sleep(0.1)
 
     # ---- operator dashboard -------------------------------------------------------------------
     async def ops_ws(self, request: web.Request) -> web.WebSocketResponse:
@@ -484,6 +566,10 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--prewarm", action="store_true",
                     help="synthesize every warning (3 languages, standard + family) now, so calls start instantly")
     ap.add_argument("--tunnel", action="store_true", help="public https link via cloudflared (for phones)")
+    ap.add_argument("--public-credits", type=float, default=float(os.getenv("PUBLIC_LIVE_CREDITS", "0")),
+                    help="daily credits for the public (no-key) speakerphone demo; 0 = off")
+    ap.add_argument("--public-seconds", type=float, default=float(os.getenv("PUBLIC_LIVE_SECONDS", "120")),
+                    help="longest public demo session")
     ap.add_argument("--no-guard", action="store_true",
                     help="do not offer the OTP guard (halves the listening cost of a call)")
     args = ap.parse_args(argv)
@@ -506,8 +592,13 @@ def main(argv: list[str] | None = None) -> None:
     key = os.getenv("SENTINEL_KEY") or secrets.token_urlsafe(9)
     shown = "<SENTINEL_KEY>" if os.getenv("SENTINEL_KEY") else key      # never print a key set by the host
     tunnel, public = (start_tunnel(port) if args.tunnel else (None, os.getenv("RENDER_EXTERNAL_URL")))
+    rate = load_rates().get("stt_stream_credits_per_audio_second") or 0.0073
+    quota = PublicQuota(args.public_credits, min(args.public_seconds, args.max_seconds), rate)
     relay = Relay(api_key, key=key, lang=args.lang, max_seconds=args.max_seconds, family=family, public_url=public,
-                  guard=not args.no_guard)
+                  guard=not args.no_guard, public=quota)
+    if quota.enabled:
+        print(f"Public speakerphone demo: up to {quota.daily:g} credits a day (~{quota.daily / rate / 60:.0f} min), "
+              f"{quota.max_seconds:g} s per session")
     base = public or f"http://localhost:{port}"
     print(f"\nOperator dashboard: {base if hosted else f'http://localhost:{port}'}/operator?key={shown}")
     print(f"Receiver phone (protected): {base}/?role=receiver&key={shown}")

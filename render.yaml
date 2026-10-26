@@ -14,3 +14,9 @@ services:
         sync: false
       - key: SENTINEL_KEY
         generateValue: true
+      # public demo without a key: only the one-phone speakerphone listener, at most this many credits a day
+      # (about 16 minutes), each session at most PUBLIC_LIVE_SECONDS; 0 turns it off
+      - key: PUBLIC_LIVE_CREDITS
+        value: "7"
+      - key: PUBLIC_LIVE_SECONDS
+        value: "120"
