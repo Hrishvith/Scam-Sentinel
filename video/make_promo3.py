@@ -625,10 +625,10 @@ def draw(L: Layout, tl: Timeline, t: float, readers: dict) -> Image.Image:
         if s.layout == "phone":
             frame, local = media_frame(L, s, lt, d, readers, scr)
             phone(img, L, frame, zoom=1.0 + 0.035 * min(1, local / 2.5))
-            if s.label:
-                n = len(s.media); idx = min(n - 1, int(lt / (d / n)))
-                if idx == s.label[0]:
-                    screen_label(img, L, s.label[2], s.label[3], s.label[4], s.label[5], ease((local - s.label[1]) / 0.3))
+            n = len(s.media); idx = min(n - 1, int(lt / (d / n)))
+            for lab in ([s.label] if s.label and not isinstance(s.label[0], tuple) else list(s.label)):
+                if idx == lab[0]:
+                    screen_label(img, L, lab[2], lab[3], lab[4], lab[5], ease((local - lab[1]) / 0.3))
             tag(img, L, s.tag)
             y = kinetic(img, L, s.headline, lt, size, L.ty + (66 if not P else 60))
             y = chips_block(img, L, s, lt, d, y + (18 if not P else 10))
@@ -691,6 +691,19 @@ def draw(L: Layout, tl: Timeline, t: float, readers: dict) -> Image.Image:
                     for j, line in enumerate(s.line):
                         put_text(img, (0, L.sub_c + 80 + j * 52), line, 40, "b", WHITE, kl, True)
                 chips_block(img, L, s, lt2, d2, y + 18)
+        elif s.layout == "operator":
+            laptop(img, L, Image.open(SCREENS / "operator.png").convert("RGB"), lt / d)
+            tag(img, L, s.tag)
+            y = kinetic(img, L, s.headline, lt, size, L.ty + 66)
+            chips_block(img, L, s, lt, d, y + 18)
+        elif s.layout == "statement":
+            k = ease((lt - 0.1) / 0.4)
+            y = int(L.H * (0.24 if not P else 0.3))
+            for j, (line, sz) in enumerate(s.line):
+                put_text(img, (0, y), line, sz if not P else int(sz * 0.8), alpha=ease((lt - 0.1 - 0.25 * j) / 0.4), center=True)
+                y += int((sz if not P else sz * 0.8) * 1.35)
+                if j + 1 < len(s.line) and s.line[j + 1][1] != sz:
+                    y += 50                                    # a gap before a line of a different size
         elif s.layout in ("laptop", "results"):
             split = OPERATOR if s.layout == "laptop" else 0.0
             if lt < split:                            # a short shot: headline and chips are shown at once, not animated in
@@ -701,7 +714,7 @@ def draw(L: Layout, tl: Timeline, t: float, readers: dict) -> Image.Image:
             else:
                 cards(img, L, lt - split, CARDS_NOTE_DEMO, 34 if P else 32)
         elif s.layout == "close":
-            end_card(img, L, lt, d, big_footer=tl.name == "demo")
+            end_card(img, L, lt, d, big_footer=tl.name != "full")
     if s.layout != "close":
         sub = next((x for x in tl.subs if x[0] <= t < x[1] + 0.12), None)
         if sub:
