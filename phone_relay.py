@@ -135,7 +135,8 @@ class Relay:
         return handler
 
     def authorised(self, request: web.Request) -> bool:
-        return secrets.compare_digest(request.query.get("key", ""), self.key)
+        # compared as bytes: compare_digest raises on non-ASCII text (e.g. a key pasted with a hidden BOM), which was a 500
+        return secrets.compare_digest(request.query.get("key", "").encode("utf-8"), self.key.encode("utf-8"))
 
     async def manifest(self, request: web.Request) -> web.Response:
         """Lets a phone add the page to its home screen as an app that opens straight into its role."""

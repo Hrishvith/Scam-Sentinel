@@ -86,7 +86,8 @@ def run(body, tmp_path, script=SCRIPT, family=None):
 
 def test_wrong_key_is_refused_everywhere(tmp_path):
     async def body(http, fake, _):
-        for path in ("/ws/call?role=caller&key=nope", "/ws/ops?key=nope", "/info?key=nope"):
+        for path in ("/ws/call?role=caller&key=nope", "/ws/ops?key=nope", "/info?key=nope",
+                     "/info?key=%EF%BB%BFnope", "/info?key=%E0%B2%95"):          # hidden BOM, Kannada letter: 403, not 500
             assert (await http.get(path)).status == 403
         assert fake.connections == []
     run(body, tmp_path)
