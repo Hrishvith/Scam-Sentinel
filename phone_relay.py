@@ -566,7 +566,10 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--prewarm", action="store_true",
                     help="synthesize every warning (3 languages, standard + family) now, so calls start instantly")
     ap.add_argument("--tunnel", action="store_true", help="public https link via cloudflared (for phones)")
-    ap.add_argument("--public-credits", type=float, default=float(os.getenv("PUBLIC_LIVE_CREDITS", "0")),
+    # on Render (which sets RENDER=true) the public demo is on at 7 credits a day unless PUBLIC_LIVE_CREDITS says
+    # otherwise; on the laptop it is off unless asked for
+    ap.add_argument("--public-credits", type=float,
+                    default=float(os.getenv("PUBLIC_LIVE_CREDITS", "7" if os.getenv("RENDER") else "0")),
                     help="daily credits for the public (no-key) speakerphone demo; 0 = off")
     ap.add_argument("--public-seconds", type=float, default=float(os.getenv("PUBLIC_LIVE_SECONDS", "120")),
                     help="longest public demo session")
