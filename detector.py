@@ -52,23 +52,65 @@ def _otp_requests(plain: str) -> list[str]:
     hits = []
     for phrase, rx in _ASK:
         for m in rx.finditer(plain):
-            if _NEGATION.search(plain[max(0, m.start() - 25):m.start()]):
-                continue      # "don't share your OTP", "never tell", "मत बताइए"
+            if _NEGATION.search(plain[max(0, m.start() - 25):m.start()]) or _negated(plain, *m.span()):
+                continue      # "don't share your OTP", "never tell", "मत बताइए", "never ask you to ... share your OTP"
             if any(s - NEAR <= m.end() and m.start() <= e + NEAR for s, e in spans):
                 hits.append(phrase)
                 break
     return hits
 
 
+# "We will NEVER ask you to transfer money" / "पैसे ट्रांसफर मत कीजिए" / "ಹಣ ಟ್ರಾನ್ಸ್‌ಫರ್ ಮಾಡಬೇಡಿ" is safety advice,
+# not a money request. A match only counts as negated when the words between the negation and it are harmless
+# fillers, so "don't worry, just transfer the money", "don't tell anyone, send money" and "transfer karo, nahin to
+# arrest" (otherwise you'll be arrested) still count.
+_FILLER_EN = (r"(?:will|would|ever|also|ask|asks|asked|asking|request|requests|want|need|you|your|anyone|"
+              r"any|to|for|or|and|us|we|the|a|an|someone|people|them|this|that|share|send|transfer|pay|give|"
+              r"download|install|open|use|click|kabhi|bhi|aapse|aap|ko|se)")
+_NEG_BEFORE = re.compile(r"(?<!\S)(?:not|never|dont|don['’]t|won['’]t|wont|shouldn['’]t|shouldnt|cannot|can['’]t)"
+                         rf"(?:\s+{_FILLER_EN})*\s*$")
+# "never ask you to/for ..." covers the rest of the sentence ("...download AnyDesk or share your OTP"),
+# unless a new instruction starts ("I will never ask for money, JUST download AnyDesk").
+_NEVER_ASK = re.compile(r"(?<!\S)(?:not|never|dont|don['’]t|won['’]t|wont)\s+(?:ever\s+)?(?:ask|asks|request|requests)"
+                        r"\s+(?:you\s+|anyone\s+|customers\s+)?(?:to|for)\s+(?:(?!just|only|but|bas|sirf|lekin)[^.!?])*$")
+_NEG_AFTER_HI = re.compile(r"^\s*(?:(?:करने|करना|करें|करे|कीजिए|करो|को|के|लिए|आपसे|कभी|भी|कहेगा|कहेंगे|कहते|"
+                           r"मांगेगा|मांगेंगे|मांगता|मांगते)\s*){0,4}(?:मत|न|ना|नहीं)(?!\S)(?!\s*तो)")
+_NEG_AFTER_KN = re.compile(r"^\s*(?:\S+\s+){0,2}\S*(?:ಬೇಡಿ|ಬೇಡ|ಬಾರದು|ಲ್ಲ)(?!\S)")
+
+
+def _negated(plain: str, start: int, end: int) -> bool:
+    """Is this match the object of a nearby negation ("never ask you to <match>", "<match> मत/ಬೇಡಿ")?"""
+    before = plain[max(0, start - 60):start]
+    after = plain[end:end + 40]
+    return bool(_NEG_BEFORE.search(before) or _NEVER_ASK.search(plain[max(0, start - 90):start])
+                or _NEG_AFTER_HI.match(after) or _NEG_AFTER_KN.match(after))
+
+
+def _drop_negated(found: dict[str, list[str]], plain: str) -> list[str]:
+    """Remove money / app-install requests whose every match is negated. Returns the tactics removed."""
+    dropped = []
+    for name in ("payment", "remote_access"):
+        if name not in found:
+            continue
+        kept = [kw for kw, rx in _PATTERNS[name] if kw in found[name]
+                and any(not _negated(plain, *m.span()) for m in rx.finditer(plain))]
+        if kept:
+            found[name] = kept
+        else:
+            del found[name]
+            dropped.append(name)
+    return dropped
+
+
 ADVICE_NEAR = 40  # characters between an OTP/PIN word and the "tell nobody" that follows it
 _ABOUT_CALL = re.compile(r"ಕರೆ|ವಿಷಯ|ಲೈನ್|कॉल|बात|बारे|लाइन|call|matter|line|this")
 
 
-def _secrecy_is_otp_advice(plain: str) -> bool:
+def _secrecy_is_otp_advice(plain: str, aware: bool = False) -> bool:
     """"Tell nobody your OTP" (ಒಟಿಪಿ ಯಾರಿಗೂ ಹೇಳಬೇಡಿ) in a safety message is advice, not "keep this call secret".
 
     True only when the text has a safety phrase and every secrecy match comes just after an OTP/PIN word."""
-    if not any(rx.search(plain) for rx in _SAFETY):
+    if not aware and not any(rx.search(plain) for rx in _SAFETY):
         return False
     ends = [m.end() for _, rx in _PATTERNS["credentials"] for m in rx.finditer(plain)]
     spans = [m.span() for _, rx in _PATTERNS["secrecy"] for m in rx.finditer(plain)]
@@ -128,11 +170,14 @@ def detect_rules(text: str) -> Detection:
         hits = [kw for kw, rx in pats if rx.search(plain)]
         if hits:
             found[name] = hits
+    notes: list[str] = []
+    if dropped := _drop_negated(found, plain):
+        notes.append("A request for " + " / ".join("money" if d == "payment" else "app access" for d in dropped)
+                     + " was negated (\"never ask you to...\"), so it was not counted.")
     if "credentials" in found and (asked := _otp_requests(plain)):
         found["otp_request"] = asked
 
-    notes: list[str] = []
-    if "secrecy" in found and "otp_request" not in found and _secrecy_is_otp_advice(plain):
+    if "secrecy" in found and "otp_request" not in found and _secrecy_is_otp_advice(plain, aware=bool(dropped)):
         del found["secrecy"]
         notes.append("\"Tell nobody\" was about the OTP itself (safety advice), so it was not counted as secrecy.")
     weights = {name: TACTICS[name]["weight"] for name in found}
@@ -140,7 +185,7 @@ def detect_rules(text: str) -> Detection:
     # and a direct "tell me the OTP" is never excused by an earlier "don't share".
     context = None
     if "credentials" in weights and not found.keys() & ESCALATION:
-        if "otp_request" not in found and any(rx.search(plain) for rx in _SAFETY):
+        if "otp_request" not in found and (dropped or any(rx.search(plain) for rx in _SAFETY)):
             context = "Sounds like an awareness message (\"never share\"), so OTP/PIN weight was reduced."
         elif any(rx.search(plain) for rx in _DELIVERY):
             context = "Sounds like a delivery hand-over OTP, so OTP weight was reduced."

@@ -89,7 +89,7 @@ TACTICS: dict[str, dict] = {
                      "वेरिफिकेशन राशि",
                      "transfer money", "send money", "transfer the amount", "safe account", "verification amount",
                      "upi", "u p i", "gift card", "bitcoin", "pay immediately",
-                     "re:\\b(transfer|send|pay)\\s+(\\w+\\s+){0,3}(rupees|lakh|lakhs|thousand|crore)\\b",
+                     "re:\\b(transfer|send|pay)\\s+(\\w+\\s+){0,5}(rupees|lakh|lakhs|thousand|crore)\\b",
                      # Hinglish
                      "paise transfer", "paise bhejo", "paise bhej do", "paisa transfer"],
     },
