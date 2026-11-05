@@ -34,6 +34,7 @@ import argparse
 import asyncio
 import base64
 import json
+import math
 import os
 import re
 import secrets
@@ -68,7 +69,7 @@ class PublicQuota:
     with the seconds actually streamed. The count lives in memory: a restart (deploy, or the free host waking up)
     starts a fresh day's count, so keep the service awake (an uptime pinger) for the limit to hold."""
 
-    def __init__(self, daily_credits: float, max_seconds: float, rate: float, per_ip_seconds: float = 300.0,
+    def __init__(self, daily_credits: float, max_seconds: float, rate: float, per_ip_seconds: float = 90.0,
                  clock=time.time):
         self.daily, self.max_seconds, self.rate, self.per_ip = daily_credits, max_seconds, rate, per_ip_seconds
         self.clock, self.day, self.used, self.last_start = clock, None, 0.0, {}
@@ -94,8 +95,8 @@ class PublicQuota:
             return 0.0, "Today's free live demo time is used up. Please try again tomorrow, or try Practice."
         last = self.last_start.get(ip)
         if last is not None and self.clock() - last < self.per_ip:
-            wait = int((self.per_ip - (self.clock() - last)) // 60) + 1
-            return 0.0, f"Please wait about {wait} minute(s) before the next free demo call."
+            wait = math.ceil(self.per_ip - (self.clock() - last))
+            return 0.0, f"Please wait about {wait} seconds before the next free demo call."
         self.used += need
         self.last_start[ip] = self.clock()
         return need, None

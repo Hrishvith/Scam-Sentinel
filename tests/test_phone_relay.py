@@ -102,6 +102,16 @@ def test_public_quota_reserves_settles_and_resets_each_day():
     assert not PublicQuota(0, 120, 0.007).enabled
 
 
+def test_one_network_waits_a_minute_and_a_half_between_public_sessions():
+    now = [1_800_000_000.0]
+    q = PublicQuota(daily_credits=7.0, max_seconds=120, rate=0.0073, clock=lambda: now[0])
+    assert q.reserve("1.1.1.1")[1] is None
+    now[0] += 60
+    assert q.reserve("1.1.1.1")[1].startswith("Please wait about 30 seconds")
+    now[0] += 30
+    assert q.reserve("1.1.1.1")[1] is None
+
+
 def test_without_public_demo_no_key_means_no_live_call(tmp_path):
     async def body(http, fake, _):
         assert (await http.get("/info")).status == 403
