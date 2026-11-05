@@ -263,12 +263,12 @@ class Relay:
             call.lang = lang
             call.use_family = request.query.get("family") == "1" and self.family is not None and keyed
             call.use_guard = request.query.get("guard") == "1" and self.guard
-        await self.broadcast_ops({"type": "peer", "role": role, "joined": True})
-        await ws.send_json({"type": "waiting", "role": role})
-        if len(call.peers) == 2 or role == "listener":
-            await self.start(call)
         other = "receiver" if role == "caller" else "caller"
-        try:
+        try:                                                 # from here on the line is always freed again
+            await self.broadcast_ops({"type": "peer", "role": role, "joined": True})
+            await ws.send_json({"type": "waiting", "role": role})
+            if len(call.peers) == 2 or role == "listener":
+                await self.start(call)
             async for msg in ws:
                 if msg.type == WSMsgType.BINARY:
                     peer = call.peers.get(other)
@@ -438,6 +438,9 @@ class Relay:
                         task.cancel()
             await self.broadcast_ops({"type": "call", "state": "ended"})
             await self.broadcast(self.guardians, {"type": "call", "state": "ended"})
+        if call.reserved and not call.task:                # never got as far as listening: nothing was streamed
+            self.public.settle(call.reserved, 0)
+            call.reserved = 0.0
         if not call.peers:
             self.call = Call()
 

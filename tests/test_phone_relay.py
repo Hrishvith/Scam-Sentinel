@@ -3,11 +3,13 @@ a fake Timbre client. No network, no credits."""
 import asyncio
 import base64
 import json
+import time
 
 from aiohttp import WSMsgType
 from aiohttp.test_utils import TestClient, TestServer
 from websockets.asyncio.server import serve
 
+import phone_relay
 from alerts import FAMILY_WARNINGS
 from budget import read_ledger
 from phone_relay import PublicQuota, Relay
@@ -128,6 +130,29 @@ def test_public_demo_allows_only_the_listener_and_counts_credits(tmp_path):
                 break
             await asyncio.sleep(0.05)
         assert 4.4 < quota.left() <= 5.0                              # settled with the seconds really streamed
+    run(body, tmp_path, public=quota)
+
+
+def test_a_connection_lost_during_start_up_frees_the_line_and_the_credits(tmp_path, monkeypatch):
+    real_prepare = phone_relay.AlertPlayer.prepare
+
+    def slow_prepare(self):
+        time.sleep(0.5)                                               # the warnings being made, on a fresh server
+        return real_prepare(self)
+
+    monkeypatch.setattr(phone_relay.AlertPlayer, "prepare", slow_prepare)
+    quota = PublicQuota(daily_credits=5.0, max_seconds=60, rate=0.01, per_ip_seconds=0)
+    async def body(http, fake, _):
+        ws = await http.ws_connect("/ws/call?role=listener&lang=en-IN")
+        await receive_until(ws, "waiting")
+        ws._response.connection.transport.abort()                     # tab killed or network lost: no goodbye
+        await asyncio.sleep(1.0)
+        assert quota.left() == 5.0                                    # nothing was streamed, nothing is charged
+        monkeypatch.setattr(phone_relay.AlertPlayer, "prepare", real_prepare)
+        next_visitor = await http.ws_connect("/ws/call?role=listener&lang=en-IN")
+        seen, _ = await receive_until(next_visitor, "connected")      # not "Someone is already connected"
+        assert all(m["type"] != "error" for m in seen)
+        await next_visitor.send_json({"type": "hangup"}); await next_visitor.close()
     run(body, tmp_path, public=quota)
 
 
