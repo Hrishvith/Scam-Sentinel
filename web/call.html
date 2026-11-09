@@ -483,12 +483,20 @@ $("start").onclick = async () => {
   if (protectedRole()) setRisk("low", 0);
   const proto = location.protocol === "https:" ? "wss" : "ws";
   const extra = protectedRole() ? `&lang=${lang}&family=${$("fam").checked ? 1 : 0}&guard=${$("guard").checked ? 1 : 0}` : "";
-  ws = new WebSocket(`${proto}://${location.host}/ws/call?role=${role}&key=${encodeURIComponent(key)}${extra}`);
+  ws = new WebSocket(`${proto}://${location.host}/ws/call?role=${role}&key=${encodeURIComponent(key)}&sid=${browserId()}${extra}`);
   ws.binaryType = "arraybuffer";
   capture.port.onmessage = (e) => { if (ws.readyState === 1 && startedAt) ws.send(e.data); };
   ws.onmessage = (e) => (typeof e.data === "string" ? onControl(JSON.parse(e.data)) : player.port.postMessage(e.data, [e.data]));
   ws.onclose = () => { if (startedAt !== null) end(t().ended); };
 };
+
+// One random id per browser: if this page is reopened while its old session still holds the line
+// (phone locked, tab reloaded), the server replaces that session instead of saying the line is busy.
+function browserId() {
+  let id = stored("sentinel-sid");
+  if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); stored("sentinel-sid", id); }
+  return id || (window.__sid ??= Math.random().toString(36).slice(2));
+}
 
 function b64ToBuffer(b64) { const s = atob(b64); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u.buffer; }
 

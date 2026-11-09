@@ -213,6 +213,40 @@ def test_a_public_visitors_call_is_never_written_to_disk(tmp_path):
     assert not saved.exists() or not any(saved.iterdir())
 
 
+def test_reopening_the_page_takes_the_line_back_instead_of_saying_busy(tmp_path):
+    """A locked phone or reloaded tab can leave its old session open: the same browser replaces it."""
+    quota = PublicQuota(daily_credits=5.0, max_seconds=60, rate=0.01)          # 5-minute per-network wait
+    async def body(http, fake, _):
+        old = await http.ws_connect("/ws/call?role=listener&lang=en-IN&sid=phone1")
+        await receive_until(old, "connected")
+        stranger = await http.ws_connect("/ws/call?role=listener&lang=en-IN&sid=phone2")
+        seen, _ = await receive_until(stranger, "error")
+        assert "Someone else is using the free live demo" in seen[-1]["message"]
+        again = await http.ws_connect("/ws/call?role=listener&lang=en-IN&sid=phone1")
+        seen, _ = await receive_until(again, "connected", timeout=20)              # not busy, not "please wait"
+        assert all(m["type"] != "error" for m in seen)
+        ended, _ = await receive_until(old, "ended")
+        assert "opened again" in ended[-1]["reason"]
+        await again.send_json({"type": "hangup"}); await again.close()
+    run(body, tmp_path, public=quota)
+
+
+def test_a_frozen_phone_that_sends_no_audio_frees_the_line(tmp_path, monkeypatch):
+    monkeypatch.setattr(phone_relay, "IDLE_SECONDS", 1.0)
+    monkeypatch.setattr(phone_relay, "WATCH_EVERY", 0.2)
+    quota = PublicQuota(daily_credits=5.0, max_seconds=60, rate=0.01, per_ip_seconds=0)
+    async def body(http, fake, _):
+        frozen = await http.ws_connect("/ws/call?role=listener&lang=en-IN&sid=a")
+        await receive_until(frozen, "connected")                                   # then: screen locked, no audio
+        seen, _ = await receive_until(frozen, "ended", timeout=10)
+        assert "no sound" in seen[-1]["reason"]
+        nxt = await http.ws_connect("/ws/call?role=listener&lang=en-IN&sid=b")
+        seen, _ = await receive_until(nxt, "connected", timeout=10)
+        assert all(m["type"] != "error" for m in seen)
+        await nxt.send_json({"type": "hangup"}); await nxt.close()
+    run(body, tmp_path, public=quota)
+
+
 def test_the_key_holder_takes_the_line_from_a_public_session(tmp_path):
     async def body(http, fake, _):
         public = await http.ws_connect("/ws/call?role=listener&lang=en-IN")

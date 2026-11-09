@@ -59,7 +59,9 @@ WEB = HERE / "web"
 RATE = 16000                      # browsers send 16 kHz mono s16le, 20 ms per message
 ROLES = ("caller", "receiver", "listener")   # listener: a device next to a real call on speaker
 LANGS = {"kn-IN": "ಕನ್ನಡ", "hi-IN": "हिन्दी", "en-IN": "English"}
-AUDIO_BACKLOG = 3000              # 20 ms messages = 60 s of audio waiting for speech recognition, then the oldest go
+IDLE_SECONDS = 20.0               # no audio from the phones for this long: the call is over (frozen or closed tab)
+WATCH_EVERY = 2.0
+AUDIO_BACKLOG = 3000             # 20 ms messages = 60 s of audio waiting for speech recognition, then the oldest go
 
 
 def offer(queue: asyncio.Queue, item: bytes | None) -> None:
@@ -127,14 +129,15 @@ class PublicQuota:
         self._roll()
         return max(0.0, self.daily - self.used)
 
-    def reserve(self, ip: str) -> tuple[float, str | None]:
-        """(credits reserved, None) or (0, reason)."""
+    def reserve(self, ip: str, again: bool = False) -> tuple[float, str | None]:
+        """(credits reserved, None) or (0, reason). `again`: the same browser reopening its own session,
+        which replaces it rather than starting a second one, so the per-network wait does not apply."""
         self._roll()
         need = self.max_seconds * self.rate
         if self.used + need > self.daily:
             return 0.0, "Today's free live demo time is used up. Please try again tomorrow, or try Practice."
         last = self.last_start.get(ip)
-        if last is not None and self.clock() - last < self.per_ip:
+        if not again and last is not None and self.clock() - last < self.per_ip:
             wait = math.ceil(self.per_ip - (self.clock() - last))
             return 0.0, f"Please wait about {wait} seconds before the next free demo call."
         self.used += need
@@ -168,6 +171,9 @@ class Call:
         self.reserved = 0.0                        # credits held for it in the public quota
         self.max_seconds: float | None = None      # per-call cap (shorter for public sessions)
         self.protection = "on"                     # on / paused / off: is speech recognition really listening?
+        self.sids: dict[str, str] = {}             # role -> browser id, so a reopened page can take its line back
+        self.last_audio = 0.0                      # when a phone last sent audio (a frozen tab sends none)
+        self.watchdog: asyncio.Task | None = None
 
     def protected(self) -> web.WebSocketResponse | None:
         """The phone that gets the warnings: the receiver, or the speakerphone listener."""
@@ -308,12 +314,21 @@ class Relay:
             raise web.HTTPBadRequest(text=f"lang must be one of {', '.join(LANGS)}")
         ws = web.WebSocketResponse(heartbeat=20, max_msg_size=4 * 1024 * 1024)
         await ws.prepare(request)
+        sid = request.query.get("sid", "")[:64]          # one id per browser: "this is me again"
+        takeover = bool(sid) and role in self.call.peers and self.call.sids.get(role) == sid
+        if takeover:                                     # reopened or reloaded: replace the old, frozen session
+            await self.end_call("this call was opened again on this device")
         call = self.call
-        busy = (f"Someone is already connected as the {role}." if role in call.peers else
-                "The line is busy with another call." if call.peers and (role == "listener" or "listener" in call.peers)
-                else None)
+        busy = None
+        if role in call.peers or (call.peers and (role == "listener" or "listener" in call.peers)):
+            if call.public and not keyed:
+                wait = max(10, math.ceil((call.max_seconds or 0) - (time.monotonic() - (call.connected_at or time.monotonic())))) + 15
+                busy = f"Someone else is using the free live demo right now. Please try again in about {wait} seconds."
+            else:
+                busy = (f"Someone is already connected as the {role}." if role in call.peers
+                        else "The line is busy with another call.")
         if not busy and not keyed:
-            reserved, busy = self.public.reserve(self.client_ip(request))
+            reserved, busy = self.public.reserve(self.client_ip(request), again=takeover)
             if not busy:
                 call.public, call.reserved, call.max_seconds = True, reserved, self.public.max_seconds
         if busy:
@@ -321,6 +336,7 @@ class Relay:
             await ws.close()
             return ws
         call.peers[role] = ws
+        call.sids[role] = sid
         if role in ("receiver", "listener"):
             call.lang = lang
             call.use_family = request.query.get("family") == "1" and self.family is not None and keyed
@@ -333,6 +349,7 @@ class Relay:
                 await self.start(call)
             async for msg in ws:
                 if msg.type == WSMsgType.BINARY:
+                    call.last_audio = time.monotonic()
                     peer = call.peers.get(other)
                     blocked = role == "receiver" and call.receiver_muted
                     if peer is not None and not peer.closed and call.connected_at and not blocked:
@@ -384,6 +401,8 @@ class Relay:
         await self.broadcast_ops(state)
         await self.broadcast(self.guardians, state)
         call.task = asyncio.create_task(self.listen(call, session, call.caller_audio))
+        call.last_audio = time.monotonic()
+        call.watchdog = asyncio.create_task(self.watch(call, limit))
         if call.use_guard and "listener" in call.peers:
             call.digit_watch = DigitWatch()        # one microphone hears both people: count digits in it
         elif call.use_guard:
@@ -515,6 +534,8 @@ class Relay:
         for ws in list(call.peers.values()):
             await self.safe_send(ws, {"type": "ended", "reason": f"the {role} hung up"})
             await ws.close()
+        if not call.peers and self.call is call:
+            self.call = Call()          # the line is free at once; this call finishes flushing in the background
         if call.connected_at and not call.ended:
             call.ended = True
             offer(call.caller_audio, None)                 # let the sessions flush and finish
@@ -530,8 +551,8 @@ class Relay:
         if call.reserved and not call.task:                # never got as far as listening: nothing was streamed
             self.public.settle(call.reserved, 0)
             call.reserved = 0.0
-        if not call.peers:
-            self.call = Call()
+        if call.watchdog and call.watchdog is not asyncio.current_task():
+            call.watchdog.cancel()
 
     @staticmethod
     def client_ip(request: web.Request) -> str:
@@ -543,9 +564,26 @@ class Relay:
 
     async def end_public_call(self) -> None:
         """A key holder needs the line: end the public demo session politely and wait until it is gone."""
-        call = self.call
+        await self.end_call("the line is needed for a live demo. Please try again later")
+
+    async def watch(self, call: Call, limit: float) -> None:
+        """A phone in the background, a locked screen or a lost network can leave the connection open with no
+        audio coming in. The session's time limit counts audio, so it would never run out: end such calls."""
+        while not call.ended and call.peers:
+            await asyncio.sleep(WATCH_EVERY)
+            if call.ended or not call.peers:
+                return
+            now = time.monotonic()
+            if now - call.last_audio > IDLE_SECONDS:
+                return await self.end_call(f"no sound from this device for {IDLE_SECONDS:.0f} seconds", call)
+            if now - (call.connected_at or now) > limit + 20:
+                return await self.end_call("time limit", call)
+
+    async def end_call(self, reason: str, call: Call | None = None) -> None:
+        """End a call from the server side and wait (up to ~17 s) until its phones are gone."""
+        call = call or self.call
         for ws in list(call.peers.values()):
-            await self.safe_send(ws, {"type": "ended", "reason": "the line is needed for a live demo. Please try again later"})
+            await self.safe_send(ws, {"type": "ended", "reason": reason})
             await ws.close()
         for _ in range(170):                       # the sessions flush for up to 15 s
             if self.call is not call or not call.peers:
