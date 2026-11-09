@@ -1,9 +1,12 @@
 """Paraphrases the rules were not written from, including the two cases an independent audit (9 Nov 2026)
 typed into the public Practice page: a reworded OTP request that scored low, and police safety advice that
 scored as a likely scam. Every scam here must at least raise "suspicious"; no safety message may."""
+import re
+
 import pytest
 
 from detector import detect_rules
+from live import RiskTracker
 
 SCAMS = [
     # audit case 1: "verification code" instead of "OTP"
@@ -31,6 +34,41 @@ SAFE = [
     "कभी भी किसी को अपना ओटीपी शेयर मत करें, बैंक कभी नहीं मांगता",
     "ಯಾರಿಗೂ ನಿಮ್ಮ ಒಟಿಪಿ ಹಂಚಿಕೊಳ್ಳಬೇಡಿ",
 ]
+
+
+# Kannada / Hindi caution calls that raised scam alerts on the live site (reported 10 Nov 2026). They must stay
+# quiet as a whole AND as live speech arrives, one pause-separated piece at a time.
+CAUTIONS = [
+    "ನಮಸ್ಕಾರ, ನಿಮ್ಮ ಒಟಿಪಿಯನ್ನು ಯಾರಿಗೂ ಹೇಳಬೇಡಿ. ಬ್ಯಾಂಕ್ ಯಾವತ್ತೂ ಒಟಿಪಿ ಕೇಳುವುದಿಲ್ಲ.",
+    "ಪೊಲೀಸ್ ಇಲಾಖೆಯ ಸೂಚನೆ: ಒಟಿಪಿ ಯಾರಿಗೂ ಹೇಳಬೇಡಿ, ಹಣ ಕಳುಹಿಸಬೇಡಿ, ಎನಿಡೆಸ್ಕ್ ಆ್ಯಪ್ ಇನ್ಸ್ಟಾಲ್ ಮಾಡಬೇಡಿ.",
+    "ಆರ್‌ಬಿಐ ಸೂಚನೆ. ನಿಮ್ಮ ಒಟಿಪಿ, ಪಿನ್, ಸಿವಿವಿ ಯಾರಿಗೂ ಕೊಡಬೇಡಿ. ಅನುಮಾನ ಬಂದರೆ 1930 ಗೆ ಕರೆ ಮಾಡಿ.",
+    "ಯಾರಾದರೂ ಕರೆ ಮಾಡಿ ಒಟಿಪಿ ಕೇಳಿದರೆ ಹೇಳಬೇಡಿ, ಅದು ಮೋಸ. ಕರೆ ಕಟ್ ಮಾಡಿ.",
+    "ಸೈಬರ್ ಕ್ರೈಮ್ ಪೊಲೀಸರಿಂದ ಎಚ್ಚರಿಕೆ: ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್ ಎಂಬುದು ಇಲ್ಲ. ಯಾರಿಗೂ ಒಟಿಪಿ ಅಥವಾ ಹಣ ಕೊಡಬೇಡಿ.",
+    "ಇದು ನಿಮ್ಮ ಬ್ಯಾಂಕಿನಿಂದ ಒಂದು ಮುಖ್ಯ ಸೂಚನೆ. ನಿಮ್ಮ ಒಟಿಪಿ, ಪಿನ್ ಅಥವಾ ಪಾಸ್ವರ್ಡ್ ಅನ್ನು ಯಾರೊಂದಿಗೂ ಹಂಚಿಕೊಳ್ಳಬೇಡಿ.",
+    "नमस्ते, अपना ओटीपी किसी को मत बताइए। बैंक कभी भी ओटीपी नहीं मांगता।",
+    "पुलिस की चेतावनी: ओटीपी किसी को न बताएं, पैसे ट्रांसफर न करें, एनीडेस्क ऐप इंस्टॉल न करें।",
+    "आरबीआई की सलाह। अपना ओटीपी, पिन, सीवीवी किसी को मत दीजिए। शक हो तो 1930 पर कॉल करें।",
+    "अगर कोई फ़ोन करके ओटीपी मांगे तो मत बताइए, यह धोखा है। कॉल काट दीजिए।",
+    "साइबर क्राइम पुलिस की चेतावनी: डिजिटल अरेस्ट जैसा कुछ नहीं होता। किसी को ओटीपी या पैसे मत दीजिए।",
+    "ओटीपी किसी को भी नहीं बताना है, बैंक वाले को भी नहीं।",
+    "RBI says: do not give your OTP, PIN or CVV to anyone.",
+    "Cyber crime police warning: there is no such thing as digital arrest. Never send money to anyone.",
+]
+
+
+@pytest.mark.parametrize("text", CAUTIONS)
+def test_caution_call_never_alerts_even_as_it_is_being_heard(text):
+    assert detect_rules(text).level == "low", text
+    tracker = RiskTracker()
+    for i, piece in enumerate(re.split(r"(?<=[.,:।])\s+", text)):   # the way live speech arrives, at pauses
+        tracker.add(piece, float(i))
+    assert tracker.first_at == {}, (text, tracker.det)
+
+
+def test_scams_that_use_the_same_words_are_still_caught():
+    assert detect_rules("ಪೊಲೀಸ್ ಮಾತನಾಡುತ್ತಿದ್ದೇವೆ, ಯಾರಿಗೂ ಹೇಳಬೇಡಿ, ನಿಮ್ಮ ಒಟಿಪಿ ಹೇಳಿ").level == "high"
+    assert detect_rules("पुलिस बोल रहा हूँ, किसी को मत बताइए, अपना ओटीपी बताइए").level == "high"
+    assert detect_rules("Read me the OTP quickly, the police are coming.").level == "high"
 
 
 @pytest.mark.parametrize("text", SCAMS)

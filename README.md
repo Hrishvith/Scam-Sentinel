@@ -34,8 +34,8 @@ cleared. Details: [`results/benchmark.md`](results/benchmark.md).
 | Noise | SNR | Prisma char error | Scams flagged | Normal calls with a false alert (any point) |
 |---|---|---|---|---|
 | Clean | 47 dB | 3.2% | 8/8 (100%) | 0/12 (0%) |
-| Medium (noisy mobile) | 13 dB | 7.7% | 8/8 (100%) | 1/12 (8%) |
-| Heavy (noise ≈ voice) | 5 dB | 17.7% | 7/8 (88%) | 1/12 (8%) |
+| Medium (noisy mobile) | 13 dB | 7.7% | 8/8 (100%) | 0/12 (0%) |
+| Heavy (noise ≈ voice) | 5 dB | 17.7% | 7/8 (88%) | 0/12 (0%) |
 
 ![Benchmark chart](results/benchmark.png)
 
@@ -142,7 +142,7 @@ Command line:
 .\.venv\Scripts\python.exe family_voice.py enroll --name "Your name" --i-am-the-speaker
 .\.venv\Scripts\python.exe live.py --lang kn-IN --family-voice    # high warning in that voice (labelled)
 .\.venv\Scripts\python.exe family_voice.py delete               # remove the recording, profile, clones
-powershell -ExecutionPolicy Bypass -File .\run.ps1 -Test   # 295 offline tests, no credits
+powershell -ExecutionPolicy Bypass -File .\run.ps1 -Test   # 312 offline tests, no credits
 .\.venv\Scripts\python.exe phone_relay.py           # the website on http://localhost:8765 (needs GNANI_API_KEY for calls)
 ```
 
@@ -202,7 +202,11 @@ about 30 of 5,000 programme credits.
   only the heavy-noise level is unseen.
 - **At about 0 dB SNR speech recognition can change the meaning.** In the benchmark it lost an OTP
   request in one Kannada scam call and turned "don't share" into "may share" in a Kannada awareness
-  message. In medium noise "parcel" was heard as "password" and caused a brief false alert.
+  message. In medium noise "parcel" was heard as "password". Since an OTP mentioned without anyone
+  asking for it now counts half, neither raises an alert any more, but a misheard word can still mislead.
+- **Live speech arrives in pieces.** A caution call is checked as it is heard; if speech recognition cut a
+  sentence mid-phrase ("...AnyDesk" | "app install maadbedi"), the first piece can look like a scam request.
+  Pieces split at natural pauses were tested and stay quiet (`tests/test_paraphrases.py`).
 - **Keyword rules, not understanding.** A scam that avoids every listed tactic will not be caught;
   Evon (optional) can add a second opinion. Reworded requests found in review ("read me the six-digit
   verification code", "scan this QR", "approve the collect request") and police safety advice full of

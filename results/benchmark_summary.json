@@ -114,7 +114,7 @@
     "caught_high": 2,
     "benign": 3,
     "false_alarms": 0,
-    "midcall_false_alarms": 1,
+    "midcall_false_alarms": 0,
     "tta_medium": 10.6,
     "tta_high": 16.25,
     "tta_high_pct": 0.7461741506100817
@@ -144,7 +144,7 @@
     "caught_high": 8,
     "benign": 12,
     "false_alarms": 0,
-    "midcall_false_alarms": 1,
+    "midcall_false_alarms": 0,
     "tta_medium": 11.25,
     "tta_high": 16.85,
     "tta_high_pct": 0.7730103092783505
@@ -158,8 +158,8 @@
     "caught": 1,
     "caught_high": 1,
     "benign": 3,
-    "false_alarms": 1,
-    "midcall_false_alarms": 1,
+    "false_alarms": 0,
+    "midcall_false_alarms": 0,
     "tta_medium": 12.25,
     "tta_high": 24.85,
     "tta_high_pct": 0.9940000000000001
@@ -218,8 +218,8 @@
     "caught": 7,
     "caught_high": 7,
     "benign": 12,
-    "false_alarms": 1,
-    "midcall_false_alarms": 1,
+    "false_alarms": 0,
+    "midcall_false_alarms": 0,
     "tta_medium": 10.95,
     "tta_high": 14.6,
     "tta_high_pct": 0.8202247191011235

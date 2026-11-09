@@ -192,19 +192,30 @@ DELIVERY_PHRASES = [
 ASK_PHRASES = [
     "tell me", "tell us", "give me", "give us", "give the", "give your", "share the", "share your",
     "share it", "read out", "read the", "send me", "send the", "send your", "provide", "please tell",
-    "can you tell", "forward the",
+    "can you tell", "forward the", "read me", "read it", "say the", "say it", "tell the", "type the",
+    "enter the",
     # English as the kn-IN / hi-IN models write it
     "ಟೆಲ್ ಮಿ", "ಟೆಲ್ ಮೀ", "re:ಗಿ\\s?ವ", "ಶೇರ್ ಯುವರ್", "ಶೇರ್ ದ", "ಸೆಂಡ್", "ರೀಡ್ ಔಟ್",
     "टेल मी", "re:गि\\s?व", "शेयर योर", "सेंड",
     # Kannada
     "ತಿಳಿಸಿ", "ತಿಳಿಸುವಿರಾ", "ತಿಳಿಸ್ತೀರಾ", "ಹೇಳಿ", "ಹೇಳ್ತೀರಾ", "ಹೇಳುವಿರಾ", "ಹೇಳ್ಬಿಡಿ", "ಕೊಡಿ", "ಕೊಡ್ತೀರಾ",
-    "ಕೊಡುವಿರಾ", "ಕಳುಹಿಸಿ", "ಕಳಿಸಿ", "ಓದಿ", "ಹಂಚಿಕೊಳ್ಳಿ", "ಶೇರ್ ಮಾಡಿ", "ಶೇರ್ ಮಾಡ್ತೀರಾ",
+    "ಕೊಡುವಿರಾ", "ಕಳುಹಿಸಿ", "ಕಳಿಸಿ", "ಓದಿ", "ಹಂಚಿಕೊಳ್ಳಿ", "ಶೇರ್ ಮಾಡಿ", "ಶೇರ್ ಮಾಡ್ತೀರಾ", "ಹೇಳ್ರಿ", "ಹೇಳಿಬಿಡಿ",
     # Hindi
     "बताइए", "बताइये", "बताओ", "बता दीजिए", "बता दो", "बता दें", "दीजिए", "दे दो", "भेजिए", "भेज दो",
-    "शेयर करो", "शेयर कीजिए", "शेयर कर दो", "पढ़कर सुनाइए",
+    "शेयर करो", "शेयर कीजिए", "शेयर कर दो", "पढ़कर सुनाइए", "बोलिए", "बोलो", "बोल दीजिए", "बोल दो",
     # Hinglish
     "batao", "bataiye", "bata do", "bata dijiye", "de do", "dijiye", "share karo", "share kijiye",
     "share kar do", "bhej do",
+]
+
+# "There is no such thing as a digital arrest": police awareness, not a threat. A threat keyword inside one of
+# these is not counted. REVIEW kn/hi with a native speaker.
+DEBUNK_PHRASES = [
+    "re:(no such thing as (a )?|there is no |there's no |theres no )digital arrest",
+    "re:digital arrest (is not|isn't|isnt|does not|doesn't|doesnt) (real|exist|happen)",
+    "re:digital arrest (is|are) (a |an )?(fake|scam|fraud|myth)",
+    "re:डिजिटल\\s?अरेस्ट\\s?(जैसा|नाम का|नाम की)?\\s?(कुछ|कोई)?\\s?(भी\\s?)?(नहीं|फ़र्ज़ी|फर्जी|धोखा)",
+    "re:ಡಿಜಿಟಲ್\\s?ಅರೆಸ್ಟ್\\s?(ಎಂಬುದು|ಅನ್ನೋದು|ಎನ್ನುವುದು|ಎಂಬುದೇ)?\\s?(ಇಲ್ಲ|ಇರುವುದಿಲ್ಲ|ಸುಳ್ಳು|ಮೋಸ)",
 ]
 
 # Awareness messages ("never share your OTP") should not read as a request for the OTP.
@@ -223,6 +234,15 @@ SAFETY_PHRASES = [
     # "We will never ask for your OTP" (the bank's own safety message). REVIEW with a native speaker.
     "re:ಎಂದಿಗೂ.{0,40}ಕೇಳುವುದಿಲ್ಲ", "re:ಯಾವತ್ತೂ.{0,40}ಕೇಳುವುದಿಲ್ಲ",
     "re:कभी.{0,40}नहीं\\s?(मांगते|मांगता|माँगते|माँगता|पूछते|पूछता)",
+    # Every everyday way of saying "don't tell / give / send it" (found missing on 10 Nov 2026: Kannada
+    # "ಒಟಿಪಿ ಯಾರಿಗೂ ಹೇಳಬೇಡಿ / ಕೊಡಬೇಡಿ" and Hindi "मत दीजिए" caution calls raised scam alerts).
+    "re:(ಹೇಳ|ಕೊಡ|ತಿಳಿಸ|ಕಳುಹಿಸ|ಕಳಿಸ|ನೀಡ|ಹಂಚಿಕೊಳ್ಳ|ಶೇರ್\\s?ಮಾಡ)\\s?(ಬೇಡಿ|ಬೇಡ|ಬಾರದು)",
+    "re:(?<!\\S)(मत|न|ना|नहीं)\\s+(बता|दे|दें|दी|शेयर|भेज|साझा)",
+    "re:(?<!\\S)(बता|दे|दी|भेज)\\S*\\s+(मत|नहीं)(?!\\S)(?!\\s*तो)",
+    "re:(mat|na|nahi|nahin)\\s+(batana|batao|bataiye|dena|do|dijiye|bhejo|bhejna)",
+    "re:(?<![a-z])(never|do not|don't|dont|not to|must not|should not)\\s+(give|tell|say|send|read out|reveal|disclose)"
+    "\\s+(\\w+\\s+){0,3}(otp|o t p|pin|cvv|password|code)",
+    *DEBUNK_PHRASES,
 ]
 
 # One-word list for Prisma word boosting (letters only, one word per entry, per the docs).

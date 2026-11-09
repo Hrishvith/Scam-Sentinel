@@ -9,8 +9,8 @@
 | Noise | SNR | Speech-to-text char error | Scams caught (high) | False alarms (final) | False alarms (any point) | Median time to high alert |
 |---|---|---|---|---|---|---|
 | clean | 47 dB | 3.2% | 8/8 (100%) (8) | 0/12 (0%) | 0/12 (0%) | 16.9 s (78% into the call) |
-| medium | 13 dB | 7.7% | 8/8 (100%) (8) | 0/12 (0%) | 1/12 (8%) | 16.9 s (77% into the call) |
-| heavy | 5 dB | 17.7% | 7/8 (88%) (7) | 1/12 (8%) | 1/12 (8%) | 14.6 s (82% into the call) |
+| medium | 13 dB | 7.7% | 8/8 (100%) (8) | 0/12 (0%) | 0/12 (0%) | 16.9 s (77% into the call) |
+| heavy | 5 dB | 17.7% | 7/8 (88%) (7) | 0/12 (0%) | 0/12 (0%) | 14.6 s (82% into the call) |
 
 ## By language
 
@@ -22,18 +22,16 @@
 | clean | Hinglish | 47 dB | 9.3% | 2/2 (100%) | 0/3 (0%) | 15.9 s |
 | medium | Kannada | 7 dB | 8.4% | 2/2 (100%) | 0/3 (0%) | 16.9 s |
 | medium | Hindi | 14 dB | 3.5% | 2/2 (100%) | 0/3 (0%) | 15.8 s |
-| medium | English | 12 dB | 5.5% | 2/2 (100%) | 1/3 (33%) | 16.2 s |
+| medium | English | 12 dB | 5.5% | 2/2 (100%) | 0/3 (0%) | 16.2 s |
 | medium | Hinglish | 13 dB | 13.1% | 2/2 (100%) | 0/3 (0%) | 15.9 s |
-| heavy | Kannada | 0 dB | 25.3% | 1/2 (50%) | 1/3 (33%) | 24.9 s |
+| heavy | Kannada | 0 dB | 25.3% | 1/2 (50%) | 0/3 (0%) | 24.9 s |
 | heavy | Hindi | 6 dB | 8.2% | 2/2 (100%) | 0/3 (0%) | 15.8 s |
 | heavy | English | 5 dB | 16.2% | 2/2 (100%) | 0/3 (0%) | 16.3 s |
 | heavy | Hinglish | 5 dB | 21.1% | 2/2 (100%) | 0/3 (0%) | 14.5 s |
 
 ## Every miss and false alarm
 
-- **FALSE ALARM** `en_benign_delivery` at medium noise (13 dB): final low (1.4), tactics: credentials,lure,otp_request. Heard: "hello i am the delivery person from the courier company i am outside your building with your password oh great i will come down please tell me the delivery otp "
 - **MISSED scam** `kn_scam_kyc` at heavy noise (0 dB): final low (2.5), tactics: threat. Heard: "ನಮಸ್ಕಾರ ಮೇಡಮ್ ನಾನು ನಿಮ್ಮ ಬ್ಯಾಂಕಿನ ಕೆ ಐಸಿ ವಿಭಾಗದಿಂದ ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ ಹೌದಾ ಏನು ವಿಷಯ ನಿಮ್ಮ ಕೆರೆನ್ಸಿ ಅವಧಿ ಮುಗಿದಿದೆ ಇಂದೇ ನಿಮ್ಮ ಖಾತೆ ಬ್ಲಾಕ್ ಆಗುತ್ತದೆ ಅಯ್ಯೋ ಈಗ ಏನು ಮಾಡ"
-- **FALSE ALARM** `kn_awareness` at heavy noise (-2 dB): final high (6.5), tactics: authority,credentials. Heard: "ಇದು ನಿಮ್ಮ ಬ್ಯಾಂಕಿನಿಂದ ಒಂದು ಮುಖ್ಯ ಸೂಚನೆ ನಿಮ್ಮ ಒ ಟಿ ಪಿ ಪಿನ್ ಅಥವಾ ಪಾಸ್ವರ್ಡನ್ನು ಯಾರೊಂದಿಗೂ ಹಂಚಿಕೊಳ್ಳಬಹುದು ಬ್ಯಾಂಕ್ ಸಿಬಿಂದಿಯೊಂದಿಗೂ ಸಹ ಯಾರಾದರೂ ಕೇಳಿದರೆ ಸೈಬರ್ ಕ್ರೈಮ್ ಸಹಾಯ"
 
 ## Method
 

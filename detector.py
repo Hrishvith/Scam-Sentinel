@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 import requests
 
-from tactics import ASK_PHRASES, DELIVERY_PHRASES, ESCALATION, SAFETY_PHRASES, SCAM_TYPES, TACTICS
+from tactics import ASK_PHRASES, DEBUNK_PHRASES, DELIVERY_PHRASES, ESCALATION, SAFETY_PHRASES, SCAM_TYPES, TACTICS
 from text_norm import normalize
 
 LEVELS = ["low", "medium", "high"]
@@ -39,6 +39,7 @@ def _compile(keyword: str) -> re.Pattern:
 
 _PATTERNS = {name: [(kw, _compile(kw)) for kw in spec["keywords"]] for name, spec in TACTICS.items()}
 _SAFETY = [_compile(p) for p in SAFETY_PHRASES]
+_DEBUNK = [_compile(p) for p in DEBUNK_PHRASES]
 _DELIVERY = [_compile(p) for p in DELIVERY_PHRASES]
 _INDIC = "ऀ-ॿಀ-೿"
 _ASK = [(p, _compile(p) if p.isascii() or p.startswith("re:") else re.compile(_compile(p).pattern + f"(?![{_INDIC}])"))
@@ -53,14 +54,18 @@ NEAR = 60  # characters between the ask and the OTP word
 def _otp_requests(plain: str) -> list[str]:
     """Ask phrases ("tell me", ತಿಳಿಸಿ, बताइए) that sit next to an OTP/PIN word and are not negated."""
     spans = [m.span() for _, rx in _PATTERNS["credentials"] for m in rx.finditer(plain)]
+    asks = sorted((m.start(), m.end(), phrase) for phrase, rx in _ASK for m in rx.finditer(plain))
     hits = []
-    for phrase, rx in _ASK:
-        for m in rx.finditer(plain):
-            if _NEGATION.search(plain[max(0, m.start() - 25):m.start()]) or _negated(plain, *m.span()):
-                continue      # "don't share your OTP", "never tell", "मत बताइए", "never ask you to ... share your OTP"
-            if any(s - NEAR <= m.end() and m.start() <= e + NEAR for s, e in spans):
-                hits.append(phrase)
-                break
+    for start, end, phrase in asks:
+        if phrase in hits:
+            continue
+        # a "don't" belongs to the first verb after it: in "किसी को मत बताइए, अपना ओटीपी बताइए" the second
+        # बताइए is a real request, so the window never reaches back past an earlier ask
+        prev_end = max((e for s, e, _ in asks if e <= start), default=0)
+        if _NEGATION.search(plain[max(prev_end, start - 25):start]) or _negated(plain, start, end):
+            continue      # "don't share your OTP", "never tell", "मत बताइए", "never ask you to ... share your OTP"
+        if any(s - NEAR <= end and start <= e + NEAR for s, e in spans):
+            hits.append(phrase)
     return hits
 
 
@@ -77,9 +82,12 @@ _NEG_BEFORE = re.compile(r"(?<!\S)(?:not|never|dont|don['’]t|won['’]t|wont|s
 # unless a new instruction starts ("I will never ask for money, JUST download AnyDesk").
 _NEVER_ASK = re.compile(r"(?<!\S)(?:not|never|dont|don['’]t|won['’]t|wont)\s+(?:ever\s+)?(?:ask|asks|request|requests)"
                         r"\s+(?:you\s+|anyone\s+|customers\s+)?(?:to|for)\s+(?:(?!just|only|but|bas|sirf|lekin)[^.!?])*$")
-_NEG_AFTER_HI = re.compile(r"^\s*(?:(?:करने|करना|करें|करे|कीजिए|करो|को|के|लिए|आपसे|कभी|भी|कहेगा|कहेंगे|कहते|"
+_NEG_AFTER_HI = re.compile(r"^\s*(?:(?:करने|करना|करें|करे|कीजिए|करो|को|के|लिए|आपसे|कभी|भी|कहेगा|कहेंगे|कहते|ऐप|एप|"
+                           r"इंस्टॉल|इंस्टाल|डाउनलोड|किसी|पैसे|पैसा|ट्रांसफर|"
                            r"मांगेगा|मांगेंगे|मांगता|मांगते)\s*){0,4}(?:मत|न|ना|नहीं)(?!\S)(?!\s*तो)")
-_NEG_AFTER_KN = re.compile(r"^\s*(?:\S+\s+){0,2}\S*(?:ಬೇಡಿ|ಬೇಡ|ಬಾರದು|ಲ್ಲ)(?!\S)")
+# up to three words, never across punctuation or a "do it" (ಮಾಡಿ): "ಎನಿಡೆಸ್ಕ್ ಆ್ಯಪ್ ಇನ್ಸ್ಟಾಲ್ ಮಾಡಬೇಡಿ" is negated,
+# "ಎನಿಡೆಸ್ಕ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ, ಭಯಪಡಬೇಡಿ" is not
+_NEG_AFTER_KN = re.compile(r"^\S*\s*(?:(?!\S*ಮಾಡಿ(?!\S))[^\s,.!?।]+\s+){0,3}[^\s,.!?।]*(?:ಬೇಡಿ|ಬೇಡ|ಬಾರದು|ಲ್ಲ)(?![^\s,.!?।])")
 
 
 def _negated(plain: str, start: int, end: int) -> bool:
@@ -177,6 +185,14 @@ def detect_rules(text: str) -> Detection:
         if hits:
             found[name] = hits
     notes: list[str] = []
+    if "threat" in found and (debunked := [m.span() for rx in _DEBUNK for m in rx.finditer(plain)]):
+        kept = [kw for kw, rx in _PATTERNS["threat"] if kw in found["threat"]
+                and any(not any(s <= m.start() and m.end() <= e for s, e in debunked) for m in rx.finditer(plain))]
+        if kept:
+            found["threat"] = kept
+        else:
+            del found["threat"]
+            notes.append("\"There is no digital arrest\" is a warning about scams, not a threat, so it was not counted.")
     if dropped := _drop_negated(found, plain):
         notes.append("A request for " + " / ".join("money" if d == "payment" else "app access" for d in dropped)
                      + " was negated (\"never ask you to...\"), so it was not counted.")
@@ -203,9 +219,17 @@ def detect_rules(text: str) -> Detection:
             if name in weights:
                 weights[name] *= 0.5
         notes.append(context)
+    # "Police / RBI ... your OTP, PIN" with nobody asking for it (yet) is how safety messages start too. On a live
+    # call the words arrive a sentence at a time, so a bare mention counts half until a real request or pressure
+    # appears ("tell me the OTP", a threat, money, secrecy): scams get there a sentence later, cautions never do.
+    pending = (not context and "credentials" in weights and "otp_request" not in found
+               and not found.keys() & ESCALATION)
+    if pending:
+        weights["credentials"] *= 0.5
 
     score = sum(weights.values())
-    if not context and found.keys() & _PRIVATE and found.keys() & _DANGEROUS_ASK:
+    asks = found.keys() & _DANGEROUS_ASK - ({"credentials"} if pending else set())
+    if not context and found.keys() & _PRIVATE and asks:
         score += 2.0
         notes.append("Official-sounding pressure combined with a request for OTP, money or app access.")
     if "secrecy" in found and found.keys() & _DANGEROUS_ASK:
