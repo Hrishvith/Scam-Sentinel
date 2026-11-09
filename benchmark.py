@@ -352,7 +352,8 @@ def main(argv: list[str] | None = None) -> None:
         print("\nNothing spent. Rerun with --yes to go ahead, or --report to use the cache only.")
         return
     if not rows:
-        raise SystemExit("No results to report.")
+        raise SystemExit("No cached results to report (the audio cache is not in the repository). The published "
+                         "results are in results/benchmark.md; run with --yes and a GNANI_API_KEY to regenerate them.")
     for name, path in write_report(rows).items():
         print(f"wrote {path.relative_to(HERE)}")
 

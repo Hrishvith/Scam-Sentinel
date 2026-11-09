@@ -100,8 +100,8 @@ class GnaniClient:
     def __init__(self, api_key: str | None = None, *, timeout: int = 60, max_retries: int = 3,
                  backoff: float = 1.0, cache_dir: str | Path | None = None, use_cache: bool = True,
                  budget: Budget | None = None, offline: bool = False):
-        self.api_key = api_key or os.getenv("GNANI_API_KEY")
-        if not self.api_key:
+        self.api_key = api_key or os.getenv("GNANI_API_KEY") or ("offline" if offline else None)
+        if not self.api_key:                    # offline mode only reads the cache, so it needs no key
             raise GnaniError("No API key. Set GNANI_API_KEY or paste it in the sidebar.")
         self.timeout, self.max_retries, self.backoff = timeout, max_retries, backoff
         self.use_cache = use_cache
