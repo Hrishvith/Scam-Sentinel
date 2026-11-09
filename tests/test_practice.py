@@ -65,3 +65,32 @@ def test_checker_scores_typed_words_for_free(tmp_path):
         assert safe["level"] == "low" and safe["tip"] is None and safe["tricks"] == []
         assert fake.connections == []                                   # no Gnani stream, no credits
     run(body, tmp_path)
+
+
+def test_every_line_explains_itself_in_every_language():
+    from make_practice_audio import spoken
+    ids = [it["id"] for it in ITEMS]
+    assert len(ids) == len(set(ids)) and all(ids)
+    for it in ITEMS:
+        for lang in ("en", "kn", "hi"):
+            assert 20 < len(it["why"][lang]) < 220, (it["id"], lang)
+            text = spoken(it, lang)
+            assert "1930" not in text and len(text) < 300           # spaced for TTS, ~15 s of speech
+
+
+def test_wrong_answer_audio_is_made_once_and_only_with_yes(tmp_path, monkeypatch, capsys):
+    import sys
+    import make_practice_audio as m
+    monkeypatch.setattr(m, "OUT", tmp_path)
+    calls = []
+    monkeypatch.setattr(m, "speak_alert", lambda client, text, lang: (calls.append(text) or b"ID3fake", None))
+    monkeypatch.setattr(m, "GnaniClient", lambda: type("C", (), {"stats": {"tts_calls": len(calls), "cache_hits": 0}})())
+    monkeypatch.setattr(sys, "argv", ["make_practice_audio.py", "--lang", "en"])
+    m.main()
+    assert calls == [] and "credits" in capsys.readouterr().out    # dry run: nothing spent
+    monkeypatch.setattr(sys, "argv", ["make_practice_audio.py", "--lang", "en", "--yes"])
+    m.main()
+    assert len(calls) == len(ITEMS) and all(c.startswith("That's not right.") for c in calls)
+    assert set(json.loads((tmp_path / "index.json").read_text())["files"]) == {f"{it['id']}-en" for it in ITEMS}
+    m.main()                                                      # all saved: nothing more to make
+    assert len(calls) == len(ITEMS)

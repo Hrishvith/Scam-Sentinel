@@ -101,7 +101,9 @@ flowchart LR
 - **Protected two-phone call** (private, needs the key): the call itself runs through the server, which
   listens to the caller only and warns the receiver. Optional **OTP guard** and **family guardian** phone.
 - **Practice** (`/practice`): an 8-question quiz drawn from 16 lines each round, plus "Check a call" (typed
-  words scored by the same rules; no AI credits).
+  words scored by the same rules; no AI credits). A wrong answer is explained out loud in a Gnani Timbre voice
+  ("That's not right. This was a scam call...") in the chosen language; the 48 clips are made once with
+  `make_practice_audio.py`, so playing them costs nothing.
 - **Real scams** (`/scams`): reported Indian cases with sources and spoken explanations (7 kinds, including
   part-time job / task scams).
 
@@ -159,7 +161,7 @@ Command line:
 .\.venv\Scripts\python.exe family_voice.py enroll --name "Your name" --i-am-the-speaker
 .\.venv\Scripts\python.exe live.py --lang kn-IN --family-voice    # high warning in that voice (labelled)
 .\.venv\Scripts\python.exe family_voice.py delete               # remove the recording, profile, clones
-powershell -ExecutionPolicy Bypass -File .\run.ps1 -Test   # 597 offline tests, no credits
+powershell -ExecutionPolicy Bypass -File .\run.ps1 -Test   # 599 offline tests, no credits
 .\.venv\Scripts\python.exe phone_relay.py           # the website on http://localhost:8765 (needs GNANI_API_KEY for calls)
 ```
 

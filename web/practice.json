@@ -2,100 +2,196 @@
  "_note": "Practice quiz: synthetic call lines (no real people or numbers). kn/hi: REVIEW with native speakers. tests/test_practice.py checks the detector agrees with every answer.",
  "items": [
   {
+   "id": "arrest_warrant",
    "scam": true,
    "en": "Hello, this is the cyber crime branch. There is an arrest warrant in your name. Don't tell anyone and don't cut the call.",
    "kn": "ನಮಸ್ಕಾರ, ನಾನು ಸೈಬರ್ ಕ್ರೈಮ್ ವಿಭಾಗದಿಂದ ಮಾತಾಡ್ತಾ ಇದ್ದೀನಿ. ನಿಮ್ಮ ಹೆಸರಲ್ಲಿ ಅರೆಸ್ಟ್ ವಾರಂಟ್ ಇದೆ. ಯಾರಿಗೂ ಹೇಳಬೇಡಿ, ಕರೆ ಕಟ್ ಮಾಡಬೇಡಿ.",
-   "hi": "नमस्ते, मैं साइबर क्राइम ब्रांच से बोल रहा हूँ। आपके नाम पर अरेस्ट वारंट है। किसी को मत बताइए और कॉल मत काटिए।"
+   "hi": "नमस्ते, मैं साइबर क्राइम ब्रांच से बोल रहा हूँ। आपके नाम पर अरेस्ट वारंट है। किसी को मत बताइए और कॉल मत काटिए।",
+   "why": {
+    "en": "Police never arrest anyone over a phone call, and never tell you to keep it secret or stay on the line. Hang up and call 1930.",
+    "kn": "ಪೊಲೀಸರು ಫೋನ್ ಕರೆಯಲ್ಲಿ ಯಾರನ್ನೂ ಅರೆಸ್ಟ್ ಮಾಡುವುದಿಲ್ಲ, ಯಾರಿಗೂ ಹೇಳಬೇಡಿ ಎಂದೂ ಹೇಳುವುದಿಲ್ಲ. ಕರೆ ಕಟ್ ಮಾಡಿ, 1930 ಗೆ ಕರೆ ಮಾಡಿ.",
+    "hi": "पुलिस फ़ोन पर किसी को गिरफ़्तार नहीं करती, और न ही बात छुपाने को कहती है। कॉल काटें और 1930 पर कॉल करें।"
+   }
   },
   {
+   "id": "delivery_gate",
    "scam": false,
    "en": "Hi, this is the delivery agent. I'm at your gate with your parcel, shall I leave it with the security?",
    "kn": "ನಮಸ್ಕಾರ, ನಾನು ಡೆಲಿವರಿ ಹುಡುಗ. ನಿಮ್ಮ ಪಾರ್ಸೆಲ್ ಹಿಡ್ಕೊಂಡು ಗೇಟ್ ಹತ್ರ ಇದ್ದೀನಿ, ಸೆಕ್ಯೂರಿಟಿ ಹತ್ರ ಕೊಡ್ಲಾ?",
-   "hi": "नमस्ते, मैं डिलीवरी वाला हूँ। आपका पार्सल लेकर गेट पर खड़ा हूँ, सिक्योरिटी को दे दूँ?"
+   "hi": "नमस्ते, मैं डिलीवरी वाला हूँ। आपका पार्सल लेकर गेट पर खड़ा हूँ, सिक्योरिटी को दे दूँ?",
+   "why": {
+    "en": "The delivery agent only asks where to leave your parcel. He does not ask for money, a code or an app.",
+    "kn": "ಡೆಲಿವರಿಯವರು ಪಾರ್ಸೆಲ್ ಎಲ್ಲಿ ಇಡಬೇಕು ಎಂದು ಮಾತ್ರ ಕೇಳುತ್ತಿದ್ದಾರೆ. ಹಣ, ಕೋಡ್ ಅಥವಾ ಆ್ಯಪ್ ಕೇಳುತ್ತಿಲ್ಲ.",
+    "hi": "डिलीवरी वाला सिर्फ़ पूछ रहा है कि पार्सल कहाँ रखे। वह पैसे, कोड या ऐप नहीं मांग रहा।"
+   }
   },
   {
+   "id": "kyc_otp",
    "scam": true,
    "en": "Your KYC has expired and your account will be blocked today. Tell me the OTP you just received.",
    "kn": "ನಿಮ್ಮ ಕೆವೈಸಿ ಮುಗಿದಿದೆ, ಇವತ್ತೇ ನಿಮ್ಮ ಖಾತೆ ಬ್ಲಾಕ್ ಆಗುತ್ತೆ. ಈಗ ಬಂದ ಒಟಿಪಿ ತಿಳಿಸಿ.",
-   "hi": "आपका केवाईसी खत्म हो गया है, आज ही आपका खाता ब्लॉक हो जाएगा। अभी आया ओटीपी बताइए।"
+   "hi": "आपका केवाईसी खत्म हो गया है, आज ही आपका खाता ब्लॉक हो जाएगा। अभी आया ओटीपी बताइए।",
+   "why": {
+    "en": "Banks never ask for your OTP, and they don't block accounts over a phone call. Anyone asking for the OTP is a scammer.",
+    "kn": "ಬ್ಯಾಂಕ್ ಎಂದಿಗೂ ಒಟಿಪಿ ಕೇಳುವುದಿಲ್ಲ, ಫೋನ್ ಕರೆಯಲ್ಲಿ ಖಾತೆ ಬ್ಲಾಕ್ ಮಾಡುವುದಿಲ್ಲ. ಒಟಿಪಿ ಕೇಳುವವರು ಮೋಸಗಾರರು.",
+    "hi": "बैंक कभी ओटीपी नहीं मांगता, और फ़ोन कॉल पर खाता बंद नहीं करता। ओटीपी मांगने वाला धोखेबाज़ है।"
+   }
   },
   {
+   "id": "bank_advice",
    "scam": false,
    "en": "This is a message from your bank: we will never ask for your OTP or PIN. Do not share it with anyone.",
    "kn": "ಇದು ನಿಮ್ಮ ಬ್ಯಾಂಕಿನ ಸಂದೇಶ: ನಾವು ಎಂದಿಗೂ ನಿಮ್ಮ ಒಟಿಪಿ ಅಥವಾ ಪಿನ್ ಕೇಳುವುದಿಲ್ಲ. ಅದನ್ನು ಯಾರಿಗೂ ಹೇಳಬೇಡಿ.",
-   "hi": "यह आपके बैंक का संदेश है: हम कभी आपका ओटीपी या पिन नहीं मांगते। इसे किसी को न बताएं।"
+   "hi": "यह आपके बैंक का संदेश है: हम कभी आपका ओटीपी या पिन नहीं मांगते। इसे किसी को न बताएं।",
+   "why": {
+    "en": "This is safety advice: it warns you never to share your OTP, and it asks you for nothing.",
+    "kn": "ಇದು ಸುರಕ್ಷತಾ ಸಲಹೆ: ಒಟಿಪಿ ಯಾರಿಗೂ ಹೇಳಬೇಡಿ ಎಂದು ಎಚ್ಚರಿಸುತ್ತದೆ, ನಿಮ್ಮಿಂದ ಏನನ್ನೂ ಕೇಳುವುದಿಲ್ಲ.",
+    "hi": "यह सुरक्षा की सलाह है: यह ओटीपी किसी को न बताने को कहती है, और आपसे कुछ नहीं मांगती।"
+   }
   },
   {
+   "id": "son_arrested",
    "scam": true,
    "en": "This is the police. We have arrested your son. Transfer five lakh rupees now and we will release him.",
    "kn": "ನಾವು ಪೊಲೀಸ್. ನಿಮ್ಮ ಮಗನನ್ನು ಅರೆಸ್ಟ್ ಮಾಡಿದ್ದೀವಿ. ಈಗಲೇ ಐದು ಲಕ್ಷ ರೂಪಾಯಿ ಟ್ರಾನ್ಸ್‌ಫರ್ ಮಾಡಿ, ಬಿಟ್ಟುಬಿಡ್ತೀವಿ.",
-   "hi": "हम पुलिस से हैं। हमने आपके बेटे को गिरफ़्तार किया है। अभी पाँच लाख रुपये ट्रांसफ़र कीजिए, हम उसे छोड़ देंगे।"
+   "hi": "हम पुलिस से हैं। हमने आपके बेटे को गिरफ़्तार किया है। अभी पाँच लाख रुपये ट्रांसफ़र कीजिए, हम उसे छोड़ देंगे।",
+   "why": {
+    "en": "Police never ask for money to release anyone. Hang up and call your son yourself.",
+    "kn": "ಪೊಲೀಸರು ಯಾರನ್ನೂ ಬಿಡಿಸಲು ಹಣ ಕೇಳುವುದಿಲ್ಲ. ಕರೆ ಕಟ್ ಮಾಡಿ, ನಿಮ್ಮ ಮಗನಿಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ.",
+    "hi": "पुलिस किसी को छोड़ने के लिए पैसे नहीं मांगती। कॉल काटें और अपने बेटे को खुद फ़ोन करें।"
+   }
   },
   {
+   "id": "lottery",
    "scam": true,
    "en": "Congratulations, you have won a lottery of 25 lakh. Pay the processing fee by UPI to claim it.",
    "kn": "ಅಭಿನಂದನೆಗಳು, ನಿಮಗೆ 25 ಲಕ್ಷ ಲಾಟರಿ ಬಂದಿದೆ. ಅದನ್ನು ಪಡೆಯಲು ಯುಪಿಐ ಮೂಲಕ ಪ್ರೊಸೆಸಿಂಗ್ ಫೀಸ್ ಕಟ್ಟಿ.",
-   "hi": "बधाई हो, आपकी 25 लाख की लॉटरी लगी है। इसे पाने के लिए यूपीआई से प्रोसेसिंग फ़ीस भरिए।"
+   "hi": "बधाई हो, आपकी 25 लाख की लॉटरी लगी है। इसे पाने के लिए यूपीआई से प्रोसेसिंग फ़ीस भरिए।",
+   "why": {
+    "en": "You never have to pay to receive a prize. A lottery you never entered is a trap.",
+    "kn": "ಬಹುಮಾನ ಪಡೆಯಲು ಹಣ ಕಟ್ಟಬೇಕಿಲ್ಲ. ನೀವು ಸೇರದ ಲಾಟರಿ ಒಂದು ಬಲೆ.",
+    "hi": "इनाम पाने के लिए कभी पैसे नहीं भरने पड़ते। जिस लॉटरी में आपने हिस्सा ही नहीं लिया, वह एक जाल है।"
+   }
   },
   {
+   "id": "clinic",
    "scam": false,
    "en": "Hello uncle, this is the clinic. Your appointment with the doctor is tomorrow at ten in the morning.",
    "kn": "ನಮಸ್ಕಾರ ಅಂಕಲ್, ಕ್ಲಿನಿಕ್‌ನಿಂದ ಕರೆ ಮಾಡ್ತಿದ್ದೀವಿ. ನಾಳೆ ಬೆಳಿಗ್ಗೆ ಹತ್ತು ಗಂಟೆಗೆ ಡಾಕ್ಟರ್ ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್ ಇದೆ.",
-   "hi": "नमस्ते अंकल, क्लिनिक से बोल रहे हैं। कल सुबह दस बजे डॉक्टर से आपका अपॉइंटमेंट है।"
+   "hi": "नमस्ते अंकल, क्लिनिक से बोल रहे हैं। कल सुबह दस बजे डॉक्टर से आपका अपॉइंटमेंट है।",
+   "why": {
+    "en": "The clinic only reminds you of your appointment. It asks for no money and no personal details.",
+    "kn": "ಕ್ಲಿನಿಕ್ ನಿಮ್ಮ ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್ ನೆನಪಿಸುತ್ತಿದೆ ಅಷ್ಟೇ. ಹಣ ಅಥವಾ ವೈಯಕ್ತಿಕ ವಿವರ ಕೇಳುತ್ತಿಲ್ಲ.",
+    "hi": "क्लिनिक बस आपकी अपॉइंटमेंट याद दिला रहा है। पैसे या निजी जानकारी नहीं मांग रहा।"
+   }
   },
   {
+   "id": "anydesk",
    "scam": true,
    "en": "Hello, your bank account will be blocked today. Please install the AnyDesk app right now so I can fix it.",
    "kn": "ನಮಸ್ಕಾರ, ಇವತ್ತೇ ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಖಾತೆ ಬ್ಲಾಕ್ ಆಗುತ್ತೆ. ಸರಿ ಮಾಡೋಕೆ ಈಗಲೇ ಎನಿಡೆಸ್ಕ್ ಆ್ಯಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿ.",
-   "hi": "नमस्ते, आज ही आपका बैंक खाता ब्लॉक हो जाएगा। ठीक करने के लिए अभी एनीडेस्क ऐप इंस्टॉल कीजिए।"
+   "hi": "नमस्ते, आज ही आपका बैंक खाता ब्लॉक हो जाएगा। ठीक करने के लिए अभी एनीडेस्क ऐप इंस्टॉल कीजिए।",
+   "why": {
+    "en": "Never install an app because a caller asks. AnyDesk lets them control your phone and empty your account.",
+    "kn": "ಕರೆ ಮಾಡಿದವರು ಹೇಳಿದರು ಎಂದು ಯಾವ ಆ್ಯಪ್ ಕೂಡ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಬೇಡಿ. ಎನಿಡೆಸ್ಕ್ ಮೂಲಕ ಅವರು ನಿಮ್ಮ ಫೋನ್ ನಿಯಂತ್ರಿಸಿ ಖಾತೆ ಖಾಲಿ ಮಾಡುತ್ತಾರೆ.",
+    "hi": "किसी कॉल करने वाले के कहने पर कोई ऐप इंस्टॉल न करें। एनीडेस्क से वह आपका फ़ोन चलाकर खाता खाली कर देता है।"
+   }
   },
   {
+   "id": "trai_sim",
    "scam": true,
    "en": "This is TRAI. Your SIM card will be blocked in two hours. Press 9 and tell me the OTP you just received.",
    "kn": "ನಾನು ಟ್ರಾಯ್‌ನಿಂದ ಮಾತಾಡ್ತಿದ್ದೀನಿ. ಎರಡು ಗಂಟೆಯಲ್ಲಿ ನಿಮ್ಮ ಸಿಮ್ ಕಾರ್ಡ್ ಬ್ಲಾಕ್ ಆಗುತ್ತೆ. ಈಗ ಬಂದ ಒಟಿಪಿ ಹೇಳಿ.",
-   "hi": "मैं ट्राई से बोल रहा हूँ। दो घंटे में आपका सिम कार्ड ब्लॉक हो जाएगा। अभी आया ओटीपी बताइए।"
+   "hi": "मैं ट्राई से बोल रहा हूँ। दो घंटे में आपका सिम कार्ड ब्लॉक हो जाएगा। अभी आया ओटीपी बताइए।",
+   "why": {
+    "en": "TRAI never calls to block your SIM, and nobody genuine asks for your OTP. Hang up.",
+    "kn": "ಟ್ರಾಯ್ ಸಿಮ್ ಬ್ಲಾಕ್ ಮಾಡಲು ಕರೆ ಮಾಡುವುದಿಲ್ಲ, ನಿಜವಾದ ಯಾರೂ ಒಟಿಪಿ ಕೇಳುವುದಿಲ್ಲ. ಕರೆ ಕಟ್ ಮಾಡಿ.",
+    "hi": "ट्राई सिम बंद करने के लिए कॉल नहीं करता, और कोई असली व्यक्ति ओटीपी नहीं मांगता। कॉल काटें।"
+   }
   },
   {
+   "id": "part_time_job",
    "scam": true,
    "en": "You got a part time job: like videos and earn three thousand a day. First pay one thousand rupees registration fee by UPI.",
    "kn": "ನಿಮಗೆ ಪಾರ್ಟ್ ಟೈಮ್ ಕೆಲಸ ಸಿಕ್ಕಿದೆ: ವಿಡಿಯೋ ಲೈಕ್ ಮಾಡಿ ದಿನಕ್ಕೆ ಮೂರು ಸಾವಿರ ಗಳಿಸಿ. ಮೊದಲು ಸಾವಿರ ರೂಪಾಯಿ ನೋಂದಣಿ ಶುಲ್ಕ ಯುಪಿಐ ಮೂಲಕ ಕಳುಹಿಸಿ.",
-   "hi": "आपको पार्ट टाइम जॉब मिला है: वीडियो लाइक करके रोज़ तीन हज़ार कमाइए। पहले एक हज़ार रुपये रजिस्ट्रेशन फीस यूपीआई से भेजिए।"
+   "hi": "आपको पार्ट टाइम जॉब मिला है: वीडियो लाइक करके रोज़ तीन हज़ार कमाइए। पहले एक हज़ार रुपये रजिस्ट्रेशन फीस यूपीआई से भेजिए।",
+   "why": {
+    "en": "Real jobs never ask you to pay a fee first. Easy money for liking videos is a trap.",
+    "kn": "ನಿಜವಾದ ಕೆಲಸಕ್ಕೆ ಮೊದಲು ಶುಲ್ಕ ಕಟ್ಟಬೇಕಿಲ್ಲ. ವಿಡಿಯೋ ಲೈಕ್ ಮಾಡಿ ಸುಲಭ ಹಣ ಎಂಬುದು ಬಲೆ.",
+    "hi": "असली नौकरी में पहले फीस नहीं भरनी पड़ती। वीडियो लाइक करके आसान कमाई एक जाल है।"
+   }
   },
   {
+   "id": "lost_phone",
    "scam": true,
    "en": "Mom, I lost my phone, this is my friend's number. I'm in trouble, please send twenty thousand to this UPI now.",
    "kn": "ಅಮ್ಮಾ, ನನ್ನ ಫೋನ್ ಕಳೆದುಹೋಯಿತು, ಇದು ಸ್ನೇಹಿತನ ನಂಬರ್. ತೊಂದರೆಯಲ್ಲಿದ್ದೇನೆ, ಇಪ್ಪತ್ತು ಸಾವಿರ ಈ ಯುಪಿಐಗೆ ಈಗಲೇ ಕಳುಹಿಸು.",
-   "hi": "मम्मी, मेरा फोन खो गया, ये दोस्त का नंबर है। मुसीबत में हूँ, बीस हज़ार इस यूपीआई पर अभी भेज दो।"
+   "hi": "मम्मी, मेरा फोन खो गया, ये दोस्त का नंबर है। मुसीबत में हूँ, बीस हज़ार इस यूपीआई पर अभी भेज दो।",
+   "why": {
+    "en": "Before sending money, hang up and call your child on their usual number. Scammers pretend to be family on a new number.",
+    "kn": "ಹಣ ಕಳುಹಿಸುವ ಮೊದಲು ಕರೆ ಕಟ್ ಮಾಡಿ, ನಿಮ್ಮ ಮಕ್ಕಳ ಹಳೆಯ ನಂಬರ್‌ಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ. ಮೋಸಗಾರರು ಹೊಸ ನಂಬರ್‌ನಿಂದ ಮನೆಯವರಂತೆ ನಟಿಸುತ್ತಾರೆ.",
+    "hi": "पैसे भेजने से पहले कॉल काटें और अपने बच्चे को उसके पुराने नंबर पर फ़ोन करें। धोखेबाज़ नए नंबर से घरवाले बनकर बात करते हैं।"
+   }
   },
   {
+   "id": "qr_sofa",
    "scam": true,
    "en": "I want to buy your sofa. I'll send the money by Google Pay, just scan my QR code and enter your PIN to receive it.",
    "kn": "ನಿಮ್ಮ ಸೋಫಾ ಕೊಳ್ಳುತ್ತೇನೆ. ಗೂಗಲ್ ಪೇ ಮೂಲಕ ಹಣ ಕಳುಹಿಸುತ್ತೇನೆ, ನನ್ನ ಕ್ಯೂಆರ್ ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಿನ್ ಹಾಕಿ.",
-   "hi": "मुझे आपका सोफा खरीदना है। गूगल पे से पैसे भेजता हूँ, बस मेरा क्यूआर कोड स्कैन करके पिन डाल दीजिए।"
+   "hi": "मुझे आपका सोफा खरीदना है। गूगल पे से पैसे भेजता हूँ, बस मेरा क्यूआर कोड स्कैन करके पिन डाल दीजिए।",
+   "why": {
+    "en": "You never scan a QR code or enter your PIN to receive money. A PIN is only for paying.",
+    "kn": "ಹಣ ಪಡೆಯಲು ಕ್ಯೂಆರ್ ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಬೇಕಿಲ್ಲ, ಪಿನ್ ಹಾಕಬೇಕಿಲ್ಲ. ಪಿನ್ ಹಣ ಕೊಡಲು ಮಾತ್ರ.",
+    "hi": "पैसे पाने के लिए कभी क्यूआर कोड स्कैन नहीं करना पड़ता, न पिन डालना पड़ता है। पिन सिर्फ़ पैसे देने के लिए है।"
+   }
   },
   {
+   "id": "crypto",
    "scam": true,
    "en": "Invest in our trading group and your money will double in one week. Guaranteed profit, transfer the money to this account.",
    "kn": "ನಮ್ಮ ಟ್ರೇಡಿಂಗ್ ಗ್ರೂಪ್‌ನಲ್ಲಿ ಹಣ ಹಾಕಿ, ಒಂದು ವಾರದಲ್ಲಿ ಡಬಲ್ ಆಗುತ್ತೆ. ಗ್ಯಾರಂಟಿ ಲಾಭ, ಈ ಖಾತೆಗೆ ಹಣ ಟ್ರಾನ್ಸ್‌ಫರ್ ಮಾಡಿ.",
-   "hi": "हमारे ट्रेडिंग ग्रुप में पैसा लगाइए, एक हफ्ते में डबल होगा। पक्का मुनाफा, इस खाते में पैसे ट्रांसफर कीजिए।"
+   "hi": "हमारे ट्रेडिंग ग्रुप में पैसा लगाइए, एक हफ्ते में डबल होगा। पक्का मुनाफा, इस खाते में पैसे ट्रांसफर कीजिए।",
+   "why": {
+    "en": "Nobody can promise to double your money in a week. Guaranteed profit is the sign of a scam.",
+    "kn": "ಒಂದು ವಾರದಲ್ಲಿ ಹಣ ಡಬಲ್ ಮಾಡುತ್ತೇವೆ ಎಂದು ಯಾರೂ ಭರವಸೆ ಕೊಡಲು ಸಾಧ್ಯವಿಲ್ಲ. ಗ್ಯಾರಂಟಿ ಲಾಭ ಮೋಸದ ಲಕ್ಷಣ.",
+    "hi": "एक हफ्ते में पैसे डबल करने का वादा कोई नहीं कर सकता। पक्का मुनाफा धोखे की निशानी है।"
+   }
   },
   {
+   "id": "loan_emi",
    "scam": false,
    "en": "Hello sir, your car loan EMI of eight thousand five hundred is due on the fifth. Please keep enough balance in your account.",
    "kn": "ನಮಸ್ಕಾರ ಸರ್, ನಿಮ್ಮ ಕಾರ್ ಲೋನ್ ಇಎಂಐ ಐದನೇ ತಾರೀಖು ಇದೆ. ದಯವಿಟ್ಟು ಖಾತೆಯಲ್ಲಿ ಸಾಕಷ್ಟು ಹಣ ಇಟ್ಟಿರಿ.",
-   "hi": "नमस्ते सर, आपकी कार लोन की ईएमआई पाँच तारीख को है। कृपया खाते में पर्याप्त पैसे रखिए।"
+   "hi": "नमस्ते सर, आपकी कार लोन की ईएमआई पाँच तारीख को है। कृपया खाते में पर्याप्त पैसे रखिए।",
+   "why": {
+    "en": "This is a normal reminder: it only asks you to keep money in your own account. It asks for no code and no transfer.",
+    "kn": "ಇದು ಸಾಮಾನ್ಯ ನೆನಪು: ನಿಮ್ಮದೇ ಖಾತೆಯಲ್ಲಿ ಹಣ ಇಡಲು ಮಾತ್ರ ಹೇಳುತ್ತಿದೆ. ಕೋಡ್ ಅಥವಾ ಹಣ ವರ್ಗಾವಣೆ ಕೇಳುತ್ತಿಲ್ಲ.",
+    "hi": "यह सामान्य याद दिलाना है: बस अपने ही खाते में पैसे रखने को कह रहा है। कोड या ट्रांसफर नहीं मांग रहा।"
+   }
   },
   {
+   "id": "police_advice",
    "scam": false,
    "en": "Cyber police advice: there is no digital arrest. If someone in a police uniform asks for money on a video call, hang up and call 1930.",
    "kn": "ಸೈಬರ್ ಪೊಲೀಸ್ ಸಲಹೆ: ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್ ಎಂಬುದು ಇಲ್ಲ. ವಿಡಿಯೋ ಕಾಲ್‌ನಲ್ಲಿ ಪೊಲೀಸ್ ವೇಷದಲ್ಲಿ ಯಾರಾದರೂ ಹಣ ಕೇಳಿದರೆ ಕರೆ ಕಟ್ ಮಾಡಿ, 1930 ಗೆ ಕರೆ ಮಾಡಿ.",
-   "hi": "साइबर पुलिस की सलाह: डिजिटल अरेस्ट जैसा कुछ नहीं होता। वीडियो कॉल पर पुलिस की वर्दी में कोई पैसे मांगे तो कॉल काटें और 1930 पर कॉल करें।"
+   "hi": "साइबर पुलिस की सलाह: डिजिटल अरेस्ट जैसा कुछ नहीं होता। वीडियो कॉल पर पुलिस की वर्दी में कोई पैसे मांगे तो कॉल काटें और 1930 पर कॉल करें।",
+   "why": {
+    "en": "This is safety advice. It tells you there is no digital arrest and to call 1930, and it asks you for nothing.",
+    "kn": "ಇದು ಸುರಕ್ಷತಾ ಸಲಹೆ. ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್ ಎಂಬುದು ಇಲ್ಲ, 1930 ಗೆ ಕರೆ ಮಾಡಿ ಎನ್ನುತ್ತದೆ, ನಿಮ್ಮಿಂದ ಏನನ್ನೂ ಕೇಳುವುದಿಲ್ಲ.",
+    "hi": "यह सुरक्षा की सलाह है। यह बताती है कि डिजिटल अरेस्ट जैसा कुछ नहीं होता और 1930 पर कॉल करें, और आपसे कुछ नहीं मांगती।"
+   }
   },
   {
+   "id": "delivery_code",
    "scam": false,
    "en": "Hi, this is the delivery boy from Amazon. I'm at your gate, please tell me the delivery code to hand over your parcel.",
    "kn": "ನಮಸ್ಕಾರ, ನಾನು ಅಮೆಜಾನ್ ಡೆಲಿವರಿ ಹುಡುಗ. ಗೇಟ್ ಹತ್ತಿರ ಇದ್ದೇನೆ, ಪಾರ್ಸೆಲ್ ಕೊಡಲು ಡೆಲಿವರಿ ಕೋಡ್ ಹೇಳಿ.",
-   "hi": "नमस्ते, मैं अमेज़न से डिलीवरी वाला हूँ। गेट पर हूँ, पार्सल देने के लिए डिलीवरी कोड बता दीजिए।"
+   "hi": "नमस्ते, मैं अमेज़न से डिलीवरी वाला हूँ। गेट पर हूँ, पार्सल देने के लिए डिलीवरी कोड बता दीजिए।",
+   "why": {
+    "en": "Giving the delivery code to the person handing you your parcel is normal. Only a bank OTP must never be shared.",
+    "kn": "ಪಾರ್ಸೆಲ್ ಕೊಡುವವರಿಗೆ ಡೆಲಿವರಿ ಕೋಡ್ ಹೇಳುವುದು ಸಾಮಾನ್ಯ. ಬ್ಯಾಂಕ್ ಒಟಿಪಿ ಮಾತ್ರ ಎಂದಿಗೂ ಹೇಳಬೇಡಿ.",
+    "hi": "पार्सल देने वाले को डिलीवरी कोड बताना सामान्य है। बस बैंक का ओटीपी कभी न बताएं।"
+   }
   }
  ]
 }

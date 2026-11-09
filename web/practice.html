@@ -204,6 +204,7 @@ function startQuiz() {
   showItem();
 }
 function showItem() {
+  stopWhy();
   const it = items[order[at]];
   $("dots").innerHTML = order.map((_, i) => `<i class="${results[i] === true ? "ok" : results[i] === false ? "no" : i === at ? "now" : ""}"></i>`).join("");
   $("quote").textContent = "“" + it[lang] + "”";
@@ -222,11 +223,27 @@ async function answer(saidScam) {
   $("next").textContent = at === order.length - 1 ? t().last : t().next;
   $("verdict").classList.remove("hidden");
   $("dots").children[at].className = ok ? "ok" : "no";
+  if (!ok) explainWrong(it);                 // the voice starts at once, before the check comes back
   try { render(await check(it[lang]), "v"); } catch (e) { $("vtruth").textContent += " " + e.message; }
+  if (!ok && it.why) { $("vtip").textContent = "💡 " + it.why[lang]; $("vtip").classList.remove("hidden"); }
 }
+
+// Wrong answer: a Gnani voice says so and explains why (pre-recorded once, so playing it is free)
+const whyAudio = new Audio();
+let whyFiles = new Set();
+fetch("/audio/practice/index.json").then((r) => (r.ok ? r.json() : { files: [] }))
+  .then((d) => { whyFiles = new Set(d.files); }).catch(() => {});
+function explainWrong(it) {
+  const name = `${it.id}-${lang}`;
+  if (!it.id || !whyFiles.has(name)) return;
+  whyAudio.src = `/audio/practice/${name}.mp3`;
+  whyAudio.play().catch(() => {});
+}
+function stopWhy() { whyAudio.pause(); }
 $("a-scam").onclick = () => answer(true);
 $("a-safe").onclick = () => answer(false);
 $("next").onclick = () => {
+  stopWhy();
   if (++at < order.length) return showItem();
   $("qcard").classList.add("hidden"); $("done").classList.remove("hidden");
   $("donen").textContent = `${right} / ${order.length}`;
