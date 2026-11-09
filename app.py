@@ -15,7 +15,7 @@ from pipeline import analyze_call, analyze_transcripts
 st.set_page_config(page_title="Scam Sentinel", page_icon="🛡️", layout="centered")
 
 LANGS = {"ಕನ್ನಡ (Kannada)": "kn-IN", "हिन्दी (Hindi)": "hi-IN", "English / Hinglish": "en-IN"}
-LEVEL_UI = {"low": ("🟢", "Low risk", st.success), "medium": ("🟠", "Suspicious", st.warning),
+LEVEL_UI = {"low": ("🔵", "No warning signs yet", st.info), "medium": ("🟠", "Suspicious", st.warning),
             "high": ("🔴", "Likely scam", st.error)}
 SAMPLE = ("Hello, this is Inspector Rao from the cyber crime branch. A parcel in your name was caught by customs. "
           "There is an arrest warrant against you. Do not disconnect this call and do not tell anyone. "

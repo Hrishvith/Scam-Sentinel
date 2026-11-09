@@ -10,10 +10,18 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link id="manifest" rel="manifest">
 <title>Scam Sentinel protected line</title>
+<meta name="description" content="Scam Sentinel listens to a phone call on speaker and warns you out loud, in Kannada, Hindi or English, when the caller uses scam tricks like fake police, OTP requests or AnyDesk. Free demo, nothing to install.">
+<link rel="canonical" href="https://scam-sentinel-npzc.onrender.com/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Scam Sentinel: live scam-call warnings">
+<meta property="og:description" content="Scam Sentinel listens to a phone call on speaker and warns you out loud, in Kannada, Hindi or English, when the caller uses scam tricks like fake police, OTP requests or AnyDesk. Free demo, nothing to install.">
+<meta property="og:url" content="https://scam-sentinel-npzc.onrender.com/">
+<meta property="og:image" content="https://scam-sentinel-npzc.onrender.com/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
 <script src="/common.js"></script>
 <style>
   :root { --bg:#0b1416; --bg2:#112023; --card:#16282b; --line:#24393c; --ink:#f2f5f4; --ink2:#a9bcb8; --muted:#7f948f;
-          --good:#19b37d; --warn:#f5a524; --bad:#e5484d; --accent:#3b8cf0; --risk:var(--good); }
+          --good:#19b37d; --warn:#f5a524; --bad:#e5484d; --accent:#3b8cf0; --risk:var(--accent); }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { height:100%; }
   body { margin:0; background:radial-gradient(120% 60% at 50% 0%, #15302f 0%, var(--bg) 60%) fixed, var(--bg); color:var(--ink);
@@ -229,21 +237,21 @@ const $ = (id) => document.getElementById(id);
 
 // Words on the protected phone, in the language they chose (REVIEW kn/hi with native speakers)
 const UI = {
-  en: { low: "Safe so far", medium: "Be careful: suspicious call", high: "Likely scam", protected: "🛡️ Protected by Scam Sentinel",
+  en: { low: "No warning signs yet", paused: "⚠️ Protection paused: not listening right now. If unsure, hang up and call 1930.", off: "⚠️ Protection stopped: Scam Sentinel is not listening. If unsure, hang up and call 1930.", medium: "Be careful: suspicious call", high: "Likely scam", protected: "🛡️ Protected by Scam Sentinel",
         waiting: "Waiting for the caller…", listening: "Listening · keep the call on speaker near this device", hang: "Hang up",
         stopListen: "Stop listening", banner: "⚠️ SCAM CALL<br>HANG UP NOW", told: "👪 Your family has been told",
         watch: "👪 A family member is watching over this call", stop: "✋ STOP", cut: "🔇 The caller cannot hear you now.",
         ok: "I understand, I will not say it", unmute: "Let the caller hear me again", helpline: "📞 Call 1930 (cyber crime helpline)",
         ended: "Call ended", caller: "Caller", speaker: "Phone call on speaker", voice: "🧬 Spoken in an ",
         tricks: "Tricks spotted", check: "📞 Hang up and call {name} yourself" },
-  kn: { low: "ಸದ್ಯಕ್ಕೆ ಸುರಕ್ಷಿತ", medium: "ಎಚ್ಚರ: ಅನುಮಾನಾಸ್ಪದ ಕರೆ", high: "ಮೋಸದ ಕರೆ ಇರಬಹುದು", protected: "🛡️ ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ರಕ್ಷಣೆಯಲ್ಲಿದೆ",
+  kn: { low: "ಈವರೆಗೆ ಎಚ್ಚರಿಕೆಯ ಸೂಚನೆ ಇಲ್ಲ", paused: "⚠️ ರಕ್ಷಣೆ ತಾತ್ಕಾಲಿಕವಾಗಿ ನಿಂತಿದೆ: ಈಗ ಕೇಳುತ್ತಿಲ್ಲ. ಅನುಮಾನವಿದ್ದರೆ ಕರೆ ಕಟ್ ಮಾಡಿ, 1930 ಗೆ ಕರೆ ಮಾಡಿ.", off: "⚠️ ರಕ್ಷಣೆ ನಿಂತಿದೆ: ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ಕೇಳುತ್ತಿಲ್ಲ. ಅನುಮಾನವಿದ್ದರೆ ಕರೆ ಕಟ್ ಮಾಡಿ, 1930 ಗೆ ಕರೆ ಮಾಡಿ.", medium: "ಎಚ್ಚರ: ಅನುಮಾನಾಸ್ಪದ ಕರೆ", high: "ಮೋಸದ ಕರೆ ಇರಬಹುದು", protected: "🛡️ ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ರಕ್ಷಣೆಯಲ್ಲಿದೆ",
         waiting: "ಕರೆಗಾಗಿ ಕಾಯುತ್ತಿದೆ…", listening: "ಕೇಳುತ್ತಿದೆ · ಕರೆಯನ್ನು ಸ್ಪೀಕರ್‌ನಲ್ಲಿ ಈ ಸಾಧನದ ಹತ್ತಿರ ಇಡಿ", hang: "ಕರೆ ಕಟ್ ಮಾಡಿ",
         stopListen: "ಕೇಳುವುದನ್ನು ನಿಲ್ಲಿಸಿ", banner: "⚠️ ಮೋಸದ ಕರೆ<br>ಈಗಲೇ ಕರೆ ಕಟ್ ಮಾಡಿ", told: "👪 ನಿಮ್ಮ ಮನೆಯವರಿಗೆ ತಿಳಿಸಲಾಗಿದೆ",
         watch: "👪 ಮನೆಯವರು ಈ ಕರೆಯನ್ನು ಗಮನಿಸುತ್ತಿದ್ದಾರೆ", stop: "✋ ನಿಲ್ಲಿಸಿ", cut: "🔇 ಈಗ ಕರೆ ಮಾಡಿದವರಿಗೆ ನಿಮ್ಮ ಧ್ವನಿ ಕೇಳುವುದಿಲ್ಲ.",
         ok: "ಸರಿ, ನಾನು ಹೇಳುವುದಿಲ್ಲ", unmute: "ಕರೆ ಮಾಡಿದವರಿಗೆ ಮತ್ತೆ ನನ್ನ ಧ್ವನಿ ಕೇಳಿಸಲಿ", helpline: "📞 1930 ಗೆ ಕರೆ ಮಾಡಿ (ಸೈಬರ್ ಅಪರಾಧ ಸಹಾಯವಾಣಿ)",
         ended: "ಕರೆ ಮುಗಿಯಿತು", caller: "ಕರೆ ಮಾಡುತ್ತಿರುವವರು", speaker: "ಸ್ಪೀಕರ್‌ನಲ್ಲಿರುವ ಕರೆ", voice: "🧬 ",
         tricks: "ಕಂಡುಬಂದ ಮೋಸದ ತಂತ್ರಗಳು", check: "📞 ಕರೆ ಕಟ್ ಮಾಡಿ, {name} ಅವರಿಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ" },
-  hi: { low: "अभी तक सुरक्षित", medium: "सावधान: संदिग्ध कॉल", high: "धोखाधड़ी कॉल हो सकती है", protected: "🛡️ स्कैम सेंटिनल से सुरक्षित",
+  hi: { low: "अभी तक कोई चेतावनी संकेत नहीं", paused: "⚠️ सुरक्षा कुछ देर के लिए रुकी है: अभी सुन नहीं रहा। शक हो तो कॉल काटें और 1930 पर कॉल करें।", off: "⚠️ सुरक्षा बंद हो गई: स्कैम सेंटिनल सुन नहीं रहा। शक हो तो कॉल काटें और 1930 पर कॉल करें।", medium: "सावधान: संदिग्ध कॉल", high: "धोखाधड़ी कॉल हो सकती है", protected: "🛡️ स्कैम सेंटिनल से सुरक्षित",
         waiting: "कॉल का इंतज़ार…", listening: "सुन रहा है · कॉल को स्पीकर पर इस डिवाइस के पास रखें", hang: "कॉल काटें",
         stopListen: "सुनना बंद करें", banner: "⚠️ धोखाधड़ी कॉल<br>अभी कॉल काटें", told: "👪 आपके घरवालों को बता दिया गया है",
         watch: "👪 घरवाले इस कॉल पर नज़र रख रहे हैं", stop: "✋ रुकिए", cut: "🔇 अब कॉल करने वाला आपकी आवाज़ नहीं सुन सकता।",
@@ -251,7 +259,7 @@ const UI = {
         ended: "कॉल खत्म", caller: "कॉल करने वाला", speaker: "स्पीकर पर कॉल", voice: "🧬 ",
         tricks: "पकड़ी गई चालें", check: "📞 कॉल काटें और {name} को खुद फ़ोन करें" },
 };
-const COLOR = { low: "var(--good)", medium: "var(--warn)", high: "var(--bad)" };
+const COLOR = { low: "var(--accent)", medium: "var(--warn)", high: "var(--bad)" };
 const ICON = { authority: "👮", threat: "⚠️", urgency: "⏰", secrecy: "🤫", credentials: "🔑", otp_request: "🔢",
                payment: "💸", remote_access: "📲", lure: "🎁" };
 const shownTricks = new Set();
@@ -504,11 +512,32 @@ async function onControl(m) {
   else if (m.type === "guardians") showWatch(m.count);
   else if (m.type === "guard") onGuard(m);
   else if (m.type === "alert") onAlert(m);
+  else if (m.type === "protection") onProtection(m.state);
   else if (m.type === "error") alertBox(m.message);
   else if (m.type === "ended") end(t().ended + ": " + m.reason);
 }
 
+// Speech recognition dropped or stopped: never keep looking protected when nothing is listening
+let protection = "on", lastRisk = ["low", 0];
+function onProtection(state) {
+  if (!protectedRole() || startedAt === null || state === protection) return;
+  protection = state;
+  document.body.classList.toggle("unprotected", state !== "on");
+  if (state === "on") {
+    setRisk(...lastRisk);
+    setStatus(role === "listener" ? t().listening : t().protected);
+    return;
+  }
+  const text = t()[state];
+  document.documentElement.style.setProperty("--risk", "var(--warn)");
+  $("risktext").textContent = text;
+  alertBox(text);
+  navigator.vibrate?.([300, 150, 300]);
+}
+
 function setRisk(level, score) {
+  lastRisk = [level, score];
+  if (protection !== "on") return;           // the paused/stopped notice stays until listening is back
   document.body.dataset.level = level;
   document.documentElement.style.setProperty("--risk", COLOR[level]);
   $("bar").style.width = Math.min(100, score * 10) + "%";

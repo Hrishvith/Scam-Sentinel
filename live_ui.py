@@ -22,7 +22,7 @@ from live import RATES, AlertPlayer, LiveEvent, LiveSession, file_frames, mic_fr
 
 HERE = Path(__file__).resolve().parent
 SIMULATED = HERE / "demo_calls" / "corpus"
-LEVEL_UI = {"low": ("🟢", "Low risk"), "medium": ("🟠", "Suspicious"), "high": ("🔴", "Likely scam")}
+LEVEL_UI = {"low": ("🔵", "No warning signs yet"), "medium": ("🟠", "Suspicious"), "high": ("🔴", "Likely scam")}
 
 
 def file_language(path: Path, default: str) -> str:

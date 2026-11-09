@@ -7,10 +7,18 @@
 <link rel="icon" href="/icons/favicon.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <title>Spot the scam</title>
+<meta name="description" content="Practise spotting phone scams: an 8-question quiz and a free checker that explains the scam tricks in a call script, in Kannada, Hindi and English.">
+<link rel="canonical" href="https://scam-sentinel-npzc.onrender.com/practice">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Spot the scam: practice quiz">
+<meta property="og:description" content="Practise spotting phone scams: an 8-question quiz and a free checker that explains the scam tricks in a call script, in Kannada, Hindi and English.">
+<meta property="og:url" content="https://scam-sentinel-npzc.onrender.com/practice">
+<meta property="og:image" content="https://scam-sentinel-npzc.onrender.com/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
 <script src="/common.js"></script>
 <style>
   :root { --bg:#0b1416; --bg2:#112023; --card:#16282b; --line:#24393c; --ink:#f2f5f4; --ink2:#a9bcb8;
-          --good:#19b37d; --warn:#f5a524; --bad:#e5484d; --accent:#3b8cf0; --risk:var(--good); }
+          --good:#19b37d; --warn:#f5a524; --bad:#e5484d; --accent:#3b8cf0; --risk:var(--accent); }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { margin:0; background:radial-gradient(120% 60% at 50% 0%, #15302f 0%, var(--bg) 60%) fixed, var(--bg); color:var(--ink);
          font:18px/1.45 system-ui,-apple-system,"Segoe UI","Noto Sans Kannada","Noto Sans Devanagari",sans-serif; }
@@ -118,7 +126,7 @@ const key = new URLSearchParams(location.search).get("key") || "";
 const $ = (id) => document.getElementById(id);
 const ICON = { authority: "👮", threat: "⚠️", urgency: "⏰", secrecy: "🤫", credentials: "🔑", otp_request: "🔢",
                payment: "💸", remote_access: "📲", lure: "🎁" };
-const COLOR = { low: "var(--good)", medium: "var(--warn)", high: "var(--bad)" };
+const COLOR = { low: "var(--accent)", medium: "var(--warn)", high: "var(--bad)" };
 const LANGS = { kn: "ಕನ್ನಡ", hi: "हिन्दी", en: "English" };
 // REVIEW kn/hi with native speakers
 const UI = {
@@ -127,24 +135,27 @@ const UI = {
         next: "Next call →", last: "See my score →", done: "You spotted", again: "↻ Try again", share: "📤 Send these tips to family",
         shared: "Copied. Paste it into WhatsApp for your family.", checkLabel: "Type what the caller is saying",
         checkHint: "It is checked as you type. Nothing you type is saved.", examples: "Try an example:", none: "No scam tricks found yet.",
-        low: "Safe so far", medium: "Suspicious", high: "Likely scam", says2: "Scam Sentinel says:",
-        foot: "Runs on Scam Sentinel's offline rules: free, no AI credits, nothing saved. A real scam call? Hang up and call 1930.",
+        low: "No warning signs yet", medium: "Suspicious", high: "Likely scam", says2: "Scam Sentinel says:",
+        foot: "Checked by Scam Sentinel's own rules on our server: free, no AI credits, nothing saved. A real scam call? Hang up and call 1930.",
+        notVerdict: "No warning signs found in these words. That is not a safety verdict: scammers change their words. Never share an OTP or PIN, and if unsure, hang up and call back on the official number.",
         tips: "Scam call tips from Scam Sentinel:\n1. Police never ask for money on the phone, and there is no 'digital arrest'.\n2. Banks never ask for your OTP or PIN.\n3. If a caller says a family member is in trouble, hang up and call that person yourself.\n4. Never install an app because a caller asks.\n5. Report scam calls at 1930 or cybercrime.gov.in." },
   kn: { title: "🎓 ಮೋಸದ ಕರೆ ಗುರುತಿಸಿ", sub: "ಸಣ್ಣ ಕರೆಗಳೊಂದಿಗೆ ಅಭ್ಯಾಸ ಮಾಡಿ. ನೀವು ಕರೆ ಕಟ್ ಮಾಡುತ್ತೀರಾ?", quiz: "🎯 ಅಭ್ಯಾಸ", check: "🔍 ಕರೆ ಪರಿಶೀಲಿಸಿ", says: "ಕರೆ ಮಾಡಿದವರು ಹೇಳುತ್ತಾರೆ",
         scam: "🚨 ಮೋಸ", safe: "✅ ಸುರಕ್ಷಿತ", right: "✅ ಸರಿ!", wrong: "❌ ತಪ್ಪು", wasScam: "ಇದು ಮೋಸದ ಕರೆ.", wasSafe: "ಇದು ಸಾಮಾನ್ಯ ಕರೆ.",
         next: "ಮುಂದಿನ ಕರೆ →", last: "ನನ್ನ ಅಂಕ ನೋಡಿ →", done: "ನೀವು ಸರಿಯಾಗಿ ಗುರುತಿಸಿದ್ದು", again: "↻ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ", share: "📤 ಈ ಸಲಹೆಗಳನ್ನು ಮನೆಯವರಿಗೆ ಕಳುಹಿಸಿ",
         shared: "ಕಾಪಿ ಆಯಿತು. ಮನೆಯವರಿಗೆ ವಾಟ್ಸ್‌ಆ್ಯಪ್‌ನಲ್ಲಿ ಪೇಸ್ಟ್ ಮಾಡಿ.", checkLabel: "ಕರೆ ಮಾಡಿದವರು ಏನು ಹೇಳುತ್ತಿದ್ದಾರೆ ಎಂದು ಟೈಪ್ ಮಾಡಿ",
         checkHint: "ಟೈಪ್ ಮಾಡುತ್ತಿದ್ದಂತೆ ಪರಿಶೀಲಿಸುತ್ತದೆ. ನೀವು ಟೈಪ್ ಮಾಡಿದ್ದು ಉಳಿಸಲಾಗುವುದಿಲ್ಲ.", examples: "ಉದಾಹರಣೆ:", none: "ಇನ್ನೂ ಯಾವುದೇ ಮೋಸದ ತಂತ್ರ ಕಂಡಿಲ್ಲ.",
-        low: "ಸದ್ಯಕ್ಕೆ ಸುರಕ್ಷಿತ", medium: "ಅನುಮಾನಾಸ್ಪದ", high: "ಮೋಸದ ಕರೆ ಇರಬಹುದು", says2: "ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ಹೇಳುತ್ತದೆ:",
-        foot: "ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್‌ನ ಆಫ್‌ಲೈನ್ ನಿಯಮಗಳಿಂದ ನಡೆಯುತ್ತದೆ: ಉಚಿತ, ಏನೂ ಉಳಿಸುವುದಿಲ್ಲ. ನಿಜವಾದ ಮೋಸದ ಕರೆ ಬಂದರೆ ಕರೆ ಕಟ್ ಮಾಡಿ, 1930 ಗೆ ಕರೆ ಮಾಡಿ.",
+        low: "ಈವರೆಗೆ ಎಚ್ಚರಿಕೆಯ ಸೂಚನೆ ಇಲ್ಲ", medium: "ಅನುಮಾನಾಸ್ಪದ", high: "ಮೋಸದ ಕರೆ ಇರಬಹುದು", says2: "ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ಹೇಳುತ್ತದೆ:",
+        notVerdict: "ಈ ಮಾತುಗಳಲ್ಲಿ ಎಚ್ಚರಿಕೆಯ ಸೂಚನೆ ಸಿಗಲಿಲ್ಲ. ಇದು ಸುರಕ್ಷಿತ ಎಂಬ ತೀರ್ಪಲ್ಲ: ಮೋಸಗಾರರು ಮಾತು ಬದಲಿಸುತ್ತಾರೆ. ಒಟಿಪಿ ಅಥವಾ ಪಿನ್ ಯಾರಿಗೂ ಹೇಳಬೇಡಿ; ಅನುಮಾನವಿದ್ದರೆ ಕರೆ ಕಟ್ ಮಾಡಿ, ಅಧಿಕೃತ ನಂಬರ್‌ಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ.",
+        foot: "ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್‌ನ ಸ್ವಂತ ನಿಯಮಗಳಿಂದ ನಮ್ಮ ಸರ್ವರ್‌ನಲ್ಲಿ ಪರಿಶೀಲಿಸಲಾಗುತ್ತದೆ: ಉಚಿತ, ಏನೂ ಉಳಿಸುವುದಿಲ್ಲ. ನಿಜವಾದ ಮೋಸದ ಕರೆ ಬಂದರೆ ಕರೆ ಕಟ್ ಮಾಡಿ, 1930 ಗೆ ಕರೆ ಮಾಡಿ.",
         tips: "ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್‌ನಿಂದ ಮೋಸದ ಕರೆ ಸಲಹೆಗಳು:\n1. ಪೊಲೀಸರು ಫೋನಿನಲ್ಲಿ ಹಣ ಕೇಳುವುದಿಲ್ಲ. 'ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್' ಎಂಬುದೇ ಇಲ್ಲ.\n2. ಬ್ಯಾಂಕ್ ಎಂದಿಗೂ ಒಟಿಪಿ ಅಥವಾ ಪಿನ್ ಕೇಳುವುದಿಲ್ಲ.\n3. ಮನೆಯವರು ತೊಂದರೆಯಲ್ಲಿದ್ದಾರೆ ಎಂದು ಯಾರಾದರೂ ಹೇಳಿದರೆ, ಕರೆ ಕಟ್ ಮಾಡಿ ಅವರಿಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ.\n4. ಕರೆ ಮಾಡಿದವರು ಹೇಳಿದರು ಎಂದು ಯಾವ ಆ್ಯಪ್ ಕೂಡ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಬೇಡಿ.\n5. ಮೋಸದ ಕರೆಗಳನ್ನು 1930 ಅಥವಾ cybercrime.gov.in ನಲ್ಲಿ ವರದಿ ಮಾಡಿ." },
   hi: { title: "🎓 धोखे की कॉल पहचानें", sub: "छोटी सिम्युलेटेड कॉल से अभ्यास करें। क्या आप कॉल काटेंगे?", quiz: "🎯 अभ्यास", check: "🔍 कॉल जाँचें", says: "कॉल करने वाला कहता है",
         scam: "🚨 धोखा", safe: "✅ सुरक्षित", right: "✅ सही!", wrong: "❌ गलत", wasScam: "यह धोखाधड़ी की कॉल थी।", wasSafe: "यह आम कॉल थी।",
         next: "अगली कॉल →", last: "मेरा स्कोर देखें →", done: "आपने सही पहचानीं", again: "↻ फिर से खेलें", share: "📤 ये सलाह घरवालों को भेजें",
         shared: "कॉपी हो गया। घरवालों को व्हाट्सऐप पर पेस्ट करें।", checkLabel: "कॉल करने वाला क्या कह रहा है, टाइप करें",
         checkHint: "टाइप करते ही जाँच होती है। आपका लिखा सेव नहीं होता।", examples: "उदाहरण:", none: "अभी तक कोई चाल नहीं मिली।",
-        low: "अभी तक सुरक्षित", medium: "संदिग्ध", high: "धोखाधड़ी कॉल हो सकती है", says2: "स्कैम सेंटिनल कहता है:",
-        foot: "स्कैम सेंटिनल के ऑफ़लाइन नियमों से चलता है: मुफ़्त, कुछ सेव नहीं होता। असली धोखाधड़ी कॉल? कॉल काटें और 1930 पर कॉल करें।",
+        low: "अभी तक कोई चेतावनी संकेत नहीं", medium: "संदिग्ध", high: "धोखाधड़ी कॉल हो सकती है", says2: "स्कैम सेंटिनल कहता है:",
+        notVerdict: "इन शब्दों में कोई चेतावनी संकेत नहीं मिला। यह सुरक्षित होने का फ़ैसला नहीं है: धोखेबाज़ अपने शब्द बदलते हैं। ओटीपी या पिन कभी न बताएं; शक हो तो कॉल काटें और आधिकारिक नंबर पर खुद कॉल करें।",
+        foot: "स्कैम सेंटिनल के अपने नियमों से हमारे सर्वर पर जाँच होती है: मुफ़्त, कुछ सेव नहीं होता। असली धोखाधड़ी कॉल? कॉल काटें और 1930 पर कॉल करें।",
         tips: "स्कैम सेंटिनल की ओर से धोखाधड़ी कॉल से बचने की सलाह:\n1. पुलिस फ़ोन पर पैसे नहीं मांगती, और 'डिजिटल अरेस्ट' जैसा कुछ नहीं होता।\n2. बैंक कभी ओटीपी या पिन नहीं मांगता।\n3. अगर कोई कहे कि घर का कोई सदस्य मुसीबत में है, तो कॉल काटें और उन्हें खुद फ़ोन करें।\n4. किसी कॉल करने वाले के कहने पर कोई ऐप इंस्टॉल न करें।\n5. धोखाधड़ी कॉल की शिकायत 1930 या cybercrime.gov.in पर करें।" },
 };
 let lang = "kn", items = [], order = [], at = 0, right = 0, results = [];
@@ -176,8 +187,9 @@ function render(res, p) {             // gauge, level, scam type, trick chips an
     $(p + "tricks").append(c);
   }
   if (!res.tricks.length) { const n = document.createElement("span"); n.className = "note"; n.textContent = t().none; $(p + "tricks").append(n); }
-  $(p + "tip").textContent = res.tip ? "💡 " + res.tip : "";
-  $(p + "tip").classList.toggle("hidden", !res.tip);
+  const tip = res.tip ? "💡 " + res.tip : (p === "c" && res.level === "low" && $("text").value.trim() ? "ℹ️ " + t().notVerdict : "");
+  $(p + "tip").textContent = tip;                // a low score never means "safe"
+  $(p + "tip").classList.toggle("hidden", !tip);
 }
 
 // ---- quiz ----

@@ -166,6 +166,53 @@ def test_a_connection_lost_during_start_up_frees_the_line_and_the_credits(tmp_pa
     run(body, tmp_path, public=quota)
 
 
+def test_the_protected_phone_is_told_when_speech_recognition_stops(tmp_path):
+    """Audit P0: a speech-service failure must never leave the phone looking protected."""
+    async def main():
+        client, _ = make_client(tmp_path, tts_server)
+        relay = Relay("test-key", key=KEY, lang="en-IN", gnani_url="ws://127.0.0.1:9", client=client,  # nothing listens
+                      save_dir=None, pace=False, flush_seconds=0.1, drain_timeout=1, settle_seconds=0.1)
+        async with TestClient(TestServer(relay.app())) as http:
+            guardian = await http.ws_connect(f"/ws/guardian?key={KEY}")
+            listener = await http.ws_connect(f"/ws/call?role=listener&lang=en-IN&key={KEY}")
+            await receive_until(listener, "connected")
+            for i in range(40):
+                await listener.send_bytes(frame(i))
+            seen, _ = await receive_until(listener, "protection", timeout=10)
+            assert seen[-1]["state"] == "paused"                          # first failed connection
+            states = [seen[-1]["state"]]
+            while states[-1] != "off":
+                more, _ = await receive_until(listener, "protection", timeout=15)
+                states.append(more[-1]["state"])
+            assert states == ["paused", "off"]                            # gave up: said so, never "on"
+            family = await drain(guardian)
+            assert any(m["type"] == "protection" and m["state"] == "off" for m in family)
+            await listener.close()
+    asyncio.run(main())
+
+
+def test_a_public_visitors_call_is_never_written_to_disk(tmp_path):
+    saved = tmp_path / "sessions"
+    async def main():
+        fake = FakeGnani(script=list(SCRIPT), frames_per_segment=10)
+        async with serve(fake.handler, "127.0.0.1", 0) as gnani:
+            port = gnani.sockets[0].getsockname()[1]
+            client, _ = make_client(tmp_path, tts_server)
+            relay = Relay("test-key", key=KEY, lang="en-IN", gnani_url=f"ws://127.0.0.1:{port}", client=client,
+                          save_dir=saved, pace=False, flush_seconds=0.1, drain_timeout=2, settle_seconds=0.1,
+                          public=PublicQuota(daily_credits=5.0, max_seconds=60, rate=0.01))
+            async with TestClient(TestServer(relay.app())) as http:
+                ws = await http.ws_connect("/ws/call?role=listener&lang=en-IN")
+                await receive_until(ws, "connected")
+                for i in range(60):
+                    await ws.send_bytes(frame(i))
+                await receive_until(ws, "alert", timeout=10)               # it really heard the scam
+                await ws.send_json({"type": "hangup"}); await ws.close()
+                await asyncio.sleep(0.5)
+    asyncio.run(main())
+    assert not saved.exists() or not any(saved.iterdir())
+
+
 def test_the_key_holder_takes_the_line_from_a_public_session(tmp_path):
     async def body(http, fake, _):
         public = await http.ws_connect("/ws/call?role=listener&lang=en-IN")
@@ -196,6 +243,31 @@ def test_pages_are_served(tmp_path):
         info = await (await http.get(f"/info?key={KEY}")).json()
         assert info["lang"] == "en-IN" and info["family"] is None
     run(body, tmp_path)
+
+
+def test_every_page_has_security_headers_and_private_pages_stay_out_of_search(tmp_path):
+    async def body(http, fake, _):
+        for path in ("/", "/practice", "/scams", "/theme.css", "/robots.txt", "/info"):   # /info: a 403 too
+            res = await http.get(path)
+            assert res.headers["X-Content-Type-Options"] == "nosniff", path
+            assert res.headers["Referrer-Policy"] == "no-referrer", path     # the private ?key= never leaks
+            assert "frame-ancestors 'none'" in res.headers["Content-Security-Policy"], path
+        robots = await (await http.get("/robots.txt")).text()
+        assert "Disallow: /operator" in robots and "Disallow: /guardian" in robots and "Sitemap:" in robots
+        sitemap = await (await http.get("/sitemap.xml")).text()
+        assert "/practice</loc>" in sitemap and "operator" not in sitemap
+        home = await (await http.get("/")).text()
+        assert '<meta name="description"' in home and 'property="og:title"' in home
+        assert 'content="noindex' in await (await http.get("/operator")).text()
+    run(body, tmp_path)
+
+
+def test_audio_waiting_for_speech_recognition_is_bounded():
+    q = asyncio.Queue(3)
+    for i in range(5):
+        phone_relay.offer(q, bytes([i]))
+    phone_relay.offer(q, None)                                        # the end-of-call marker always gets in
+    assert [q.get_nowait() for _ in range(3)] == [bytes([3]), bytes([4]), None]
 
 
 def test_phones_can_install_it_as_an_app(tmp_path):

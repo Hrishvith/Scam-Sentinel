@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Operator view</title>
+<meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/icons/favicon.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
@@ -60,8 +61,8 @@
 <script>
 const key = new URLSearchParams(location.search).get("key") || "";
 const $ = (id) => document.getElementById(id);
-const COLORS = { low: "var(--good)", medium: "var(--warn)", high: "var(--bad)" };
-const NAMES = { low: "Safe so far", medium: "Suspicious", high: "Likely scam" };
+const COLORS = { low: "var(--accent, #3b8cf0)", medium: "var(--warn)", high: "var(--bad)" };
+const NAMES = { low: "No warning signs yet", medium: "Suspicious", high: "Likely scam" };
 $("listen").href = `/?role=listener&key=${encodeURIComponent(key)}`;   // this laptop (localhost may use the mic)
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 function log(t) { const d = document.createElement("div"); d.textContent = new Date().toLocaleTimeString() + "  " + t; $("log").prepend(d); }
@@ -121,7 +122,8 @@ function connect() {
     } else if (m.type === "done") {
       const tta = Object.entries(m.time_to_alert || {}).map(([l, s]) => `${l} after ${s.toFixed(1)} s`).join(", ") || "no alert";
       $("summary").innerHTML = `<p>Call summary: ${m.seconds_streamed} s, final <b>${m.level}</b>. Time to alert: ${tta}.</p>`;
-    } else if (m.type === "error" || m.type === "info") log(m.message);
+    } else if (m.type === "protection") log(`protection ${m.state}: ${m.state === "on" ? "listening again" : "speech recognition is not listening; the protected phone was told"}`);
+    else if (m.type === "error" || m.type === "info") log(m.message);
   };
   ws.onclose = () => { log("dashboard disconnected, retrying…"); setTimeout(connect, 2000); };
 }

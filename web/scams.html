@@ -7,10 +7,18 @@
 <link rel="icon" href="/icons/favicon.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <title>Real scams</title>
+<meta name="description" content="Real reported phone scams in India (digital arrest, fake KYC, courier, AnyDesk, power bill), with sources and the tricks to watch for, in Kannada, Hindi and English.">
+<link rel="canonical" href="https://scam-sentinel-npzc.onrender.com/scams">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Real scams in India, explained">
+<meta property="og:description" content="Real reported phone scams in India (digital arrest, fake KYC, courier, AnyDesk, power bill), with sources and the tricks to watch for, in Kannada, Hindi and English.">
+<meta property="og:url" content="https://scam-sentinel-npzc.onrender.com/scams">
+<meta property="og:image" content="https://scam-sentinel-npzc.onrender.com/icons/icon-512.png">
+<meta name="twitter:card" content="summary">
 <script src="/common.js"></script>
 <style>
   :root { --bg:#0b1416; --bg2:#112023; --card:#16282b; --line:#24393c; --ink:#f2f5f4; --ink2:#a9bcb8;
-          --good:#19b37d; --warn:#f5a524; --bad:#e5484d; --accent:#3b8cf0; --risk:var(--good); }
+          --good:#19b37d; --warn:#f5a524; --bad:#e5484d; --accent:#3b8cf0; --risk:var(--accent); }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { margin:0; background:radial-gradient(120% 60% at 50% 0%, #15302f 0%, var(--bg) 60%) fixed, var(--bg); color:var(--ink);
          font:17px/1.5 system-ui,-apple-system,"Segoe UI","Noto Sans Kannada","Noto Sans Devanagari",sans-serif; }
@@ -107,7 +115,7 @@ const key = new URLSearchParams(location.search).get("key") || "";
 const $ = (id) => document.getElementById(id);
 const ICON = { authority: "👮", threat: "⚠️", urgency: "⏰", secrecy: "🤫", credentials: "🔑", otp_request: "🔢",
                payment: "💸", remote_access: "📲", lure: "🎁" };
-const COLOR = { low: "var(--good)", medium: "var(--warn)", high: "var(--bad)" };
+const COLOR = { low: "var(--accent)", medium: "var(--warn)", high: "var(--bad)" };
 const LANGS = { kn: "ಕನ್ನಡ", hi: "हिन्दी", en: "English" };
 // REVIEW kn/hi with native speakers
 const UI = {
@@ -116,7 +124,7 @@ const UI = {
         listen: "🔊 Listen to this explained", stop: "⏹ Stop", voice: "Spoken by Gnani Timbre (AI voice)",
         play: "▶ Hear how this scam call happens", replay: "↻ Play again", stopScene: "⏹ Stop", scammer: "Scammer",
         victim: "Person who got the call", sentinel: "Scam Sentinel warns", reenact: "Re-enacted call · AI voices · not a real recording", n: (k) => `${k} reported cases`,
-        low: "Safe so far", medium: "Suspicious", high: "Likely scam", none: "No scam matches that search.", source: "source",
+        low: "No warning signs yet", medium: "Suspicious", high: "Likely scam", none: "No scam matches that search.", source: "source",
         ennote: "", practice: "🎓 Practise spotting scams", home: "🛡️ Protected line",
         foot: "Short summaries of public news reports and government figures; amounts as reported, victims never named. The calls you can watch are re-enactments. Lost money? Call 1930 within the first hour, or report at cybercrime.gov.in." },
   kn: { title: "📰 ಭಾರತದಲ್ಲಿ ನಡೆದ ನಿಜವಾದ ಮೋಸಗಳು", sub: "ಈ ತಂತ್ರಗಳಿಂದ ನಿಜವಾದ ಜನರು ತಮ್ಮ ಉಳಿತಾಯ ಕಳೆದುಕೊಂಡಿದ್ದಾರೆ. ಪ್ರತಿಯೊಂದು ಹೇಗೆ ನಡೆಯುತ್ತದೆ ಎಂದು ತಿಳಿಯಿರಿ.",
@@ -124,7 +132,7 @@ const UI = {
         listen: "🔊 ಈ ಮೋಸದ ವಿವರಣೆ ಕೇಳಿ", stop: "⏹ ನಿಲ್ಲಿಸಿ", voice: "ಗ್ನಾನಿ ಟಿಂಬರ್ ಧ್ವನಿ (AI)",
         play: "▶ ಈ ಮೋಸದ ಕರೆ ಹೇಗೆ ನಡೆಯುತ್ತದೆ ಕೇಳಿ", replay: "↻ ಮತ್ತೆ ಕೇಳಿ", stopScene: "⏹ ನಿಲ್ಲಿಸಿ", scammer: "ಮೋಸಗಾರ",
         victim: "ಕರೆ ಸ್ವೀಕರಿಸಿದವರು", sentinel: "ಸ್ಕ್ಯಾಮ್ ಸೆಂಟಿನೆಲ್ ಎಚ್ಚರಿಕೆ", reenact: "ಮರುಸೃಷ್ಟಿಸಿದ ಕರೆ · AI ಧ್ವನಿಗಳು · ನಿಜವಾದ ರೆಕಾರ್ಡಿಂಗ್ ಅಲ್ಲ", n: (k) => `${k} ವರದಿಯಾದ ಪ್ರಕರಣಗಳು`,
-        low: "ಸದ್ಯಕ್ಕೆ ಸುರಕ್ಷಿತ", medium: "ಅನುಮಾನಾಸ್ಪದ", high: "ಮೋಸದ ಕರೆ ಇರಬಹುದು", none: "ಈ ಹುಡುಕಾಟಕ್ಕೆ ಯಾವ ಮೋಸವೂ ಸಿಗಲಿಲ್ಲ.", source: "ಮೂಲ",
+        low: "ಈವರೆಗೆ ಎಚ್ಚರಿಕೆಯ ಸೂಚನೆ ಇಲ್ಲ", medium: "ಅನುಮಾನಾಸ್ಪದ", high: "ಮೋಸದ ಕರೆ ಇರಬಹುದು", none: "ಈ ಹುಡುಕಾಟಕ್ಕೆ ಯಾವ ಮೋಸವೂ ಸಿಗಲಿಲ್ಲ.", source: "ಮೂಲ",
         ennote: "ಪ್ರಕರಣಗಳ ವಿವರ ಇಂಗ್ಲಿಷ್ ಸುದ್ದಿ ವರದಿಗಳಿಂದ ತೆಗೆದುಕೊಂಡಿದೆ.", practice: "🎓 ಮೋಸದ ಕರೆ ಗುರುತಿಸುವ ಅಭ್ಯಾಸ", home: "🛡️ ಸುರಕ್ಷಿತ ಕರೆ",
         foot: "ಸಾರ್ವಜನಿಕ ಸುದ್ದಿ ವರದಿಗಳು ಮತ್ತು ಸರ್ಕಾರಿ ಅಂಕಿಅಂಶಗಳ ಸಂಕ್ಷಿಪ್ತ ಸಾರ; ಸಂತ್ರಸ್ತರ ಹೆಸರು ಹಾಕಿಲ್ಲ. ನೋಡುವ ಕರೆಗಳು ಮರುಸೃಷ್ಟಿ. ಹಣ ಹೋದರೆ ಮೊದಲ ಒಂದು ಗಂಟೆಯೊಳಗೆ 1930 ಗೆ ಕರೆ ಮಾಡಿ, ಅಥವಾ cybercrime.gov.in ನಲ್ಲಿ ದೂರು ನೀಡಿ." },
   hi: { title: "📰 भारत में हुई असली धोखाधड़ी", sub: "इन चालों से असली लोगों की जमा-पूँजी गई है। जानिए हर चाल कैसे चलती है, ताकि आप उसे रोक सकें।",
@@ -132,7 +140,7 @@ const UI = {
         listen: "🔊 इस धोखे के बारे में सुनें", stop: "⏹ रोकें", voice: "ग्नानी टिम्बर आवाज़ (AI)",
         play: "▶ सुनिए यह धोखे की कॉल कैसे होती है", replay: "↻ फिर से सुनें", stopScene: "⏹ रोकें", scammer: "धोखेबाज़",
         victim: "जिसे कॉल आया", sentinel: "स्कैम सेंटिनल की चेतावनी", reenact: "दोबारा बनाई गई कॉल · AI आवाज़ें · असली रिकॉर्डिंग नहीं", n: (k) => `${k} दर्ज मामले`,
-        low: "अभी तक सुरक्षित", medium: "संदिग्ध", high: "धोखाधड़ी कॉल हो सकती है", none: "इस खोज से कोई धोखाधड़ी नहीं मिली।", source: "स्रोत",
+        low: "अभी तक कोई चेतावनी संकेत नहीं", medium: "संदिग्ध", high: "धोखाधड़ी कॉल हो सकती है", none: "इस खोज से कोई धोखाधड़ी नहीं मिली।", source: "स्रोत",
         ennote: "मामलों का विवरण अंग्रेज़ी समाचार रिपोर्टों से लिया गया है।", practice: "🎓 धोखे की कॉल पहचानने का अभ्यास", home: "🛡️ सुरक्षित कॉल",
         foot: "सार्वजनिक समाचार रिपोर्टों और सरकारी आँकड़ों का छोटा सार; पीड़ितों के नाम नहीं दिए गए। दिखाई गई कॉल दोबारा बनाई गई हैं। पैसे गए हों तो पहले एक घंटे में 1930 पर कॉल करें, या cybercrime.gov.in पर शिकायत करें।" },
 };

@@ -59,6 +59,46 @@ WEB = HERE / "web"
 RATE = 16000                      # browsers send 16 kHz mono s16le, 20 ms per message
 ROLES = ("caller", "receiver", "listener")   # listener: a device next to a real call on speaker
 LANGS = {"kn-IN": "ಕನ್ನಡ", "hi-IN": "हिन्दी", "en-IN": "English"}
+AUDIO_BACKLOG = 3000              # 20 ms messages = 60 s of audio waiting for speech recognition, then the oldest go
+
+
+def offer(queue: asyncio.Queue, item: bytes | None) -> None:
+    """Put without blocking. If speech recognition has fallen a minute behind, drop the oldest audio
+    instead of letting memory grow without limit (the end-of-call marker always gets in)."""
+    while True:
+        try:
+            queue.put_nowait(item)
+            return
+        except asyncio.QueueFull:
+            queue.get_nowait()
+
+
+# Sent with every response. Inline scripts/styles are part of the pages, so they are allowed; everything else
+# must come from this site. Referrer-Policy keeps the private ?key= out of other sites' logs.
+SECURITY_HEADERS = {
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
+                               "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; "
+                               "media-src 'self' data: blob:; connect-src 'self' ws: wss:; worker-src 'self' blob:; "
+                               "frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "X-Frame-Options": "DENY",
+    "Strict-Transport-Security": "max-age=31536000",
+    "Permissions-Policy": "camera=(), geolocation=(), microphone=(self)",
+}
+PUBLIC_PAGES = ["/", "/practice", "/scams"]
+
+
+@web.middleware
+async def security_headers(request: web.Request, handler):
+    try:
+        resp = await handler(request)
+    except web.HTTPException as exc:
+        exc.headers.update(SECURITY_HEADERS)
+        raise
+    if not resp.prepared:                         # websockets are already upgraded
+        resp.headers.update(SECURITY_HEADERS)
+    return resp
 
 
 class PublicQuota:
@@ -111,7 +151,7 @@ class Call:
 
     def __init__(self) -> None:
         self.peers: dict[str, web.WebSocketResponse] = {}
-        self.caller_audio: asyncio.Queue[bytes | None] = asyncio.Queue()
+        self.caller_audio: asyncio.Queue[bytes | None] = asyncio.Queue(AUDIO_BACKLOG)
         self.task: asyncio.Task | None = None
         self.session: LiveSession | None = None
         self.connected_at: float | None = None
@@ -119,7 +159,7 @@ class Call:
         self.lang = "kn-IN"                        # chosen by the protected person when they join
         self.use_family = False
         self.use_guard = False                     # OTP guard: also listen to the protected person
-        self.receiver_audio: asyncio.Queue[bytes | None] = asyncio.Queue()
+        self.receiver_audio: asyncio.Queue[bytes | None] = asyncio.Queue(AUDIO_BACKLOG)
         self.guard_task: asyncio.Task | None = None
         self.receiver_muted = False                # set by the guard: their voice no longer reaches the caller
         self.caller_lines: list[str] = []          # last few things the caller said (for the guardian)
@@ -127,6 +167,7 @@ class Call:
         self.public = False                        # a no-key demo session (speakerphone listener only)
         self.reserved = 0.0                        # credits held for it in the public quota
         self.max_seconds: float | None = None      # per-call cap (shorter for public sessions)
+        self.protection = "on"                     # on / paused / off: is speech recognition really listening?
 
     def protected(self) -> web.WebSocketResponse | None:
         """The phone that gets the warnings: the receiver, or the speakerphone listener."""
@@ -154,7 +195,9 @@ class Relay:
 
     # ---- web app ----------------------------------------------------------------------------
     def app(self) -> web.Application:
-        app = web.Application()
+        app = web.Application(middlewares=[security_headers])
+        app.router.add_get("/robots.txt", self.robots)
+        app.router.add_get("/sitemap.xml", self.sitemap)
         app.router.add_get("/", self.page("call.html"))
         app.router.add_get("/operator", self.page("operator.html"))
         app.router.add_get("/guardian", self.page("guardian.html"))
@@ -183,6 +226,24 @@ class Relay:
             return web.Response(body=(WEB / name).read_bytes(), content_type=content_type, charset="utf-8",
                                 headers={"Cache-Control": "no-store"})
         return handler
+
+    async def robots(self, request: web.Request) -> web.Response:
+        """Search engines may list the public learning pages, never the private call / family / operator pages."""
+        lines = ["User-agent: *", "Allow: /$", "Allow: /practice", "Allow: /scams",
+                 "Disallow: /operator", "Disallow: /guardian", "Disallow: /info", "Disallow: /ws/", "Disallow: /*?",
+                 f"Sitemap: {self.base_url(request)}/sitemap.xml"]
+        return web.Response(text="\n".join(lines) + "\n", content_type="text/plain")
+
+    async def sitemap(self, request: web.Request) -> web.Response:
+        urls = "".join(f"<url><loc>{self.base_url(request)}{p}</loc></url>" for p in PUBLIC_PAGES)
+        return web.Response(text='<?xml version="1.0" encoding="UTF-8"?>'
+                                 f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>',
+                            content_type="application/xml")
+
+    @staticmethod
+    def base_url(request: web.Request) -> str:
+        proto = request.headers.get("X-Forwarded-Proto", request.scheme).split(",")[0].strip()
+        return f"{proto if proto in ('http', 'https') else 'https'}://{request.host}"
 
     def authorised(self, request: web.Request) -> bool:
         # compared as bytes: compare_digest raises on non-ASCII text (e.g. a key pasted with a hidden BOM), which was a 500
@@ -277,9 +338,9 @@ class Relay:
                     if peer is not None and not peer.closed and call.connected_at and not blocked:
                         await peer.send_bytes(msg.data)              # the call itself
                     if role in ("caller", "listener") and call.connected_at:
-                        call.caller_audio.put_nowait(msg.data)       # the network's ear on the caller
+                        offer(call.caller_audio, msg.data)           # the network's ear on the caller
                     elif role == "receiver" and call.connected_at and call.use_guard:
-                        call.receiver_audio.put_nowait(msg.data)     # only counted for digits
+                        offer(call.receiver_audio, msg.data)         # only counted for digits
                 elif msg.type == WSMsgType.TEXT:
                     kind = json.loads(msg.data).get("type")
                     if kind == "hangup":
@@ -302,7 +363,7 @@ class Relay:
 
         limit = call.max_seconds or self.max_seconds
         session = LiveSession(self.api_key, call.lang, RATE, on_event=on_event, max_seconds=limit,
-                              url=self.gnani_url, save_dir=self.save_dir, source_name="phone-relay",
+                              url=self.gnani_url, save_dir=None if call.public else self.save_dir, source_name="phone-relay",
                               pace=self.pace, **self.session_opts)
         call.session = session
         player = AlertPlayer(self.client, call.lang, session, family=self.family if call.use_family else None,
@@ -330,7 +391,7 @@ class Relay:
                 loop.create_task(self.forward_guard(call, e))
 
             guard = GuardSession(self.api_key, call.lang, RATE, on_event=on_guard, max_seconds=limit,
-                                 url=self.gnani_url, save_dir=self.save_dir, source_name="phone-relay-receiver",
+                                 url=self.gnani_url, save_dir=None if call.public else self.save_dir, source_name="phone-relay-receiver",
                                  pace=self.pace, armed=lambda: bool(session.tracker.det.tactics.keys() & ARMING_TACTICS),
                                  **self.session_opts)
             call.guard_task = asyncio.create_task(self.listen(call, guard, call.receiver_audio, main=False))
@@ -344,12 +405,23 @@ class Relay:
             if main:
                 for ws in list(call.peers.values()):
                     await self.safe_send(ws, {"type": "error", "message": "Protection unavailable (credit limit)."})
+                await self.protection(call, "off")
+            return
+        except Exception as exc:                          # never stop listening silently
+            await self.broadcast_ops({"type": "error", "message": f"Speech session failed: {exc!r}"})
+            if main:
+                await self.protection(call, "off")
+            else:
+                await self.safe_send(call.protected(), {"type": "error", "message": "OTP guard stopped."})
             return
         finally:
             if main and call.public:
                 self.public.settle(call.reserved, (summary or {}).get("seconds_streamed", call.max_seconds or 0))
                 call.reserved = 0.0
-        if main and summary["seconds_streamed"] >= (call.max_seconds or self.max_seconds):
+        timed_out = summary["seconds_streamed"] >= (call.max_seconds or self.max_seconds)
+        if main and not call.ended and not timed_out:   # speech recognition gave up while the call goes on
+            await self.protection(call, "off")
+        if main and timed_out:
             for ws in list(call.peers.values()):
                 await self.safe_send(ws, {"type": "ended", "reason": "time limit"})
                 await ws.close()
@@ -366,7 +438,23 @@ class Relay:
                 yield buf[:FRAME_BYTES]
                 buf = buf[FRAME_BYTES:]
 
+    async def protection(self, call: Call, state: str) -> None:
+        """Tell the protected phone (and family) whether it is really being listened to:
+        on, paused (speech service reconnecting) or off (stopped). It must never look protected when it is not."""
+        if call.protection == state or (call.protection == "off" and state == "paused"):
+            return
+        call.protection = state
+        msg = {"type": "protection", "state": state}
+        await self.safe_send(call.protected(), msg)
+        await self.broadcast(self.guardians, msg)
+        await self.broadcast_ops(msg)
+
     async def forward(self, call: Call, e: LiveEvent) -> None:
+        if not call.ended:
+            if e.kind == "error":
+                await self.protection(call, "paused")
+            elif e.kind in ("connected", "transcript") and call.protection == "paused":
+                await self.protection(call, "on")
         msg = {"type": e.kind, **e.data}
         if e.kind == "transcript" and not e.data.get("echo") and e.data["text"]:
             call.caller_lines = (call.caller_lines + [e.data["text"]])[-3:]
@@ -429,8 +517,8 @@ class Relay:
             await ws.close()
         if call.connected_at and not call.ended:
             call.ended = True
-            call.caller_audio.put_nowait(None)             # let the sessions flush and finish
-            call.receiver_audio.put_nowait(None)
+            offer(call.caller_audio, None)                 # let the sessions flush and finish
+            offer(call.receiver_audio, None)
             for task in (call.task, call.guard_task):
                 if task:
                     try:
@@ -447,8 +535,11 @@ class Relay:
 
     @staticmethod
     def client_ip(request: web.Request) -> str:
+        # Behind Cloudflare (Render's edge) CF-Connecting-IP is set by the proxy and cannot be faked by the visitor;
+        # otherwise fall back to the first X-Forwarded-For hop, then the socket address.
+        cf = request.headers.get("CF-Connecting-IP", "").strip()
         fwd = request.headers.get("X-Forwarded-For", "")
-        return fwd.split(",")[0].strip() or (request.remote or "?")
+        return cf or fwd.split(",")[0].strip() or (request.remote or "?")
 
     async def end_public_call(self) -> None:
         """A key holder needs the line: end the public demo session politely and wait until it is gone."""
@@ -515,8 +606,8 @@ class Relay:
             await self.safe_send(receiver, msg)
 
     @staticmethod
-    async def safe_send(ws: web.WebSocketResponse, msg: dict) -> None:
-        if not ws.closed:
+    async def safe_send(ws: web.WebSocketResponse | None, msg: dict) -> None:
+        if ws is not None and not ws.closed:
             try:
                 await ws.send_json(msg)
             except (ConnectionResetError, RuntimeError):

@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Family guardian</title>
+<meta name="robots" content="noindex, nofollow">
 <script src="/common.js"></script>
 <meta name="theme-color" content="#0b5d4b">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -178,7 +179,8 @@ function connect() {
       risky = risky || { level: "medium", scam_label: "Suspicious call", reasons: [] };
       add("guard", `<b>✋ ${now()} · They started saying numbers</b><br>Scam Sentinel told them to stop and blocked their voice to the caller.`);
       beep(880, 400);
-    } else if (m.type === "unmuted") add("info", `🔊 ${now()} · They chose to let the caller hear them again.`);
+    } else if (m.type === "protection" && m.state !== "on") add("info", `⚠️ ${now()} · Scam Sentinel stopped listening to this call (connection problem). Consider calling them to check.`);
+    else if (m.type === "unmuted") add("info", `🔊 ${now()} · They chose to let the caller hear them again.`);
     else if (m.type === "done" && m.level === "high") add("info", `Call summary: likely scam, ${Math.round(m.seconds)} s. Consider reporting it at 1930 / cybercrime.gov.in.`);
   };
   ws.onclose = () => { setStatus("Reconnecting…", "#5f6d6a"); setTimeout(connect, 2000); };
