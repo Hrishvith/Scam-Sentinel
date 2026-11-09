@@ -20,6 +20,10 @@ LEVELS = ["low", "medium", "high"]
 MEDIUM_AT, HIGH_AT = 3.5, 6.0
 _PRIVATE = {"authority", "threat"}          # "someone official is pressuring me"
 _DANGEROUS_ASK = {"credentials", "payment", "remote_access"}  # "...and wants something harmful"
+# Requests that honest callers practically never make (matched, not negated)
+_TELLTALE = {"safe account", "सुरक्षित खाते", "ಸುರಕ್ಷಿತ ಖಾತೆ", "gift card", "गिफ्ट कार्ड", "ಗಿಫ್ಟ್ ಕಾರ್ಡ್",
+             "collect request", "anydesk", "any desk", "teamviewer", "team viewer", "quicksupport", "quick support",
+             "एनीडेस्क", "एनी डेस्क", "टीम व्यूअर", "ಎನಿಡೆಸ", "ಟೀಮ್ ವ್ಯೂವರ್"}
 
 
 def _compile(keyword: str) -> re.Pattern:
@@ -66,7 +70,7 @@ def _otp_requests(plain: str) -> list[str]:
 # arrest" (otherwise you'll be arrested) still count.
 _FILLER_EN = (r"(?:will|would|ever|also|ask|asks|asked|asking|request|requests|want|need|you|your|anyone|"
               r"any|to|for|or|and|us|we|the|a|an|someone|people|them|this|that|share|send|transfer|pay|give|"
-              r"download|install|open|use|click|kabhi|bhi|aapse|aap|ko|se)")
+              r"download|install|open|use|click|money|cash|funds|into|kabhi|bhi|aapse|aap|ko|se)")
 _NEG_BEFORE = re.compile(r"(?<!\S)(?:not|never|dont|don['’]t|won['’]t|wont|shouldn['’]t|shouldnt|cannot|can['’]t)"
                          rf"(?:\s+{_FILLER_EN})*\s*$")
 # "never ask you to/for ..." covers the rest of the sentence ("...download AnyDesk or share your OTP"),
@@ -137,6 +141,8 @@ def scam_type(found: dict[str, list[str]], plain: str) -> str | None:
             continue
         if not spec.get("all", set()) <= found.keys():
             continue
+        if spec.get("unless", set()) & found.keys():
+            continue
         if "evidence" in spec and not evidence & spec["evidence"]:
             continue
         if _TYPE_WORDS[name] and not any(rx.search(plain) for rx in _TYPE_WORDS[name]):
@@ -205,6 +211,9 @@ def detect_rules(text: str) -> Detection:
     if "secrecy" in found and found.keys() & _DANGEROUS_ASK:
         score += 1.0
         notes.append("Told to keep it secret while being asked for something sensitive.")
+    if not context and {kw for hits in found.values() for kw in hits} & _TELLTALE:
+        score += 1.0     # on its own, "move it to a safe account" or "install AnyDesk" is already suspicious
+        notes.append("A tell-tale scam request (safe account, remote-control app, gift card or collect request).")
     return Detection(score=score, level=level_for(score), tactics=found, notes=notes,
                      scam_type=scam_type(found, plain))
 

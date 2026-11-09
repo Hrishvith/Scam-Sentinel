@@ -69,8 +69,12 @@ TACTICS: dict[str, dict] = {
         "keywords": ["ಒಟಿಪಿ", "ಓಟಿಪಿ", "ಒ ಟಿ ಪಿ", "ಓ ಟಿ ಪಿ", "ಪಿನ್", "ಸಿವಿವಿ", "ಸಿ ವಿ ವಿ", "ಆಧಾರ್ ಸಂಖ್ಯೆ",
                      "ಪಾಸ್ವರ್ಡ್", "ಕಾರ್ಡ್ ನಂಬರ್",
                      "ओटीपी", "ओ टी पी", "पिन", "सीवीवी", "सी वी वी", "आधार नंबर", "पासवर्ड", "कार्ड नंबर",
+                     "वेरिफिकेशन कोड", "ವೆರಿಫಿಕೇಶನ್ ಕೋಡ್",
                      "otp", "o t p", "pin", "cvv", "c v v", "password", "aadhaar number", "aadhar number",
-                     "card number"],
+                     "card number", "one time password", "verification code", "security code", "otp code",
+                     # "read me the six digit code that just came": a paraphrased OTP request (audit, 9 Nov 2026)
+                     "re:(six|6|four|4)[ -]?digit\\s+(code|number)",
+                     "re:code\\s+(that\\s+|which\\s+)?(just\\s+)?(arrived|came|you\\s+(got|received))"],
     },
     "otp_request": {
         "weight": 3.0,
@@ -88,7 +92,8 @@ TACTICS: dict[str, dict] = {
                      "पैसे भेज", "रुपये भेज", "ट्रांसफर", "यूपीआई", "यू पी आई", "सुरक्षित खाते", "गिफ्ट कार्ड",
                      "वेरिफिकेशन राशि",
                      "transfer money", "send money", "transfer the amount", "safe account", "verification amount",
-                     "upi", "u p i", "gift card", "bitcoin", "pay immediately",
+                     "upi", "u p i", "gift card", "bitcoin", "pay immediately", "collect request",
+                     "re:scan\\s+(the\\s+|this\\s+|my\\s+)?qr", "क्यूआर कोड स्कैन", "ಕ್ಯೂಆರ್ ಕೋಡ್ ಸ್ಕ್ಯಾನ್",
                      "re:\\b(transfer|send|pay)\\s+(\\w+\\s+){0,5}(rupees|lakh|lakhs|thousand|crore)\\b",
                      # Hinglish
                      "paise transfer", "paise bhejo", "paise bhej do", "paisa transfer"],
@@ -157,6 +162,7 @@ SCAM_TYPES: dict[str, dict] = {
     "prize": {
         "labels": {"kn": "ನಕಲಿ ಬಹುಮಾನ / ರಿಫಂಡ್", "hi": "नकली इनाम / रिफंड", "en": "Fake prize / refund"},
         "evidence": {"ಲಾಟರಿ", "ಬಹುಮಾನ", "ರಿಫಂಡ್", "लॉटरी", "इनाम", "रिफंड", "lottery", "prize", "refund"},
+        "unless": {"otp_request"},     # "read me the code so I can approve the refund" is OTP theft
     },
     "otp_theft": {
         "labels": {"kn": "ಒಟಿಪಿ ಕಳ್ಳತನ", "hi": "ओटीपी चोरी", "en": "OTP theft"},

@@ -31,7 +31,7 @@
 
 ## Every miss and false alarm
 
-- **FALSE ALARM** `en_benign_delivery` at medium noise (13 dB): final low (1.9), tactics: credentials,lure. Heard: "hello i am the delivery person from the courier company i am outside your building with your password oh great i will come down please tell me the delivery otp "
+- **FALSE ALARM** `en_benign_delivery` at medium noise (13 dB): final low (1.4), tactics: credentials,lure,otp_request. Heard: "hello i am the delivery person from the courier company i am outside your building with your password oh great i will come down please tell me the delivery otp "
 - **MISSED scam** `kn_scam_kyc` at heavy noise (0 dB): final low (2.5), tactics: threat. Heard: "ನಮಸ್ಕಾರ ಮೇಡಮ್ ನಾನು ನಿಮ್ಮ ಬ್ಯಾಂಕಿನ ಕೆ ಐಸಿ ವಿಭಾಗದಿಂದ ಮಾತನಾಡುತ್ತಿದ್ದೇನೆ ಹೌದಾ ಏನು ವಿಷಯ ನಿಮ್ಮ ಕೆರೆನ್ಸಿ ಅವಧಿ ಮುಗಿದಿದೆ ಇಂದೇ ನಿಮ್ಮ ಖಾತೆ ಬ್ಲಾಕ್ ಆಗುತ್ತದೆ ಅಯ್ಯೋ ಈಗ ಏನು ಮಾಡ"
 - **FALSE ALARM** `kn_awareness` at heavy noise (-2 dB): final high (6.5), tactics: authority,credentials. Heard: "ಇದು ನಿಮ್ಮ ಬ್ಯಾಂಕಿನಿಂದ ಒಂದು ಮುಖ್ಯ ಸೂಚನೆ ನಿಮ್ಮ ಒ ಟಿ ಪಿ ಪಿನ್ ಅಥವಾ ಪಾಸ್ವರ್ಡನ್ನು ಯಾರೊಂದಿಗೂ ಹಂಚಿಕೊಳ್ಳಬಹುದು ಬ್ಯಾಂಕ್ ಸಿಬಿಂದಿಯೊಂದಿಗೂ ಸಹ ಯಾರಾದರೂ ಕೇಳಿದರೆ ಸೈಬರ್ ಕ್ರೈಮ್ ಸಹಾಯ"
 
