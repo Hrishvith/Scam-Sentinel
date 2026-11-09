@@ -59,9 +59,19 @@ GUARD_WARNINGS = {
 # One line of advice per scam type, shown on the red warning screen. REVIEW with native speakers.
 SCAM_TIPS = {
     "family_emergency": {
-        "kn": "ಪೊಲೀಸರು ಯಾರನ್ನೂ ಬಿಡಿಸಲು ಹಣ ಕೇಳುವುದಿಲ್ಲ. ಕರೆ ಕಟ್ ಮಾಡಿ, ನಿಮ್ಮ ಮನೆಯವರಿಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ.",
-        "hi": "पुलिस किसी को छोड़ने के लिए पैसे नहीं मांगती। कॉल काटें और अपने घरवाले को खुद फ़ोन करें।",
-        "en": "Police never ask for money to release anyone. Hang up and call your family member yourself."},
+        "kn": "ಹಣ ಕಳುಹಿಸುವ ಮೊದಲು ಕರೆ ಕಟ್ ಮಾಡಿ, ನಿಮ್ಮ ಮನೆಯವರಿಗೆ ಅವರ ಹಳೆಯ ನಂಬರ್‌ಗೆ ನೀವೇ ಕರೆ ಮಾಡಿ. ಪೊಲೀಸರು ಬಿಡಿಸಲು ಹಣ ಕೇಳುವುದಿಲ್ಲ.",
+        "hi": "पैसे भेजने से पहले कॉल काटें और घरवाले को उनके पुराने नंबर पर खुद फ़ोन करें। पुलिस छोड़ने के लिए पैसे नहीं मांगती।",
+        "en": "Before sending any money, hang up and call your family member yourself on their usual number. "
+              "Police never ask for money to release anyone."},
+    "cutoff": {
+        "kn": "ಸಿಮ್, ಕರೆಂಟ್ ಅಥವಾ ಖಾತೆ ಫೋನ್ ಕರೆಯಿಂದ ತಕ್ಷಣ ಕಡಿತ ಆಗುವುದಿಲ್ಲ. ಕರೆ ಕಟ್ ಮಾಡಿ, ಅಧಿಕೃತ ಕಚೇರಿ ಅಥವಾ ಆ್ಯಪ್‌ನಲ್ಲಿ ಪರಿಶೀಲಿಸಿ.",
+        "hi": "सिम, बिजली या खाता किसी फ़ोन कॉल से तुरंत बंद नहीं होता। कॉल काटें और असली दफ़्तर या ऐप में खुद जाँचें।",
+        "en": "Your SIM, power or bank account is not cut off by a phone call. Hang up and check with the "
+              "official office or app yourself."},
+    "job_investment": {
+        "kn": "ನಿಜವಾದ ಕೆಲಸ, ಸಾಲ ಅಥವಾ ಹೂಡಿಕೆಗೆ ಮೊದಲು ಹಣ ಕಟ್ಟುವಂತೆ ಕೇಳುವುದಿಲ್ಲ, ಡಬಲ್ ಲಾಭದ ಭರವಸೆ ಕೊಡುವುದಿಲ್ಲ.",
+        "hi": "असली नौकरी, लोन या निवेश में पहले पैसे नहीं भरवाए जाते, न ही पैसे डबल करने का वादा होता है।",
+        "en": "Real jobs, loans and investments never ask you to pay first, and never promise to double your money."},
     "digital_arrest": {
         "kn": "'ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್' ಎಂಬುದೇ ಇಲ್ಲ. ನಿಜವಾದ ಪೊಲೀಸರು ಫೋನಿನಲ್ಲಿ ಹಣ ಕೇಳುವುದಿಲ್ಲ.",
         "hi": "'डिजिटल अरेस्ट' जैसा कुछ नहीं होता। असली पुलिस फ़ोन पर पैसे नहीं मांगती।",

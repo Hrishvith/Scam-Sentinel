@@ -8,24 +8,24 @@
 
 | Noise | SNR | Speech-to-text char error | Scams caught (high) | False alarms (final) | False alarms (any point) | Median time to high alert |
 |---|---|---|---|---|---|---|
-| clean | 47 dB | 3.2% | 8/8 (100%) (8) | 0/12 (0%) | 0/12 (0%) | 16.9 s (78% into the call) |
-| medium | 13 dB | 7.7% | 8/8 (100%) (8) | 0/12 (0%) | 0/12 (0%) | 16.9 s (77% into the call) |
-| heavy | 5 dB | 17.7% | 7/8 (88%) (7) | 0/12 (0%) | 0/12 (0%) | 14.6 s (82% into the call) |
+| clean | 47 dB | 3.2% | 8/8 (100%) (8) | 0/12 (0%) | 0/12 (0%) | 15.6 s (66% into the call) |
+| medium | 13 dB | 7.7% | 8/8 (100%) (8) | 0/12 (0%) | 0/12 (0%) | 15.6 s (66% into the call) |
+| heavy | 5 dB | 17.7% | 7/8 (88%) (7) | 0/12 (0%) | 0/12 (0%) | 14.6 s (65% into the call) |
 
 ## By language
 
 | Noise | Language | SNR | Char error | Scams caught | False alarms (any point) | Median time to high |
 |---|---|---|---|---|---|---|
 | clean | Kannada | 41 dB | 2.1% | 2/2 (100%) | 0/3 (0%) | 16.9 s |
-| clean | Hindi | 48 dB | 1.0% | 2/2 (100%) | 0/3 (0%) | 15.9 s |
+| clean | Hindi | 48 dB | 1.0% | 2/2 (100%) | 0/3 (0%) | 12.9 s |
 | clean | English | 46 dB | 0.4% | 2/2 (100%) | 0/3 (0%) | 16.3 s |
 | clean | Hinglish | 47 dB | 9.3% | 2/2 (100%) | 0/3 (0%) | 15.9 s |
 | medium | Kannada | 7 dB | 8.4% | 2/2 (100%) | 0/3 (0%) | 16.9 s |
-| medium | Hindi | 14 dB | 3.5% | 2/2 (100%) | 0/3 (0%) | 15.8 s |
+| medium | Hindi | 14 dB | 3.5% | 2/2 (100%) | 0/3 (0%) | 12.9 s |
 | medium | English | 12 dB | 5.5% | 2/2 (100%) | 0/3 (0%) | 16.2 s |
 | medium | Hinglish | 13 dB | 13.1% | 2/2 (100%) | 0/3 (0%) | 15.9 s |
 | heavy | Kannada | 0 dB | 25.3% | 1/2 (50%) | 0/3 (0%) | 24.9 s |
-| heavy | Hindi | 6 dB | 8.2% | 2/2 (100%) | 0/3 (0%) | 15.8 s |
+| heavy | Hindi | 6 dB | 8.2% | 2/2 (100%) | 0/3 (0%) | 12.9 s |
 | heavy | English | 5 dB | 16.2% | 2/2 (100%) | 0/3 (0%) | 16.3 s |
 | heavy | Hinglish | 5 dB | 21.1% | 2/2 (100%) | 0/3 (0%) | 14.5 s |
 

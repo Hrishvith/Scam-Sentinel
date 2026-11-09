@@ -22,12 +22,13 @@ TACTICS: dict[str, dict] = {
                      # (कस्टम = customs, but not inside कस्टमर = customer)
                      "इंस्पेक्टर", "नारकोटिक्स", "इनकम टैक्स",
                      "police", "cbi", "c b i", "customs", "trai", "rbi", "r b i", "cyber crime", "cybercrime",
-                     "narcotics", "income tax", "enforcement directorate", "inspector"],
+                     "narcotics", "income tax", "enforcement directorate", "inspector", "telecom regulatory",
+                     "ನಾರ್ಕೋಟಿಕ್ಸ್"],
     },
     "threat": {
         "weight": 2.5,
-        "labels": {"kn": "ಬಂಧನ ಅಥವಾ ಕೇಸ್‌ನ ಬೆದರಿಕೆ", "hi": "गिरफ़्तारी या केस की धमकी",
-                   "en": "threat of arrest or legal case"},
+        "labels": {"kn": "ಬಂಧನ, ಕೇಸ್ ಅಥವಾ ಸೇವೆ ಕಡಿತದ ಬೆದರಿಕೆ", "hi": "गिरफ़्तारी, केस या सेवा बंद करने की धमकी",
+                   "en": "threat of arrest, a case or a cut-off"},
         "keywords": ["ಅರೆಸ್ಟ್", "ಬಂಧನ", "ವಾರೆಂಟ್", "ಜೈಲು", "ಕೇಸ್ ದಾಖಲ", "ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್", "ಖಾತೆ ಬ್ಲಾಕ್", "ಬ್ಲಾಕ್ ಆಗುತ್ತ",
                      "ಕಸ್ಟಡಿ",
                      "गिरफ्तार", "गिरफ़्तार", "अरेस्ट", "वारंट", "जेल", "केस दर्ज", "डिजिटल अरेस्ट", "खाता बंद",
@@ -36,7 +37,17 @@ TACTICS: dict[str, dict] = {
                      "custody",
                      "account will be blocked", "sim will be blocked", "legal action",
                      # Hinglish (Latin-script Hindi)
-                     "account block", "block ho jayega", "block ho jaega", "giraftar", "giraftari"],
+                     "account block", "block ho jayega", "block ho jaega", "giraftar", "giraftari",
+                     # cut-off threats and "your parcel / Aadhaar is in a crime" stories (10 Nov 2026)
+                     "ಅಕ್ರಮ ಚಟುವಟಿಕೆ", "ಡ್ರಗ್ಸ್", "ಮನಿ ಲಾಂಡರಿಂಗ್", "ಸಿಮ್ ಬ್ಲಾಕ್", "re:ಕನೆಕ್ಷನ್.{0,25}ಕಟ್",
+                     "re:ಕರೆಂಟ್.{0,25}ಕಟ್", "re:ಸಿಮ್.{0,25}ಬ್ಲಾಕ್",
+                     "गैरकानूनी", "गैर कानूनी", "ड्रग्स", "मनी लॉन्ड्रिंग",
+                     "re:(सिम|बिजली|कनेक्शन).{0,40}(बंद|कट|काट)", "re:(खाता|अकाउंट).{0,20}(फ्रीज|फ़्रीज)",
+                     "re:(बंद|ब्लॉक|कट)\\s?(हो|कर)\\s?(जाएगा|जाएगी|जाएंगे|दिया जाएगा|दी जाएगी)",
+                     "re:(कार्ड|खाता|अकाउंट|सिम|नंबर).{0,15}ब्लॉक", "re:(ಕಾರ್ಡ್|ಸಿಮ್|ನಂಬರ್|ಖಾತೆ).{0,15}ಬ್ಲಾಕ್",
+                     "illegal activity", "illegal activities", "drugs", "money laundering", "fake passports",
+                     "re:(sim|connection|electricity|power|account|card|number)\\s+(\\w+\\s+){0,3}(will be|is being|is going to be|is|has been|got)"
+                     "\\s+(deactivated|blocked|disconnected|cut|suspended|frozen|closed)"],
     },
     "urgency": {
         "weight": 1.0,
@@ -60,7 +71,10 @@ TACTICS: dict[str, dict] = {
                      "do not disconnect", "don't disconnect", "keep this confidential", "keep it secret",
                      # Hinglish
                      "re:kisi\\s+ko\\s+(mat|matt|na|nahi|nahin)\\s+bat",   # batana / bataana / batao
-                     "re:(call|phone)\\s+(cut|kat|khat|kaat)\\s+mat"],
+                     "re:(call|phone)\\s+(cut|kat|khat|kaat)\\s+mat",
+                     "re:(don't|do not|dont)\\s+tell\\s+(your\\s+)?(dad|mom|father|mother|family|husband|wife|parents)",
+                     "re:(पापा|मम्मी|पिताजी|घरवालों|घर पर|परिवार)\\s?(को|में|पर)?\\s?(किसी\\s?को\\s?)?(मत|न|ना)\\s?बता",
+                     "वीडियो कॉल पर रहिए", "re:(ಅಪ್ಪ|ಅಮ್ಮ|ಮನೆಯವರ)\\S*\\s?(ಯಾರಿಗೂ\\s?)?ಹೇಳಬೇಡ", "re:ವಿಡಿಯೋ\\s?ಕಾಲ್\\S*\\s?ಇರಿ"],
     },
     "credentials": {
         "weight": 3.0,
@@ -74,7 +88,12 @@ TACTICS: dict[str, dict] = {
                      "card number", "one time password", "verification code", "security code", "otp code",
                      # "read me the six digit code that just came": a paraphrased OTP request (audit, 9 Nov 2026)
                      "re:(six|6|four|4)[ -]?digit\\s+(code|number)",
-                     "re:code\\s+(that\\s+|which\\s+)?(just\\s+)?(arrived|came|you\\s+(got|received))"],
+                     "re:code\\s+(that\\s+|which\\s+)?(just\\s+)?(arrived|came|you\\s+(got|received))",
+                     "re:code\\s+(that\\s+)?(we|i)\\s+(just\\s+)?(sent|have sent)", "card details", "net banking",
+                     "कार्ड की डिटेल", "कार्ड डिटेल", "नेट बैंकिंग", "re:(आया|आयी|आए)\\s?(हुआ\\s?)?कोड", "re:कोड\\s?(जो|आया)",
+                     "ಕಾರ್ಡ್ ವಿವರ", "ನೆಟ್ ಬ್ಯಾಂಕಿಂಗ್", "re:(ಬಂದ|ಬಂದಿರುವ|ಬಂದಿರೋ)\\s?ಕೋಡ್",
+                     "re:(छह|छः|6|चार|4)\\s?(अंकों|अंक|डिजिट)\\s?(का|के|वाला|वाले)?\\s?(नंबर|कोड)",
+                     "re:(ಆರು|6|ನಾಲ್ಕು|4)\\s?(ಅಂಕಿಯ|ಅಂಕೆಯ|ಡಿಜಿಟ್)\\s?(ನಂಬರ್|ಕೋಡ್)"],
     },
     "otp_request": {
         "weight": 3.0,
@@ -96,28 +115,56 @@ TACTICS: dict[str, dict] = {
                      "re:scan\\s+(the\\s+|this\\s+|my\\s+)?qr", "क्यूआर कोड स्कैन", "ಕ್ಯೂಆರ್ ಕೋಡ್ ಸ್ಕ್ಯಾನ್",
                      "re:\\b(transfer|send|pay)\\s+(\\w+\\s+){0,5}(rupees|lakh|lakhs|thousand|crore)\\b",
                      # Hinglish
-                     "paise transfer", "paise bhejo", "paise bhej do", "paisa transfer"],
+                     "paise transfer", "paise bhejo", "paise bhej do", "paisa transfer",
+                     # "pay a fee first" and "send N thousand to this UPI" (10 Nov 2026)
+                     "processing fee", "registration fee",
+                     "re:\\bpay\\s+(a\\s+|the\\s+|an\\s+)?([\\w,]+\\s+){0,3}(fee|charge|charges|deposit)\\b", "security deposit",
+                     "सिक्योरिटी डिपॉज़िट", "सिक्योरिटी डिपॉजिट", "ಸೆಕ್ಯುರಿಟಿ ಡೆಪಾಸಿಟ್",
+                     "re:\\b(thousand|lakh|lakhs|rupees|crore)\\b[^.?!]{0,40}(?<!not )(?<!never )(?<!don't )(?<!dont )\\b(send|transfer)\\b",
+                     "re:\\b(send|pay|transfer)\\s+(\\w+\\s+){0,3}(to\\s+)?(this|my)\\s+(upi|account|number)",
+                     "प्रोसेसिंग फीस", "रजिस्ट्रेशन फीस", "re:फीस\\s?(भर|भेज|जमा)", "पेमेंट कीजिए", "पेमेंट करें", "पेमेंट करो",
+                     "re:(हज़ार|हजार|लाख|रुपये|रुपए)[^।?.]{0,40}(?<!मत )(?<!न )(?<!ना )(?<!नहीं )(भेज|ट्रांसफर)",
+                     "re:इस\\s?(यूपीआई|खाते|नंबर)\\s?(पर|में)\\s?(पैसे\\s?)?(भेज|ट्रांसफर|पेमेंट)",
+                     "ಪ್ರೊಸೆಸಿಂಗ್ ಫೀಸ್", "ನೋಂದಣಿ ಶುಲ್ಕ", "re:(ಫೀಸ್|ಶುಲ್ಕ)\\s?(ಕಟ್ಟಿ|ಕಳುಹಿಸಿ|ಪಾವತಿಸಿ)", "ಹಣ ಕಟ್ಟಿ",
+                     "re:(ಸಾವಿರ|ಲಕ್ಷ|ರೂಪಾಯಿ)[^.?।]{0,40}(ಕಳುಹಿಸ|ಟ್ರಾನ್ಸ್ಫರ್|ವರ್ಗಾಯಿಸ)", "ಖಾತೆಗೆ ವರ್ಗಾಯಿಸಿ"],
     },
     "remote_access": {
         "weight": 3.0,
-        "labels": {"kn": "ಅಪರಿಚಿತ ಆ್ಯಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಲು ಹೇಳುವುದು", "hi": "अनजान ऐप इंस्टॉल करवाना",
-                   "en": "asking you to install a remote-control app"},
+        "labels": {"kn": "ಅಪರಿಚಿತ ಆ್ಯಪ್ ಅಥವಾ ಲಿಂಕ್ ತೆರೆಯಲು ಹೇಳುವುದು", "hi": "अनजान ऐप या लिंक खुलवाना",
+                   "en": "asking you to install an app or open a link"},
         "keywords": ["ಎನಿಡೆಸ",  # also matches the clipped "ಎನಿಡೆಸ್" heard on noisy lines
                      "ಟೀಮ್ ವ್ಯೂವರ್", "ಆ್ಯಪ್ ಡೌನ್ಲೋಡ್", "ಅಪ್ಲಿಕೇಶನ್ ಇನ್ಸ್ಟಾಲ್",
                      "एनीडेस्क", "एनी डेस्क", "टीम व्यूअर", "ऐप डाउनलोड", "ऐप इंस्टॉल", "ऐप्लिकेशन डाउनलोड",
                      "anydesk", "any desk", "teamviewer", "team viewer", "quicksupport", "quick support",
                      "download the app", "install the app", "screen share",
                      # Hinglish
-                     "app download karo", "app download kijiye", "app install karo"],
+                     "app download karo", "app download kijiye", "app install karo",
+                     "click the link", "click on the link", "link i sent", "link we sent", "open the link", "loan app",
+                     "download our app", "re:ऐप.{0,25}डाउनलोड", "लिंक पर क्लिक", "लिंक खोल", "re:लिंक.{0,15}क्लिक", "ಲಿಂಕ್ ಒತ್ತಿ", "ಲಿಂಕ್ ಕ್ಲಿಕ್",
+                     "ಲಿಂಕ್ ಓಪನ್"],
     },
     "lure": {
         "weight": 1.0,
-        "labels": {"kn": "ಬಹುಮಾನ ಅಥವಾ ಕೆವೈಸಿ ಆಮಿಷ", "hi": "इनाम या केवाईसी का लालच",
-                   "en": "prize, refund or KYC lure"},
+        "labels": {"kn": "ಬಹುಮಾನ, ರಿಫಂಡ್, ಕೆಲಸ, ಸಾಲ ಅಥವಾ ಕೆವೈಸಿ ಆಮಿಷ", "hi": "इनाम, रिफंड, नौकरी, लोन या केवाईसी का लालच",
+                   "en": "prize, refund, job, loan or KYC lure"},
         "keywords": ["ಲಾಟರಿ", "ಬಹುಮಾನ", "ಕೆವೈಸಿ", "ಕೆ ವೈ ಸಿ", "ರಿಫಂಡ್", "ಪಾರ್ಸೆಲ್", "ಕೊರಿಯರ್",
                      "लॉटरी", "इनाम", "केवाईसी", "के वाई सी", "रिफंड", "पार्सल", "कूरियर", "बिजली कट",
                      "lottery", "prize", "kyc", "k y c", "refund", "parcel", "courier", "fedex",
-                     "electricity will be disconnected"],
+                     "electricity will be disconnected",
+                     "lucky draw", "you have won", "kbc", "part time job", "work from home", "double returns",
+                     "double your money", "guaranteed profit", "guaranteed returns", "loan is approved", "loan approved",
+                     "reward points", "वर्क फ्रॉम होम", "लकी ड्रॉ", "जीते हैं", "केबीसी", "पार्ट टाइम जॉब", "घर बैठे", "डबल", "मुनाफा",
+                     "लोन मंजूर", "रिवॉर्ड पॉइंट", "ಲಕ್ಕಿ ಡ್ರಾ", "ಗೆದ್ದಿದ್ದೀರಿ", "ಪಾರ್ಟ್ ಟೈಮ್", "ಮನೆಯಿಂದಲೇ", "ಡಬಲ್",
+                     "ಗ್ಯಾರಂಟಿ ಲಾಭ", "ಲೋನ್ ಮಂಜೂರು", "ರಿವಾರ್ಡ್ ಪಾಯಿಂಟ್"],
+    },
+    "emergency": {
+        "weight": 1.5,
+        # REVIEW kn/hi labels with a native speaker.
+        "labels": {"kn": "ಕುಟುಂಬದ ಹಠಾತ್ ತುರ್ತು", "hi": "परिवार की अचानक इमरजेंसी", "en": "a sudden family emergency"},
+        "keywords": ["accident", "in the hospital", "in hospital", "in trouble", "lost my phone", "friend's number",
+                     "friends number", "friend's phone", "new number", "bail", "ज़मानत", "जमानत", "ಜಾಮೀನ",
+                     "एक्सीडेंट", "अस्पताल में", "हॉस्पिटल में", "मुसीबत में", "फोन खो गया", "दोस्त का नंबर", "दोस्त के फोन",
+                     "ಆಕ್ಸಿಡೆಂಟ್", "ಅಪಘಾತ", "ಆಸ್ಪತ್ರೆಯಲ್ಲಿ", "ತೊಂದರೆಯಲ್ಲಿ", "ಫೋನ್ ಕಳೆದು", "ಸ್ನೇಹಿತನ ನಂಬರ್", "ಸ್ನೇಹಿತನ ಫೋನ್"],
     },
 }
 
@@ -134,7 +181,9 @@ SCAM_TYPES: dict[str, dict] = {
                   "आपका बेटा", "आपके बेटे", "आपकी बेटी", "आपके पति", "आपकी पत्नी", "एक्सीडेंट", "अस्पताल",
                   "हॉस्पिटल",
                   "your son", "your daughter", "your husband", "your wife", "your grandson", "accident",
-                  "hospital", "aapka beta", "aapki beti"],
+                  "hospital", "aapka beta", "aapki beti", "aapke bete", "bete ko", "lost my phone", "friend's number", "in trouble", "bail",
+                  "फोन खो गया", "दोस्त का नंबर", "मुसीबत में", "ज़मानत", "जमानत", "ಫೋನ್ ಕಳೆದು", "ಸ್ನೇಹಿತನ ನಂಬರ್",
+                  "ತೊಂದರೆಯಲ್ಲಿ", "ಜಾಮೀನ"],
     },
     # Before digital_arrest: the parcel story usually turns into a fake-police threat, and the parcel is what
     # people recognise. A customs mention alone is not enough (it is in many digital-arrest calls).
@@ -149,6 +198,15 @@ SCAM_TYPES: dict[str, dict] = {
                    "en": "Fake police / digital arrest"},
         "needs": {"threat"},
         "all": {"authority"},
+        "evidence": set(),        # filled below: every threat keyword except the cut-off ones
+    },
+    "job_investment": {
+        "labels": {"kn": "ನಕಲಿ ಕೆಲಸ / ಸಾಲ / ಹೂಡಿಕೆ", "hi": "नकली नौकरी / लोन / निवेश", "en": "Fake job / loan / investment"},
+        "needs": {"payment", "remote_access", "credentials"},
+        "evidence": {"part time job", "work from home", "double returns", "double your money", "guaranteed profit",
+                     "guaranteed returns", "loan is approved", "loan approved", "loan app", "पार्ट टाइम जॉब", "घर बैठे",
+                     "वर्क फ्रॉम होम", "डबल", "मुनाफा", "लोन मंजूर", "ಪಾರ್ಟ್ ಟೈಮ್", "ಮನೆಯಿಂದಲೇ", "ಡಬಲ್", "ಗ್ಯಾರಂಟಿ ಲಾಭ",
+                     "ಲೋನ್ ಮಂಜೂರು"},
     },
     "remote_access": {
         "labels": {"kn": "ರಿಮೋಟ್ ಆ್ಯಪ್ ಮೋಸ", "hi": "रिमोट ऐप वाला धोखा", "en": "Remote-control app scam"},
@@ -168,11 +226,24 @@ SCAM_TYPES: dict[str, dict] = {
         "labels": {"kn": "ಒಟಿಪಿ ಕಳ್ಳತನ", "hi": "ओटीपी चोरी", "en": "OTP theft"},
         "needs": {"credentials", "otp_request"},
     },
+    "cutoff": {
+        "labels": {"kn": "ನಕಲಿ ಸಿಮ್ / ಕರೆಂಟ್ / ಖಾತೆ ಕಡಿತದ ಬೆದರಿಕೆ", "hi": "नकली सिम / बिजली / खाता बंद होने की धमकी",
+                   "en": "Fake SIM / power / account cut-off"},
+        "needs": {"threat"},
+        "evidence": set(),        # filled below: the cut-off threat keywords
+    },
     "money": {
         "labels": {"kn": "ಹಣ ವರ್ಗಾವಣೆ ಒತ್ತಡ", "hi": "पैसे भेजने का दबाव", "en": "Money transfer pressure"},
         "needs": {"payment"},
     },
 }
+_CUTOFF = {kw for kw in TACTICS["threat"]["keywords"]
+           if any(w in kw for w in ("sim", "connection", "electricity", "power", "card", "number", "account", "block",
+                                    "सिम", "बिजली", "कनेक्शन", "खाता", "अकाउंट", "बंद", "ब्लॉक", "कट",
+                                    "ಸಿಮ್", "ಕರೆಂಟ್", "ಕನೆಕ್ಷನ್", "ಖಾತೆ", "ಬ್ಲಾಕ್", "ಕಾರ್ಡ್"))}
+SCAM_TYPES["cutoff"]["evidence"] = _CUTOFF
+SCAM_TYPES["digital_arrest"]["evidence"] = set(TACTICS["threat"]["keywords"]) - _CUTOFF
+
 SUSPICIOUS = {"kn": "ಅನುಮಾನಾಸ್ಪದ ಕರೆ", "hi": "संदिग्ध कॉल", "en": "Suspicious call"}
 
 # Tactics that turn a request into pressure. When none of them is present, an OTP mention in an

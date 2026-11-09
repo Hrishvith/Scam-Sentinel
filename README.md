@@ -37,6 +37,18 @@ cleared. Details: [`results/benchmark.md`](results/benchmark.md).
 | Medium (noisy mobile) | 13 dB | 7.7% | 8/8 (100%) | 0/12 (0%) |
 | Heavy (noise ≈ voice) | 5 dB | 17.7% | 7/8 (88%) | 0/12 (0%) |
 
+**Wider phrasing check** (synthetic lines, [`tests/stress_calls.py`](tests/stress_calls.py)): 77 scam lines
+(SIM block, digital arrest, courier drugs, power cut-off, lottery, job, loan, crypto, family emergency, bank
+"fraud department", KYC links, AnyDesk, QR code, card details) and 60 everyday lines (doctor, delivery, school,
+real police and bank calls, caution messages) in English, Hindi/Hinglish and Kannada. All scam lines are flagged
+and every everyday line stays quiet, also when checked piece by piece as live speech. Honest caveat: a second
+set written *after* tuning scored 18/24 scams before its misses were fixed (the rules before 10 Nov: 12/24), so
+expect real-world wording to be missed sometimes.
+
+**Real speech, live** (10 Nov 2026, Prisma realtime, 15 simulated recordings): all 6 scam calls in English,
+Hindi and Kannada reached "Likely scam" during the call (first warning at 12-15 s), and all 9 normal calls
+(bank caution, delivery, family) stayed at "No warning signs".
+
 ![Benchmark chart](results/benchmark.png)
 
 Speech-to-text errors grow more than fivefold from clean to heavy noise, but detection holds, because the
@@ -51,7 +63,7 @@ flowchart LR
     B -- "Live" --> C["Gnani Prisma<br/>realtime STT (WebSocket)<br/>server-side utterance detection"]
     B -- "Upload" --> D["Split at pauses<br/>(one utterance per request)"]
     D --> E["Gnani Prisma<br/>STT REST v3<br/>verbatim + word boosting"]
-    C --> F["Tactic detector<br/>9 tactics · kn / hi / en / Hinglish<br/>cumulative risk score"]
+    C --> F["Tactic detector<br/>10 tactics · kn / hi / en / Hinglish<br/>cumulative risk score"]
     E --> F
     F -- "first medium, first high" --> G["Gnani Timbre TTS<br/>spoken warning in the<br/>caller's language"]
     F --> H["App: risk meter, live transcript,<br/>time-to-alert, reasons"]
@@ -62,8 +74,8 @@ flowchart LR
 
 1. **Listen.** Live mode streams 1024-byte PCM frames to Prisma's realtime endpoint and gets a
    transcript per utterance. Uploads are split at natural pauses and sent one utterance per request.
-2. **Score.** Nine weighted tactics (authority, threat, urgency, secrecy, credentials, a direct OTP
-   request, payment, remote access, lure) with Kannada, Hindi, English and Hinglish keywords, including the spellings Prisma
+2. **Score.** Ten weighted tactics (authority, threat, urgency, secrecy, credentials, a direct OTP
+   request, payment, remote access or links, lure, sudden family emergency) with Kannada, Hindi, English and Hinglish keywords, including the spellings Prisma
    actually produces ("ಒ ಟಿ ಪಿ", "any desk", "call khat mat"). Combinations score extra (an "official"
    **plus** an OTP request). Awareness messages ("never share your OTP") and delivery-OTP hand-overs are
    recognised and discounted, but only if nothing else is escalating.
@@ -142,7 +154,7 @@ Command line:
 .\.venv\Scripts\python.exe family_voice.py enroll --name "Your name" --i-am-the-speaker
 .\.venv\Scripts\python.exe live.py --lang kn-IN --family-voice    # high warning in that voice (labelled)
 .\.venv\Scripts\python.exe family_voice.py delete               # remove the recording, profile, clones
-powershell -ExecutionPolicy Bypass -File .\run.ps1 -Test   # 312 offline tests, no credits
+powershell -ExecutionPolicy Bypass -File .\run.ps1 -Test   # 450 offline tests, no credits
 .\.venv\Scripts\python.exe phone_relay.py           # the website on http://localhost:8765 (needs GNANI_API_KEY for calls)
 ```
 

@@ -41,7 +41,7 @@ _PATTERNS = {name: [(kw, _compile(kw)) for kw in spec["keywords"]] for name, spe
 _SAFETY = [_compile(p) for p in SAFETY_PHRASES]
 _DEBUNK = [_compile(p) for p in DEBUNK_PHRASES]
 _DELIVERY = [_compile(p) for p in DELIVERY_PHRASES]
-_INDIC = "ऀ-ॿಀ-೿"
+_INDIC = "ऀ-ॣ०-ॿಀ-೿"     # Devanagari and Kannada letters, but not the full stops । ॥ (a request can end a sentence)
 _ASK = [(p, _compile(p) if p.isascii() or p.startswith("re:") else re.compile(_compile(p).pattern + f"(?![{_INDIC}])"))
         for p in ASK_PHRASES]
 # English negatives also appear in Kannada/Devanagari script when the kn-IN/hi-IN model hears English.
@@ -49,6 +49,7 @@ _NEGATION = re.compile(r"(?<!\S)(not|never|dont|don['’]t|shouldn['’]t|should
                        r"nahin|मत|न|ना|नहीं|कभी|डोंट|नॉट|नेवर|शुडंट|शुडेंट|वोंट|"
                        r"ಡೋಂಟ್|ಡೊಂಟ್|ನಾಟ್|ನೆವರ್|ಶುಡ್ಡಂಟ್|ಶುಡಂಟ್|ಶುಡೆಂಟ್|ಶುಡ್ಡೆಂಟ್|ವೋಂಟ್|ಮಸ್ಟಂಟ್)(?!\S)")
 NEAR = 60  # characters between the ask and the OTP word
+_SENTENCE_END = re.compile(r"[.?!।]")
 
 
 def _otp_requests(plain: str) -> list[str]:
@@ -64,7 +65,9 @@ def _otp_requests(plain: str) -> list[str]:
         prev_end = max((e for s, e, _ in asks if e <= start), default=0)
         if _NEGATION.search(plain[max(prev_end, start - 25):start]) or _negated(plain, start, end):
             continue      # "don't share your OTP", "never tell", "मत बताइए", "never ask you to ... share your OTP"
-        if any(s - NEAR <= end and start <= e + NEAR for s, e in spans):
+        # near an OTP/PIN word, and in the same sentence ("…OTP मांगे तो मत बताइए। कॉल काट दीजिए" is not a request)
+        if any(s - NEAR <= end and start <= e + NEAR
+               and not _SENTENCE_END.search(plain[min(end, e):max(start, s)]) for s, e in spans):
             hits.append(phrase)
     return hits
 
@@ -87,7 +90,11 @@ _NEG_AFTER_HI = re.compile(r"^\s*(?:(?:करने|करना|करें|�
                            r"मांगेगा|मांगेंगे|मांगता|मांगते)\s*){0,4}(?:मत|न|ना|नहीं)(?!\S)(?!\s*तो)")
 # up to three words, never across punctuation or a "do it" (ಮಾಡಿ): "ಎನಿಡೆಸ್ಕ್ ಆ್ಯಪ್ ಇನ್ಸ್ಟಾಲ್ ಮಾಡಬೇಡಿ" is negated,
 # "ಎನಿಡೆಸ್ಕ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ, ಭಯಪಡಬೇಡಿ" is not
-_NEG_AFTER_KN = re.compile(r"^\S*\s*(?:(?!\S*ಮಾಡಿ(?!\S))[^\s,.!?।]+\s+){0,3}[^\s,.!?।]*(?:ಬೇಡಿ|ಬೇಡ|ಬಾರದು|ಲ್ಲ)(?![^\s,.!?।])")
+_NEG_AFTER_KN = re.compile(r"^\S*\s*(?:(?!\S*ಮಾಡಿ(?!\S))\S+\s+){0,3}\S*(?:ಬೇಡಿ|ಬೇಡ|ಬಾರದು|ಲ್ಲ)(?!\S)")
+_CLAUSE_END = re.compile(r"[,.!?।]")
+
+
+_NEG_BEFORE_HI = re.compile(r"(?<!\S)(?:मत|न|ना|नहीं)\s*$")   # "ऐप मत डाउनलोड करें": Hindi can negate before the verb
 
 
 def _negated(plain: str, start: int, end: int) -> bool:
@@ -95,7 +102,8 @@ def _negated(plain: str, start: int, end: int) -> bool:
     before = plain[max(0, start - 60):start]
     after = plain[end:end + 40]
     return bool(_NEG_BEFORE.search(before) or _NEVER_ASK.search(plain[max(0, start - 90):start])
-                or _NEG_AFTER_HI.match(after) or _NEG_AFTER_KN.match(after))
+                or _NEG_BEFORE_HI.search(before)
+                or _NEG_AFTER_HI.match(after) or _NEG_AFTER_KN.match(_CLAUSE_END.split(after, maxsplit=1)[0]))
 
 
 def _drop_negated(found: dict[str, list[str]], plain: str) -> list[str]:
@@ -235,6 +243,9 @@ def detect_rules(text: str) -> Detection:
     if "secrecy" in found and found.keys() & _DANGEROUS_ASK:
         score += 1.0
         notes.append("Told to keep it secret while being asked for something sensitive.")
+    if not context and "payment" in found and found.keys() & {"lure", "emergency"}:
+        score += 1.5     # "you won / got the job / your son is hurt ... first send money": the classic advance fee
+        notes.append("Asked to pay first for a prize, job, loan or refund, or for a sudden emergency.")
     if not context and {kw for hits in found.values() for kw in hits} & _TELLTALE:
         score += 1.0     # on its own, "move it to a safe account" or "install AnyDesk" is already suspicious
         notes.append("A tell-tale scam request (safe account, remote-control app, gift card or collect request).")

@@ -60,7 +60,7 @@ def test_checker_scores_typed_words_for_free(tmp_path):
         res = await (await http.post("/api/check", json={
             "text": "This is the police. We have arrested your son. Transfer five lakh rupees now.", "lang": "en-IN"})).json()
         assert res["level"] == "high" and res["scam_type"] == "family_emergency"
-        assert res["tip"].startswith("Police never ask") and any(t["id"] == "authority" for t in res["tricks"])
+        assert "Police never ask" in res["tip"] and any(t["id"] == "authority" for t in res["tricks"])
         safe = await (await http.post(f"/api/check?key={KEY}", json={"text": "See you at dinner", "lang": "kn-IN"})).json()
         assert safe["level"] == "low" and safe["tip"] is None and safe["tricks"] == []
         assert fake.connections == []                                   # no Gnani stream, no credits
