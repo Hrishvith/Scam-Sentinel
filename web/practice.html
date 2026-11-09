@@ -195,7 +195,11 @@ function render(res, p) {             // gauge, level, scam type, trick chips an
 // ---- quiz ----
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 function startQuiz() {
-  order = shuffle(items.map((_, i) => i)); at = 0; right = 0; results = [];
+  // always 8 questions (5 scams, 3 normal calls), drawn fresh from the larger pool each round
+  const ids = items.map((_, i) => i);
+  order = shuffle([...shuffle(ids.filter((i) => items[i].scam)).slice(0, 5),
+                   ...shuffle(ids.filter((i) => !items[i].scam)).slice(0, 3)]);
+  at = 0; right = 0; results = [];
   $("qcard").classList.remove("hidden"); $("done").classList.add("hidden");
   showItem();
 }

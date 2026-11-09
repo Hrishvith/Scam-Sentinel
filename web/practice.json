@@ -48,6 +48,54 @@
    "en": "Hello, your bank account will be blocked today. Please install the AnyDesk app right now so I can fix it.",
    "kn": "ನಮಸ್ಕಾರ, ಇವತ್ತೇ ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಖಾತೆ ಬ್ಲಾಕ್ ಆಗುತ್ತೆ. ಸರಿ ಮಾಡೋಕೆ ಈಗಲೇ ಎನಿಡೆಸ್ಕ್ ಆ್ಯಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿ.",
    "hi": "नमस्ते, आज ही आपका बैंक खाता ब्लॉक हो जाएगा। ठीक करने के लिए अभी एनीडेस्क ऐप इंस्टॉल कीजिए।"
+  },
+  {
+   "scam": true,
+   "en": "This is TRAI. Your SIM card will be blocked in two hours. Press 9 and tell me the OTP you just received.",
+   "kn": "ನಾನು ಟ್ರಾಯ್‌ನಿಂದ ಮಾತಾಡ್ತಿದ್ದೀನಿ. ಎರಡು ಗಂಟೆಯಲ್ಲಿ ನಿಮ್ಮ ಸಿಮ್ ಕಾರ್ಡ್ ಬ್ಲಾಕ್ ಆಗುತ್ತೆ. ಈಗ ಬಂದ ಒಟಿಪಿ ಹೇಳಿ.",
+   "hi": "मैं ट्राई से बोल रहा हूँ। दो घंटे में आपका सिम कार्ड ब्लॉक हो जाएगा। अभी आया ओटीपी बताइए।"
+  },
+  {
+   "scam": true,
+   "en": "You got a part time job: like videos and earn three thousand a day. First pay one thousand rupees registration fee by UPI.",
+   "kn": "ನಿಮಗೆ ಪಾರ್ಟ್ ಟೈಮ್ ಕೆಲಸ ಸಿಕ್ಕಿದೆ: ವಿಡಿಯೋ ಲೈಕ್ ಮಾಡಿ ದಿನಕ್ಕೆ ಮೂರು ಸಾವಿರ ಗಳಿಸಿ. ಮೊದಲು ಸಾವಿರ ರೂಪಾಯಿ ನೋಂದಣಿ ಶುಲ್ಕ ಯುಪಿಐ ಮೂಲಕ ಕಳುಹಿಸಿ.",
+   "hi": "आपको पार्ट टाइम जॉब मिला है: वीडियो लाइक करके रोज़ तीन हज़ार कमाइए। पहले एक हज़ार रुपये रजिस्ट्रेशन फीस यूपीआई से भेजिए।"
+  },
+  {
+   "scam": true,
+   "en": "Mom, I lost my phone, this is my friend's number. I'm in trouble, please send twenty thousand to this UPI now.",
+   "kn": "ಅಮ್ಮಾ, ನನ್ನ ಫೋನ್ ಕಳೆದುಹೋಯಿತು, ಇದು ಸ್ನೇಹಿತನ ನಂಬರ್. ತೊಂದರೆಯಲ್ಲಿದ್ದೇನೆ, ಇಪ್ಪತ್ತು ಸಾವಿರ ಈ ಯುಪಿಐಗೆ ಈಗಲೇ ಕಳುಹಿಸು.",
+   "hi": "मम्मी, मेरा फोन खो गया, ये दोस्त का नंबर है। मुसीबत में हूँ, बीस हज़ार इस यूपीआई पर अभी भेज दो।"
+  },
+  {
+   "scam": true,
+   "en": "I want to buy your sofa. I'll send the money by Google Pay, just scan my QR code and enter your PIN to receive it.",
+   "kn": "ನಿಮ್ಮ ಸೋಫಾ ಕೊಳ್ಳುತ್ತೇನೆ. ಗೂಗಲ್ ಪೇ ಮೂಲಕ ಹಣ ಕಳುಹಿಸುತ್ತೇನೆ, ನನ್ನ ಕ್ಯೂಆರ್ ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ ಪಿನ್ ಹಾಕಿ.",
+   "hi": "मुझे आपका सोफा खरीदना है। गूगल पे से पैसे भेजता हूँ, बस मेरा क्यूआर कोड स्कैन करके पिन डाल दीजिए।"
+  },
+  {
+   "scam": true,
+   "en": "Invest in our trading group and your money will double in one week. Guaranteed profit, transfer the money to this account.",
+   "kn": "ನಮ್ಮ ಟ್ರೇಡಿಂಗ್ ಗ್ರೂಪ್‌ನಲ್ಲಿ ಹಣ ಹಾಕಿ, ಒಂದು ವಾರದಲ್ಲಿ ಡಬಲ್ ಆಗುತ್ತೆ. ಗ್ಯಾರಂಟಿ ಲಾಭ, ಈ ಖಾತೆಗೆ ಹಣ ಟ್ರಾನ್ಸ್‌ಫರ್ ಮಾಡಿ.",
+   "hi": "हमारे ट्रेडिंग ग्रुप में पैसा लगाइए, एक हफ्ते में डबल होगा। पक्का मुनाफा, इस खाते में पैसे ट्रांसफर कीजिए।"
+  },
+  {
+   "scam": false,
+   "en": "Hello sir, your car loan EMI of eight thousand five hundred is due on the fifth. Please keep enough balance in your account.",
+   "kn": "ನಮಸ್ಕಾರ ಸರ್, ನಿಮ್ಮ ಕಾರ್ ಲೋನ್ ಇಎಂಐ ಐದನೇ ತಾರೀಖು ಇದೆ. ದಯವಿಟ್ಟು ಖಾತೆಯಲ್ಲಿ ಸಾಕಷ್ಟು ಹಣ ಇಟ್ಟಿರಿ.",
+   "hi": "नमस्ते सर, आपकी कार लोन की ईएमआई पाँच तारीख को है। कृपया खाते में पर्याप्त पैसे रखिए।"
+  },
+  {
+   "scam": false,
+   "en": "Cyber police advice: there is no digital arrest. If someone in a police uniform asks for money on a video call, hang up and call 1930.",
+   "kn": "ಸೈಬರ್ ಪೊಲೀಸ್ ಸಲಹೆ: ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್ ಎಂಬುದು ಇಲ್ಲ. ವಿಡಿಯೋ ಕಾಲ್‌ನಲ್ಲಿ ಪೊಲೀಸ್ ವೇಷದಲ್ಲಿ ಯಾರಾದರೂ ಹಣ ಕೇಳಿದರೆ ಕರೆ ಕಟ್ ಮಾಡಿ, 1930 ಗೆ ಕರೆ ಮಾಡಿ.",
+   "hi": "साइबर पुलिस की सलाह: डिजिटल अरेस्ट जैसा कुछ नहीं होता। वीडियो कॉल पर पुलिस की वर्दी में कोई पैसे मांगे तो कॉल काटें और 1930 पर कॉल करें।"
+  },
+  {
+   "scam": false,
+   "en": "Hi, this is the delivery boy from Amazon. I'm at your gate, please tell me the delivery code to hand over your parcel.",
+   "kn": "ನಮಸ್ಕಾರ, ನಾನು ಅಮೆಜಾನ್ ಡೆಲಿವರಿ ಹುಡುಗ. ಗೇಟ್ ಹತ್ತಿರ ಇದ್ದೇನೆ, ಪಾರ್ಸೆಲ್ ಕೊಡಲು ಡೆಲಿವರಿ ಕೋಡ್ ಹೇಳಿ.",
+   "hi": "नमस्ते, मैं अमेज़न से डिलीवरी वाला हूँ। गेट पर हूँ, पार्सल देने के लिए डिलीवरी कोड बता दीजिए।"
   }
  ]
 }

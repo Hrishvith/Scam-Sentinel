@@ -857,6 +857,147 @@
      ]
     ]
    }
+  },
+  {
+   "id": "job_investment",
+   "icon": "💼",
+   "title": {
+    "en": "\"Earn ₹3,000 a day from home\": fake part-time job",
+    "kn": "\"ಮನೆಯಿಂದಲೇ ದಿನಕ್ಕೆ ₹3,000\": ನಕಲಿ ಪಾರ್ಟ್ ಟೈಮ್ ಕೆಲಸ",
+    "hi": "\"घर बैठे रोज़ ₹3,000\": नकली पार्ट टाइम जॉब"
+   },
+   "how": "A WhatsApp or Telegram message offers a part-time job: like videos or write reviews and get paid. Small payments arrive at first to win your trust. Then you must pay or 'invest' to unlock bigger tasks, the amounts keep growing, and the money never comes back.",
+   "cases": [
+    {
+     "text": "Chennai, 2024: a 64-year-old retiree got a Telegram link for a part-time job writing fake Google reviews and watching YouTube videos. After small early returns he kept investing for more tasks and lost over ₹1.52 crore.",
+     "source": "https://www.dtnext.in/news/chennai/man-loses-rs-152-crore-to-online-part-time-job-scam-three-arrested-777746",
+     "by": "DT Next"
+    },
+    {
+     "text": "Hyderabad, February 2024: a gang offered 'like and subscribe' tasks on Telegram, paid small profits first, then got victims to transfer large amounts. One victim lost ₹49 lakh; two men were arrested.",
+     "source": "https://telanganatoday.com/cybercrime-crackdown-hyderabad-duo-nabbed-for-part-time-job-fraud",
+     "by": "Telangana Today"
+    },
+    {
+     "text": "Thane, October 2024: a 49-year-old woman looking for work from home was added to a fake 'Amazon HR' Telegram group, received a small payout first, then sent ₹10.35 lakh over four days for 'further tasks'.",
+     "source": "https://www.freepressjournal.in/mumbai/thane-49-year-old-woman-loses-1035-lakh-in-online-task-fraud-by-scammers-posing-as-amazon-hr-on-telegram",
+     "by": "Free Press Journal"
+    }
+   ],
+   "do": {
+    "en": [
+     "Real jobs never ask you to pay a fee or 'invest' to get work.",
+     "The first small payments are bait: never send money to unlock tasks.",
+     "Leave the group and report the number at 1930 or cybercrime.gov.in."
+    ],
+    "kn": [
+     "ನಿಜವಾದ ಕೆಲಸಕ್ಕೆ ಶುಲ್ಕ ಕಟ್ಟಲು ಅಥವಾ 'ಹೂಡಿಕೆ' ಮಾಡಲು ಯಾರೂ ಹೇಳುವುದಿಲ್ಲ.",
+     "ಮೊದಲು ಬರುವ ಸಣ್ಣ ಹಣ ಒಂದು ಆಮಿಷ: ಟಾಸ್ಕ್ ತೆರೆಯಲು ಎಂದಿಗೂ ಹಣ ಕಳುಹಿಸಬೇಡಿ.",
+     "ಗ್ರೂಪ್‌ನಿಂದ ಹೊರಬನ್ನಿ, ಆ ಸಂಖ್ಯೆಯನ್ನು 1930 ಅಥವಾ cybercrime.gov.in ನಲ್ಲಿ ವರದಿ ಮಾಡಿ."
+    ],
+    "hi": [
+     "असली नौकरी में काम पाने के लिए फीस या 'निवेश' कभी नहीं मांगा जाता।",
+     "शुरू में मिलने वाले छोटे पैसे एक चारा हैं: टास्क खोलने के लिए कभी पैसे न भेजें।",
+     "ग्रुप छोड़ दें और उस नंबर की शिकायत 1930 या cybercrime.gov.in पर करें।"
+    ]
+   },
+   "spoken": {
+    "en": "A message offers easy money from home: like videos or write reviews and get paid. The first small payments are real, to win your trust. Then they ask you to pay to unlock bigger tasks, and that money never comes back. Real jobs never ask you to pay first. Leave the group, and report it on 1 9 3 0.",
+    "kn": "ಮನೆಯಿಂದಲೇ ಸುಲಭವಾಗಿ ಹಣ ಗಳಿಸಿ ಎಂದು ಸಂದೇಶ ಬರುತ್ತದೆ: ವಿಡಿಯೋ ಲೈಕ್ ಮಾಡಿ, ರಿವ್ಯೂ ಬರೆಯಿರಿ. ಮೊದಲ ಸಣ್ಣ ಹಣ ನಿಜವಾಗಿ ಬರುತ್ತದೆ, ನಂಬಿಕೆ ಗಳಿಸಲು. ನಂತರ ದೊಡ್ಡ ಟಾಸ್ಕ್‌ಗಾಗಿ ಹಣ ಕಟ್ಟಲು ಹೇಳುತ್ತಾರೆ, ಆ ಹಣ ಮತ್ತೆ ಬರುವುದಿಲ್ಲ. ನಿಜವಾದ ಕೆಲಸಕ್ಕೆ ಮೊದಲು ಹಣ ಕಟ್ಟಬೇಕಿಲ್ಲ. ಗ್ರೂಪ್‌ನಿಂದ ಹೊರಬನ್ನಿ, 1 9 3 0 ಗೆ ವರದಿ ಮಾಡಿ.",
+    "hi": "घर बैठे आसान कमाई का मैसेज आता है: वीडियो लाइक कीजिए, रिव्यू लिखिए और पैसे पाइए। शुरू के छोटे पैसे सच में आते हैं, भरोसा जीतने के लिए। फिर बड़े टास्क के लिए पैसे भरने को कहते हैं, और वो पैसे कभी वापस नहीं आते। असली नौकरी में पहले पैसे नहीं भरने पड़ते। ग्रुप छोड़िए और 1 9 3 0 पर शिकायत कीजिए।"
+   },
+   "scene": {
+    "en": [
+     [
+      "S",
+      "Hello madam, I'm calling from an online marketing company."
+     ],
+     [
+      "V",
+      "Yes, what is it?"
+     ],
+     [
+      "S",
+      "We have a part time job: like YouTube videos and earn three thousand a day."
+     ],
+     [
+      "V",
+      "Really? What do I have to do?"
+     ],
+     [
+      "S",
+      "First pay a registration fee of one thousand rupees by UPI to unlock your tasks."
+     ],
+     [
+      "W",
+      ""
+     ],
+     [
+      "V",
+      "Real jobs never ask me to pay first. I'm not interested."
+     ]
+    ],
+    "kn": [
+     [
+      "S",
+      "ನಮಸ್ಕಾರ ಮೇಡಂ, ನಾನು ಆನ್‌ಲೈನ್ ಮಾರ್ಕೆಟಿಂಗ್ ಕಂಪನಿಯಿಂದ ಕರೆ ಮಾಡ್ತಿದ್ದೀನಿ."
+     ],
+     [
+      "V",
+      "ಹೇಳಿ, ಏನು ವಿಷಯ?"
+     ],
+     [
+      "S",
+      "ಮನೆಯಿಂದಲೇ ಪಾರ್ಟ್ ಟೈಮ್ ಕೆಲಸ ಇದೆ, ಯೂಟ್ಯೂಬ್ ವಿಡಿಯೋ ಲೈಕ್ ಮಾಡಿ ದಿನಕ್ಕೆ ಮೂರು ಸಾವಿರ ಗಳಿಸಿ."
+     ],
+     [
+      "V",
+      "ಹೌದಾ? ನಾನು ಏನು ಮಾಡಬೇಕು?"
+     ],
+     [
+      "S",
+      "ಮೊದಲು ಸಾವಿರ ರೂಪಾಯಿ ನೋಂದಣಿ ಶುಲ್ಕ ಯುಪಿಐ ಮೂಲಕ ಕಳುಹಿಸಿ."
+     ],
+     [
+      "W",
+      ""
+     ],
+     [
+      "V",
+      "ನಿಜವಾದ ಕೆಲಸಕ್ಕೆ ಮೊದಲು ಹಣ ಕಟ್ಟಬೇಕಿಲ್ಲ. ನನಗೆ ಬೇಡ."
+     ]
+    ],
+    "hi": [
+     [
+      "S",
+      "नमस्ते मैडम, मैं एक ऑनलाइन मार्केटिंग कंपनी से बोल रहा हूँ।"
+     ],
+     [
+      "V",
+      "जी, बताइए?"
+     ],
+     [
+      "S",
+      "घर बैठे पार्ट टाइम जॉब है, यूट्यूब वीडियो लाइक करके रोज़ तीन हज़ार कमाइए।"
+     ],
+     [
+      "V",
+      "अच्छा? मुझे क्या करना होगा?"
+     ],
+     [
+      "S",
+      "पहले एक हज़ार रुपये रजिस्ट्रेशन फीस यूपीआई से भेजिए।"
+     ],
+     [
+      "W",
+      ""
+     ],
+     [
+      "V",
+      "असली नौकरी में पहले पैसे नहीं भरने पड़ते। मुझे नहीं चाहिए।"
+     ]
+    ]
+   }
   }
  ]
 }

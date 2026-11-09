@@ -107,11 +107,11 @@ TACTICS: dict[str, dict] = {
         "weight": 3.0,
         "labels": {"kn": "ಹಣ ವರ್ಗಾಯಿಸಲು ಒತ್ತಾಯ", "hi": "पैसे ट्रांसफ़र करने का दबाव",
                    "en": "pushing you to transfer money"},
-        "keywords": ["ಹಣ ಕಳುಹಿಸಿ", "ಹಣ ಹಾಕಿ", "ಟ್ರಾನ್ಸ್ಫರ್", "ಯುಪಿಐ", "ಯು ಪಿ ಐ", "ಸುರಕ್ಷಿತ ಖಾತೆ", "ಗಿಫ್ಟ್ ಕಾರ್ಡ್",
-                     "पैसे भेज", "रुपये भेज", "ट्रांसफर", "यूपीआई", "यू पी आई", "सुरक्षित खाते", "गिफ्ट कार्ड",
+        "keywords": ["ಹಣ ಕಳುಹಿಸಿ", "ಹಣ ಹಾಕಿ", "ಟ್ರಾನ್ಸ್ಫರ್", "re:ಯು\\s?ಪಿ\\s?ಐ(?!\\s?ಪಿನ್)", "ಸುರಕ್ಷಿತ ಖಾತೆ", "ಗಿಫ್ಟ್ ಕಾರ್ಡ್",
+                     "पैसे भेज", "रुपये भेज", "ट्रांसफर", "re:यू\\s?पी\\s?आई(?!\\s?पिन)", "सुरक्षित खाते", "गिफ्ट कार्ड",
                      "वेरिफिकेशन राशि",
                      "transfer money", "send money", "transfer the amount", "safe account", "verification amount",
-                     "upi", "u p i", "gift card", "bitcoin", "pay immediately", "collect request",
+                     "re:\\bu\\s?p\\s?i\\b(?!\\s?pin)", "gift card", "bitcoin", "pay immediately", "collect request",
                      "re:scan\\s+(the\\s+|this\\s+|my\\s+)?qr", "क्यूआर कोड स्कैन", "ಕ್ಯೂಆರ್ ಕೋಡ್ ಸ್ಕ್ಯಾನ್",
                      "re:\\b(transfer|send|pay)\\s+(\\w+\\s+){0,5}(rupees|lakh|lakhs|thousand|crore)\\b",
                      # Hinglish
@@ -167,6 +167,85 @@ TACTICS: dict[str, dict] = {
                      "ಆಕ್ಸಿಡೆಂಟ್", "ಅಪಘಾತ", "ಆಸ್ಪತ್ರೆಯಲ್ಲಿ", "ತೊಂದರೆಯಲ್ಲಿ", "ಫೋನ್ ಕಳೆದು", "ಸ್ನೇಹಿತನ ನಂಬರ್", "ಸ್ನೇಹಿತನ ಫೋನ್"],
     },
 }
+
+# ---- Words people mix in from English, in every script they reach us in (10 Nov 2026) -------------------------
+# Speech recognition writes the same word in Latin, Kannada or Devanagari letters depending on the model and the
+# speaker, often with digits for amounts and without punctuation. Each entry lists every spelling we expect.
+# REVIEW kn/hi spellings with native speakers.
+_APPS = r"(google\s?pay|gpay|g\s?pay|phone\s?pe|paytm|bhim|ಗೂಗಲ್\s?ಪೇ|ಜಿ\s?ಪೇ|ಫೋನ್\s?ಪೇ|ಪೇಟಿಎಂ|गूगल\s?पे|जी\s?पे|फ़?ोन\s?पे|पेटीएम)"
+_SEND_KN = r"(ಕಳುಹಿಸ|ಕಳಿಸ|ಕಳ್ಸ|ಟ್ರಾನ್ಸ್ಫರ್|ವರ್ಗಾಯಿಸ|ಡೆಪಾಸಿಟ್|ಪೇ\s?ಮಾಡಿ|ಹಾಕಿ|kalis|kals|kalus|transfer|deposit|haaki)"
+_SEND_HI = r"(भेज|ट्रांसफर|जमा\s?कर|पेमेंट|डिपॉज़?िट|bhej|transfer|jama\s?kar|payment|deposit)"
+LOANWORDS: dict[str, list[str]] = {
+    "payment": [
+        # a payment app plus "do it / an amount": "google pay 15000", "phonepe kar do", "ಗೂಗಲ್ ಪೇ ಮಾಡಿ"
+        rf"re:{_APPS}\s?(me\s+|to\s+)?(\d|rs|rupees|it\b|kar|कर|ಮಾಡಿ|ಮಾಡು|maadi|madi|maadu)",
+        rf"re:\d{{3,}}\s?(rs|rupees|rupaye|रुपये|रुपए|ರೂಪಾಯಿ)?\s?(on\s+|to\s+)?{_APPS}",
+        # an amount in digits next to "send / pay / transfer" (Prisma writes 10000, not "ten thousand")
+        r"re:\b(send|transfer|pay|deposit)\s+(\w+\s+){0,3}(rs\.?\s*|₹\s*)?\d{3,}",
+        r"re:\d{3,}\s*(rs|rupees)?\s*[^.?!\d]{0,25}(?<!not )(?<!never )(?<!don't )\b(send|transfer|deposit)\b",
+        rf"re:\d{{3,}}\s?(रुपये|रुपए|rupaye|rs|हज़ार|हजार|hazaar|hazar)?\s?(?<!मत )(?<!न )(?<!mat )\S*\s?{_SEND_HI}",
+        rf"re:\d{{3,}}\s?(ರೂಪಾಯಿ|rupayi|saavira|ಸಾವಿರ)?\s?\S*\s?{_SEND_KN}",
+        rf"re:(ಸಾವಿರ|ಲಕ್ಷ|ರೂಪಾಯಿ)[^.?।]{{0,40}}{_SEND_KN}",
+        # pay first / fees and charges in every spelling
+        r"re:\bfirst\s+(deposit|pay|send|transfer)", r"re:\b(deposit|pay|send)\s+(\w+\s+){0,2}first\b",
+        r"re:\bpay\s+(a\s+|the\s+|an\s+)?([\w,]+\s+){0,3}(penalty|fine|gst|tax|clearance|settlement)\b",
+        r"re:(processing|registration|file|joining)\s+(fee|fees|charge|charges)",
+        r"re:(पहले|pehle).{0,25}(जमा|भेज|पेमेंट|jama|bhej|payment|pay)",
+        r"re:(प्रोसेसिंग|रजिस्ट्रेशन|फाइल|फ़ाइल|जॉइनिंग)\s?(फीस|फ़ीस|फी|चार्ज)",
+        r"re:ಮೊದಲು.{0,25}(ಡೆಪಾಸಿಟ್|ಕಟ್ಟಿ|ಕಳುಹಿಸಿ|ಕಳಿಸಿ|ಪಾವತಿ|ಪೇ\s?ಮಾಡಿ|ಹಾಕಿ)",
+        r"re:(ಪ್ರೊಸೆಸಿಂಗ್|ರಿಜಿಸ್ಟ್ರೇಶನ್|ಫೈಲ್|ಜಾಯಿನಿಂಗ್)\s?(ಫೀ|ಫೀಸ್|ಚಾರ್ಜ್)",
+        # Kanglish / Hinglish
+        "duddu kalisi", "duddu kalsi", "payment karo", "payment kar do", "payment kijiye", "pay karo",
+        "पेमेंट कर दो", "ಪೇಮೆಂಟ್ ಮಾಡಿ", "payment maadi", "pay maadi", "duddu transfer", "hana kalisi", "paisa bhejo", "paise bhejiye",
+        "re:(processing|registration)\\s+fee\\s+\\d+\\s+(kalsi|kalisi|bhej)",
+    ],
+    "credentials": [
+        "ಡೀಟೇಲ್ಸ್", "card details", "re:(card|bank|account)\\s+details",
+    ],
+    "remote_access": [
+        "ಕ್ವಿಕ್ ಸಪೋರ್ಟ್", "ಟೀಂ ವ್ಯೂವರ್", "ಟೀಮ್ ವ್ಯೂವರ್", "ಎನಿ ಡೆಸ್ಕ್", "क्विक सपोर्ट", "re:(ಆ್ಯಪ್|ಆಪ್).{0,15}(ಇನ್ಸ್ಟಾಲ್|ಡೌನ್\\s?ಲೋಡ್)",
+        "re:\\b(download|install)\\s+(the\\s+|this\\s+|our\\s+)?(\\w+\\s+){0,3}app\\b",
+        "re:link\\s+(pe|par|par\\s+|mein)?\\s*click", "re:link\\s+(click|open)\\s+(maadi|karo|kijiye|kar)",
+    ],
+    "authority": ["cyber cell", "ಸೈಬರ್ ಸೆಲ್", "साइबर सेल", "narcotics control bureau", "ncb"],
+    "threat": [
+        "police will come", "पुलिस घर आएगी", "re:ಪೊಲೀಸ್.{0,10}ಮನೆಗೆ\\s?ಬರ", "police station aana padega",
+        "under investigation", "re:complaint\\s+against\\s+(you|your)", "re:केस\\s?(है|हुआ|दर्ज|बना)",
+        "re:ಕೇಸ್\\s?(ಆಗಿದೆ|ದಾಖಲ|ಹಾಕ)", "case agide", "case aagide",
+        "re:(meter|line|light)\\s+(\\w+\\s+){0,3}(will be|is going to be)\\s+(disconnected|cut)",
+        "re:(मीटर|लाइट|लाइन).{0,30}(कट|काट|बंद)",
+        "re:(ಮೀಟರ್|ಲೈನ್|ಕರೆಂಟ್).{0,20}ಕಟ್",
+        "re:(line|light|bijli|connection|meter|sim)\\s+(\\w+\\s+){0,2}(kat|cut|band)\\s+(ho\\s+)?(jayegi|jayega|jaegi|jaega|hogi|hoga)",
+        "re:(line|current|meter|sim|account|card)\\s+(\\w+\\s+){0,2}(cut|block|band)\\s+(aagutte|agutte|aagide|agide|aagatte)",
+        "re:(wallet|account)\\s+block\\b",
+    ],
+    "urgency": ["suspicious transaction", "suspicious login", "account was hacked", "account has been hacked",
+                "ತುರ್ತಾಗಿ", "ಬೇಗ", "bega", "jaldi se"],
+    "secrecy": ["re:(skype|video)\\s+call\\s+with\\s+(the\\s+)?(officer|police|inspector)",
+                "re:(stay|be)\\s+on\\s+(this|the)\\s+video\\s+call", "re:join\\s+(a\\s+|the\\s+)?skype",
+                "स्काइप कॉल", "re:ಸ್ಕೈಪ್\\s?ಕಾಲ್", "skype call"],
+    "lure": ["cashback", "cash back", "you won", "won a car", "like and earn", "task", "bonus", "subsidy", "loan pass",
+             "लोन पास", "टास्क", "कैशबैक", "ಕ್ಯಾಶ್ ಬ್ಯಾಕ್", "ಲೋನ್ ಅಪ್ರೂವ್", "ಟಾಸ್ಕ್", "ಲಾಟರಿ ಬಂದಿದೆ", "lottery"],
+    "emergency": ["phone is broken", "colleague's phone", "phone kharab", "mera phone", "ಫೋನ್ ಹಾಳಾಗಿದೆ", "ಮೊಬೈಲ್ ಹಾಳಾಗಿದೆ",
+                  "ಫ್ರೆಂಡ್ ನಂಬರ್", "friend number", "dost ka number", "in custody", "phone haalagide"],
+}
+LOANWORDS["payment"] += [
+    # "move all your money / balance to our account": the core of digital-arrest and ED scams
+    r"re:\b(transfer|move|send)\s+(all\s+)?(of\s+)?(your\s+)?(balance|savings|money|funds)\s+(\w+\s+){0,2}to\b",
+    r"re:(सारी|पूरी)\s?(रकम|बचत|जमा\s?पूंजी)", r"re:(हमारे|बताए)\s?.{0,12}खाते\s?में\s?(डाल|भेज|ट्रांसफर)",
+    r"re:(ಎಲ್ಲಾ|ಎಲ್ಲ)\s?(ಹಣ|ಉಳಿತಾಯ)", r"re:ನಾವು\s?(ಹೇಳುವ|ಕೊಡುವ)\s?ಖಾತೆಗೆ",
+    # charges to receive a prize / parcel, and bribes to "settle the case"
+    r"re:(delivery|handling|shipping)\s+charges?", "डिलीवरी चार्ज", "ಡೆಲಿವರಿ ಚಾರ್ಜ್",
+    "settle the case", "case settle", "केस सेटल", "ಕೇಸ್ ಸೆಟಲ್",
+]
+LOANWORDS["lure"] += ["scratch card", "iphone", "बोनस", "ಬೋನಸ್", "जीता है", "jeeta", "jeeti", "inaam", "won"]
+LOANWORDS["threat"] += ["hawala", "हवाला", "ಹವಾಲಾ",
+                        r"re:(sim|account|number|card)\s+(\w+\s+){0,2}close\s+(aagutte|agutte|ho\s+jayega)"]
+LOANWORDS["authority"] += ["ईडी", "ಇಡಿ ಆಫೀಸರ್", r"re:\bed\s+(officer|office|department)"]
+LOANWORDS["secrecy"] += ["dont inform anyone", "don't inform anyone", "do not inform anyone"]
+LOANWORDS["urgency"] += [r"re:account\s+(\w+\s+){0,2}hack", "हैक हो गया", "ಹ್ಯಾಕ್ ಆಗಿದೆ"]
+for _name, _words in LOANWORDS.items():
+    TACTICS[_name]["keywords"].extend(w for w in _words if w not in TACTICS[_name]["keywords"])
 
 # The kind of scam, named on the warning screens ("Fake police / digital arrest"): people trust a
 # warning that names the trick. Checked in order; the first match wins. `needs`: at least one of these
@@ -264,7 +343,9 @@ ASK_PHRASES = [
     "tell me", "tell us", "give me", "give us", "give the", "give your", "share the", "share your",
     "share it", "read out", "read the", "send me", "send the", "send your", "provide", "please tell",
     "can you tell", "forward the", "read me", "read it", "say the", "say it", "tell the", "type the",
-    "enter the",
+    "enter the", "enter your", "bhej", "bhejo", "ಕಳಿಸು", "डालिए", "डाल दीजिए", "डाल दो", "daaliye", "dal do", "ಹಾಕಿ", "haaki", "confirm the", "verify the", "confirm it", "confirm karo", "confirm kijiye", "confirm maadi",
+    "verify karo", "heli", "helri", "kodi", "tilisi", "batao", "bata dijiye", "कन्फर्म कीजिए", "कन्फर्म करो",
+    "re:कन्फर्म\\s?करने", "वेरिफाई कीजिए", "ಕನ್ಫರ್ಮ್ ಮಾಡಿ", "re:ಕನ್ಫರ್ಮ್\\s?ಮಾಡಲು", "ವೆರಿಫೈ ಮಾಡಿ",
     # English as the kn-IN / hi-IN models write it
     "ಟೆಲ್ ಮಿ", "ಟೆಲ್ ಮೀ", "re:ಗಿ\\s?ವ", "ಶೇರ್ ಯುವರ್", "ಶೇರ್ ದ", "ಸೆಂಡ್", "ರೀಡ್ ಔಟ್",
     "टेल मी", "re:गि\\s?व", "शेयर योर", "सेंड",
@@ -302,6 +383,7 @@ SAFETY_PHRASES = [
     # Code-mixed Hindi: "share" in Devanagari. REVIEW with a native speaker.
     "शेयर न करें", "शेयर ना करें", "शेयर मत करें", "शेयर मत कीजिए", "शेयर मत करना", "नेवर शेयर", "डोंट शेयर",
     "re:share\\s+(mat|matt|mark|na|nahi|nahin)\\b",   # "share mat" is often heard as "share mark"
+    "re:शेयर\\s?(मार्ट|मार्क|मॉर्ट|मॉर्क)\\s?(कीजिए|करें|करो|करना)",   # the same mishearing in Devanagari (live test, 10 Nov 2026)
     # "We will never ask for your OTP" (the bank's own safety message). REVIEW with a native speaker.
     "re:ಎಂದಿಗೂ.{0,40}ಕೇಳುವುದಿಲ್ಲ", "re:ಯಾವತ್ತೂ.{0,40}ಕೇಳುವುದಿಲ್ಲ",
     "re:कभी.{0,40}नहीं\\s?(मांगते|मांगता|माँगते|माँगता|पूछते|पूछता)",
@@ -314,6 +396,17 @@ SAFETY_PHRASES = [
     "re:(?<![a-z])(never|do not|don't|dont|not to|must not|should not)\\s+(give|tell|say|send|read out|reveal|disclose)"
     "\\s+(\\w+\\s+){0,3}(otp|o t p|pin|cvv|password|code)",
     *DEBUNK_PHRASES,
+    "re:(?<!\\S)(मत|न|ना)\\s+(कन्फर्म|वेरिफाई|पेमेंट|जमा|डाउनलोड|इंस्टॉल|क्लिक)",
+    "re:(ಕನ್ಫರ್ಮ್|ಪೇ|ಕ್ಲಿಕ್|ಡೌನ್\\s?ಲೋಡ್|ಇನ್ಸ್ಟಾಲ್)\\s?ಮಾಡ(ಬೇಡಿ|ಬೇಡ|ಬಾರದು)",
+    "re:(heli|hel|kod|kalis|kals|share\\s?maad|maad)\\s?bed(i|a)\\b",
+]
+
+# Caution messages often name the trick without any OTP in them ("fake calls asking you to join a video call with
+# police"). With one of these and no positive request for money, an app or the OTP, the call is awareness.
+AWARE_PHRASES = [
+    "beware of", "fake call", "fake calls", "it is a scam", "it is a fraud", "this is a scam", "hang up and call 1930",
+    "call 1930", "फर्जी कॉल", "फ़र्ज़ी कॉल", "धोखा है", "सावधान", "1930 पर कॉल", "ನಕಲಿ ಕರೆ", "ಅದು ಮೋಸ",
+    "1930 ಗೆ ಕರೆ", "ಹೆದರಬೇಡಿ", "डरिए मत", "don't be afraid", "do not be afraid",
 ]
 
 # One-word list for Prisma word boosting (letters only, one word per entry, per the docs).

@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 import requests
 
-from tactics import ASK_PHRASES, DEBUNK_PHRASES, DELIVERY_PHRASES, ESCALATION, SAFETY_PHRASES, SCAM_TYPES, TACTICS
+from tactics import ASK_PHRASES, AWARE_PHRASES, DEBUNK_PHRASES, DELIVERY_PHRASES, ESCALATION, SAFETY_PHRASES, SCAM_TYPES, TACTICS
 from text_norm import normalize
 
 LEVELS = ["low", "medium", "high"]
@@ -40,6 +40,7 @@ def _compile(keyword: str) -> re.Pattern:
 _PATTERNS = {name: [(kw, _compile(kw)) for kw in spec["keywords"]] for name, spec in TACTICS.items()}
 _SAFETY = [_compile(p) for p in SAFETY_PHRASES]
 _DEBUNK = [_compile(p) for p in DEBUNK_PHRASES]
+_AWARE = [_compile(p) for p in AWARE_PHRASES] + _DEBUNK
 _DELIVERY = [_compile(p) for p in DELIVERY_PHRASES]
 _INDIC = "ऀ-ॣ०-ॿಀ-೿"     # Devanagari and Kannada letters, but not the full stops । ॥ (a request can end a sentence)
 _ASK = [(p, _compile(p) if p.isascii() or p.startswith("re:") else re.compile(_compile(p).pattern + f"(?![{_INDIC}])"))
@@ -90,7 +91,10 @@ _NEG_AFTER_HI = re.compile(r"^\s*(?:(?:करने|करना|करें|�
                            r"मांगेगा|मांगेंगे|मांगता|मांगते)\s*){0,4}(?:मत|न|ना|नहीं)(?!\S)(?!\s*तो)")
 # up to three words, never across punctuation or a "do it" (ಮಾಡಿ): "ಎನಿಡೆಸ್ಕ್ ಆ್ಯಪ್ ಇನ್ಸ್ಟಾಲ್ ಮಾಡಬೇಡಿ" is negated,
 # "ಎನಿಡೆಸ್ಕ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ, ಭಯಪಡಬೇಡಿ" is not
-_NEG_AFTER_KN = re.compile(r"^\S*\s*(?:(?!\S*ಮಾಡಿ(?!\S))\S+\s+){0,3}\S*(?:ಬೇಡಿ|ಬೇಡ|ಬಾರದು|ಲ್ಲ)(?!\S)")
+# a positive command ("ಮಾಡು / ಕಳಿಸಿ / ಹೇಳಿ") ends the clause: in "ಫೋನ್ ಪೇ ಮಾಡು ಅಪ್ಪನಿಗೆ ಹೇಳಬೇಡ" the "don't" is about dad
+_KN_DO = r"(?:ಮಾಡಿ|ಮಾಡು|ಕಳಿಸಿ|ಕಳಿಸು|ಕಳುಹಿಸಿ|ಕಳುಹಿಸು|ಹಾಕಿ|ಹಾಕು|ಕೊಡಿ|ಕೊಡು|ಹೇಳಿ|ಹೇಳು)"
+_ENDS_IN_DO = re.compile(rf"{_KN_DO}\s*$")      # "ಫೋನ್ ಪೇ ಮಾಡು": the match carries its own "do it"
+_NEG_AFTER_KN = re.compile(rf"^\S*\s*(?:(?!\S*{_KN_DO}(?!\S))\S+\s+){{0,3}}\S*(?:ಬೇಡಿ|ಬೇಡ|ಬಾರದು|ಲ್ಲ)(?!\S)")
 _CLAUSE_END = re.compile(r"[,.!?।]")
 
 
@@ -103,7 +107,8 @@ def _negated(plain: str, start: int, end: int) -> bool:
     after = plain[end:end + 40]
     return bool(_NEG_BEFORE.search(before) or _NEVER_ASK.search(plain[max(0, start - 90):start])
                 or _NEG_BEFORE_HI.search(before)
-                or _NEG_AFTER_HI.match(after) or _NEG_AFTER_KN.match(_CLAUSE_END.split(after, maxsplit=1)[0]))
+                or _NEG_AFTER_HI.match(after) or (not _ENDS_IN_DO.search(plain[start:end])
+                    and _NEG_AFTER_KN.match(_CLAUSE_END.split(after, maxsplit=1)[0])))
 
 
 def _drop_negated(found: dict[str, list[str]], plain: str) -> list[str]:
@@ -227,6 +232,14 @@ def detect_rules(text: str) -> Detection:
             if name in weights:
                 weights[name] *= 0.5
         notes.append(context)
+    # A caution message that names the trick ("beware of fake calls ... video call with police", "there is no digital
+    # arrest") and asks for nothing harmful is awareness, even without an OTP in it.
+    if (not context and any(rx.search(plain) for rx in _AWARE)
+            and not found.keys() & {"payment", "remote_access", "otp_request"}):
+        context = "Sounds like a warning about scams (\"beware of fake calls\"), so the tricks it names were discounted."
+        for name in weights:
+            weights[name] *= 0.4
+        notes.append(context)
     # "Police / RBI ... your OTP, PIN" with nobody asking for it (yet) is how safety messages start too. On a live
     # call the words arrive a sentence at a time, so a bare mention counts half until a real request or pressure
     # appears ("tell me the OTP", a threat, money, secrecy): scams get there a sentence later, cautions never do.
@@ -243,6 +256,10 @@ def detect_rules(text: str) -> Detection:
     if "secrecy" in found and found.keys() & _DANGEROUS_ASK:
         score += 1.0
         notes.append("Told to keep it secret while being asked for something sensitive.")
+    if not context and any(w in kw for kw in found.get("payment", []) for w in ("first", "pehle", "पहले", "ಮೊದಲು",
+                                                                                    "balance|savings", "रकम", "ಎಲ್ಲಾ")):
+        score += 1.0     # "pay first" (advance fee) or "move all your money": honest callers never ask this
+        notes.append("Asked to pay first, or to move all your money.")
     if not context and "payment" in found and found.keys() & {"lure", "emergency"}:
         score += 1.5     # "you won / got the job / your son is hurt ... first send money": the classic advance fee
         notes.append("Asked to pay first for a prize, job, loan or refund, or for a sudden emergency.")

@@ -37,17 +37,20 @@ cleared. Details: [`results/benchmark.md`](results/benchmark.md).
 | Medium (noisy mobile) | 13 dB | 7.7% | 8/8 (100%) | 0/12 (0%) |
 | Heavy (noise ≈ voice) | 5 dB | 17.7% | 7/8 (88%) | 0/12 (0%) |
 
-**Wider phrasing check** (synthetic lines, [`tests/stress_calls.py`](tests/stress_calls.py)): 77 scam lines
+**Wider phrasing check** (synthetic lines, [`tests/stress_calls.py`](tests/stress_calls.py)): 137 scam lines
 (SIM block, digital arrest, courier drugs, power cut-off, lottery, job, loan, crypto, family emergency, bank
-"fraud department", KYC links, AnyDesk, QR code, card details) and 60 everyday lines (doctor, delivery, school,
-real police and bank calls, caution messages) in English, Hindi/Hinglish and Kannada. All scam lines are flagged
-and every everyday line stays quiet, also when checked piece by piece as live speech. Honest caveat: a second
-set written *after* tuning scored 18/24 scams before its misses were fixed (the rules before 10 Nov: 12/24), so
-expect real-world wording to be missed sometimes.
+"fraud department", KYC links, AnyDesk, QR code, card details, ED/hawala) and 115 everyday or caution lines
+(doctor, delivery, school, EMI reminders, real police and bank calls) in English, Hindi/Hinglish and
+Kannada/Kanglish, written the way speech recognition returns them (no punctuation, digits for amounts). All are
+now flagged or quiet as they should be, also piece by piece as live speech. **Honest numbers:** each new set,
+before the rules were changed for it, scored lower: 18/24, 10/16, 15/32 and 4/12 scams flagged (normal calls
+were quiet in every set). So expect wording nobody has tried yet to be missed sometimes; caution calls have
+stayed quiet throughout.
 
-**Real speech, live** (10 Nov 2026, Prisma realtime, 15 simulated recordings): all 6 scam calls in English,
-Hindi and Kannada reached "Likely scam" during the call (first warning at 12-15 s), and all 9 normal calls
-(bank caution, delivery, family) stayed at "No warning signs".
+**Real speech, live** (10 Nov 2026, Prisma realtime, 17 simulated recordings in English, Hindi, Hinglish and
+Kannada): all 7 scam calls reached "Likely scam" during the call (first warning at 11-18 s), and all 10 normal
+and caution calls stayed at "No warning signs". One mishearing found this way ("share mat" heard as
+"शेयर मार्ट") is now handled.
 
 ![Benchmark chart](results/benchmark.png)
 
@@ -97,8 +100,10 @@ flowchart LR
   one start per network every 90 seconds and about 16 minutes a day in total.
 - **Protected two-phone call** (private, needs the key): the call itself runs through the server, which
   listens to the caller only and warns the receiver. Optional **OTP guard** and **family guardian** phone.
-- **Practice** (`/practice`): quiz plus "Check a call" (typed words scored by the same rules; no AI credits).
-- **Real scams** (`/scams`): reported Indian cases with sources and spoken explanations.
+- **Practice** (`/practice`): an 8-question quiz drawn from 16 lines each round, plus "Check a call" (typed
+  words scored by the same rules; no AI credits).
+- **Real scams** (`/scams`): reported Indian cases with sources and spoken explanations (7 kinds, including
+  part-time job / task scams).
 
 If speech recognition drops during a call, the protected phone switches to **"Protection paused"** (and
 "Protection stopped" if it cannot reconnect) instead of keeping its last state, and the family guardian is
@@ -154,7 +159,7 @@ Command line:
 .\.venv\Scripts\python.exe family_voice.py enroll --name "Your name" --i-am-the-speaker
 .\.venv\Scripts\python.exe live.py --lang kn-IN --family-voice    # high warning in that voice (labelled)
 .\.venv\Scripts\python.exe family_voice.py delete               # remove the recording, profile, clones
-powershell -ExecutionPolicy Bypass -File .\run.ps1 -Test   # 450 offline tests, no credits
+powershell -ExecutionPolicy Bypass -File .\run.ps1 -Test   # 597 offline tests, no credits
 .\.venv\Scripts\python.exe phone_relay.py           # the website on http://localhost:8765 (needs GNANI_API_KEY for calls)
 ```
 

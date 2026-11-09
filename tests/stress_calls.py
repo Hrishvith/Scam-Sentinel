@@ -1,6 +1,8 @@
 """Wider phrasing check, 10 Nov 2026: synthetic scam and everyday call lines in English, Hindi (incl. Hinglish)
 and Kannada. TUNING was used to add rules; FRESH was written afterwards and scored 18/24 scams before its own
-misses were fixed, so neither is unseen any more. REVIEW kn/hi wording with native speakers."""
+misses were fixed, so neither is unseen any more. TRANSCRIPT_STYLE: how speech recognition really returns calls
+(no punctuation, digits, Hinglish and Kanglish), from three later checks that scored 10/16, 15/32 and 4/12 scams
+before the loan-word rules; all are tuning data now. REVIEW kn/hi wording with native speakers."""
 
 TUNING_SCAMS = {
  "en": [
@@ -170,5 +172,137 @@ FRESH_NORMAL = {
   "ನಿಮ್ಮ ಸ್ವಿಗ್ಗಿ ಆರ್ಡರ್ ದಾರಿಯಲ್ಲಿದೆ, ಡೆಲಿವರಿ ಹುಡುಗ ಹತ್ತು ನಿಮಿಷದಲ್ಲಿ ಬರುತ್ತಾನೆ.",
   "ನೆನಪಿಸುತ್ತಿದ್ದೇವೆ, ಮಗುವಿನ ಶಾಲಾ ಶುಲ್ಕ ಶುಕ್ರವಾರದೊಳಗೆ ಶಾಲೆಯ ಕಚೇರಿಯಲ್ಲಿ ಕಟ್ಟಬೇಕು.",
   "ಸೊಸೈಟಿ ಕಚೇರಿಯಿಂದ ಕರೆ, ನಾಳೆ ಹತ್ತರಿಂದ ಎರಡರವರೆಗೆ ನೀರು ಬರುವುದಿಲ್ಲ."
+ ]
+}
+
+TRANSCRIPT_STYLE_SCAMS = {
+ "en": [
+  "hello sir i am calling from sbi head office your account has been flagged for suspicious transaction please confirm the otp sent to your registered mobile",
+  "maam this is from the cyber cell there is a complaint against your number you need to join a skype call with the officer now or police will come to your house",
+  "you are eligible for a pm kisan bonus of 6000 rupees just tell me the code you received to credit it",
+  "sir your electricity bill is pending your power will be disconnected tonight call the electricity officer on this number immediately",
+  "this is your bank security team we noticed a login from delhi please verify the otp we sent so we can stop it",
+  "sir i am an officer from the narcotics control bureau your aadhaar was used to send a parcel with mdma you must stay on this video call",
+  "madam you have been selected for a youtube like and earn task first deposit 2000 to unlock your earnings",
+  "your phonepe cashback of 5000 is pending please enter your upi pin to receive the money",
+  "hello dad my phone is broken this is my colleague's phone please google pay 15000 to this number urgently",
+  "this is from the electricity board your meter will be disconnected in one hour download the bill update app now",
+  "congratulations your mobile number won a car in the lucky draw pay the gst of 12500 to claim it",
+  "sir your sim will be blocked today because your kyc is not verified share the code you got by sms",
+  "i am calling from the police your son is in custody pay 50000 for settlement or he goes to jail",
+  "your courier is held at customs because it has illegal items pay the penalty online or face arrest",
+  "this is amazon support your account was hacked install anydesk so i can secure it",
+  "sir this is from rbi your account is under monitoring for fraud transfer your balance to a new account we create for you",
+  "hello i am calling from flipkart you won a scratch card of 1 lakh pay 999 handling charge to receive it",
+  "maam your son was caught with drugs at the airport we can settle the case if you pay now dont inform anyone",
+  "this is your telecom provider your number will stop working in 2 hours press 1 and tell me the otp to continue"
+ ],
+ "hi": [
+  "sir main sbi se bol raha hoon aapka atm card block ho gaya hai otp bata dijiye abhi unblock kar deta hoon",
+  "aapke naam pe parcel aaya hai usme drugs mile hain aapko police station aana padega warna arrest warrant nikal jayega",
+  "madam aapne lottery jeeti hai 25 lakh ki bas 5000 processing fee bhejna hai",
+  "beta main hospital mein hoon accident ho gaya hai jaldi se 10000 bhej do is number pe",
+  "सर आपका पेटीएम केवाईसी एक्सपायर हो गया है अकाउंट ब्लॉक हो जाएगा एनीडेस्क डाउनलोड कीजिए",
+  "मैं कस्टमर केयर से बोल रहा हूं आपका रिफंड प्रोसेस करना है अपना यूपीआई पिन डालिए",
+  "sir main bank se bol raha hoon aapke account se 50000 kat rahe hain rokne ke liye otp confirm kijiye",
+  "aap ka paytm kyc band ho gaya hai abhi link pe click karke details bhariye nahi to wallet block",
+  "papa mera phone kharab hai ye dost ka number hai 5000 phonepe kar do jaldi",
+  "मैं साइबर सेल से बोल रहा हूं आप पर मनी लॉन्ड्रिंग का केस है स्काइप कॉल पर आइए वरना पुलिस घर आएगी",
+  "आपकी लाइट का कनेक्शन आज रात कट जाएगा बिजली ऑफिसर को इस नंबर पर तुरंत कॉल करें",
+  "आपको पार्ट टाइम काम मिला है हर टास्क पर पैसे मिलेंगे पहले दो हज़ार जमा करवाइए",
+  "मैडम आपका लोन पास हो गया है फाइल चार्ज के पांच हज़ार गूगल पे कर दीजिए",
+  "ओटीपी आपके फोन पर आया है उसे कन्फर्म करने के लिए मुझे बता दीजिए",
+  "aapka bijli ka bill pending hai aaj raat line kat jayegi abhi payment karo",
+  "कोरियर कंपनी से बोल रहा हूं आपके पार्सल में गैरकानूनी सामान है नारकोटिक्स से बात कराता हूं",
+  "bhai tera account hack ho gaya hai jaldi otp bhej main theek kar deta hoon",
+  "आपकी बीमा पॉलिसी का बोनस पचास हज़ार है उसे पाने के लिए पहले पांच हज़ार जमा कीजिए",
+  "मैं ईडी से बोल रहा हूं आपके खाते से हवाला का पैसा गया है अपनी सारी रकम हमारे बताए खाते में डालिए",
+  "ma'am aapko amazon ki taraf se iphone mila hai bas 1500 delivery charge google pay kar dijiye"
+ ],
+ "kn": [
+  "sir nimma account block aagutte otp heli bega",
+  "naavu police inda maatadtha iddivi nimma mele case agide arrest maadtivi duddu transfer maadi",
+  "ಸರ್ ನಿಮ್ಮ ಎಟಿಎಂ ಕಾರ್ಡ್ ಬ್ಲಾಕ್ ಆಗಿದೆ ಒಟಿಪಿ ಹೇಳಿ ಅನ್‌ಬ್ಲಾಕ್ ಮಾಡ್ತೀನಿ",
+  "ನಿಮಗೆ ಲಾಟರಿ ಬಂದಿದೆ ಇಪ್ಪತ್ತೈದು ಲಕ್ಷ ಪ್ರೊಸೆಸಿಂಗ್ ಫೀ ಐದು ಸಾವಿರ ಕಳಿಸಿ",
+  "ಮೇಡಂ ನಾವು ಕಸ್ಟಮರ್ ಕೇರ್ ಇಂದ ರಿಫಂಡ್ ಬೇಕಾದರೆ ಕ್ವಿಕ್ ಸಪೋರ್ಟ್ ಆ್ಯಪ್ ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿ",
+  "ಅಪ್ಪ ನನ್ನ ಮೊಬೈಲ್ ಹಾಳಾಗಿದೆ ಇದು ಫ್ರೆಂಡ್ ನಂಬರ್ ತುರ್ತಾಗಿ ಹತ್ತು ಸಾವಿರ ಗೂಗಲ್ ಪೇ ಮಾಡಿ",
+  "naanu bank inda maatadthiddini nimma card block aagide otp confirm maadi",
+  "nimge lottery bandide processing fee 5000 kalsi",
+  "appa nanna phone haalagide idu friend number 10000 phonepe maadi bega",
+  "ನಾವು ಸೈಬರ್ ಸೆಲ್ ಇಂದ ನಿಮ್ಮ ಮೇಲೆ ಕೇಸ್ ಆಗಿದೆ ಸ್ಕೈಪ್ ಕಾಲ್ ಗೆ ಬನ್ನಿ ಇಲ್ಲಾಂದ್ರೆ ಪೊಲೀಸ್ ಮನೆಗೆ ಬರುತ್ತಾರೆ",
+  "ನಿಮ್ಮ ಕರೆಂಟ್ ಮೀಟರ್ ಇವತ್ತು ಕಟ್ ಆಗುತ್ತೆ ಈ ನಂಬರ್ ಗೆ ತಕ್ಷಣ ಕಾಲ್ ಮಾಡಿ",
+  "ನಿಮಗೆ ಪಾರ್ಟ್ ಟೈಮ್ ಜಾಬ್ ಸಿಕ್ಕಿದೆ ಮೊದಲು ಎರಡು ಸಾವಿರ ಡೆಪಾಸಿಟ್ ಮಾಡಿ",
+  "ಮೇಡಂ ನಿಮ್ಮ ಲೋನ್ ಅಪ್ರೂವ್ ಆಗಿದೆ ಫೈಲ್ ಚಾರ್ಜ್ ಐದು ಸಾವಿರ ಗೂಗಲ್ ಪೇ ಮಾಡಿ",
+  "ನಿಮ್ಮ ಫೋನ್ ಗೆ ಬಂದ ಓಟಿಪಿ ಕನ್ಫರ್ಮ್ ಮಾಡಲು ನನಗೆ ಹೇಳಿ",
+  "ಸರ್ ನಿಮ್ಮ ಪೇಟಿಎಂ ಕೆವೈಸಿ ಮುಗಿದಿದೆ ಲಿಂಕ್ ಕ್ಲಿಕ್ ಮಾಡಿ ಡೀಟೇಲ್ಸ್ ಹಾಕಿ",
+  "ಕೊರಿಯರ್ ನಲ್ಲಿ ನಿಮ್ಮ ಹೆಸರಿನ ಪಾರ್ಸೆಲ್ ನಲ್ಲಿ ಡ್ರಗ್ಸ್ ಇದೆ ಪೊಲೀಸ್ ಗೆ ಕನೆಕ್ಟ್ ಮಾಡ್ತೀನಿ",
+  "ಮಗ ಆಕ್ಸಿಡೆಂಟ್ ಆಗಿದೆ ಆಸ್ಪತ್ರೆ ಬಿಲ್ ಗೆ ಇಪ್ಪತ್ತು ಸಾವಿರ ಈಗಲೇ ಕಳಿಸಿ",
+  "ನಿಮ್ಮ ಇನ್ಶೂರೆನ್ಸ್ ಬೋನಸ್ ಐವತ್ತು ಸಾವಿರ ಇದೆ ಮೊದಲು ಐದು ಸಾವಿರ ಕಟ್ಟಿ",
+  "sir nimma sim close aagutte aadhaar verify maadbeku otp heli",
+  "ನಾನು ಇಡಿ ಆಫೀಸರ್ ನಿಮ್ಮ ಖಾತೆಯಲ್ಲಿ ಹವಾಲಾ ಹಣ ಇದೆ ಎಲ್ಲಾ ಹಣವನ್ನು ನಾವು ಹೇಳುವ ಖಾತೆಗೆ ಹಾಕಿ",
+  "ಅಮ್ಮ ನಾನು ಪೊಲೀಸ್ ಸ್ಟೇಷನ್ ನಲ್ಲಿದ್ದೇನೆ ಬಿಡಿಸಲು ಹತ್ತು ಸಾವಿರ ಫೋನ್ ಪೇ ಮಾಡು ಅಪ್ಪನಿಗೆ ಹೇಳಬೇಡ"
+ ]
+}
+TRANSCRIPT_STYLE_NORMAL = {
+ "en": [
+  "hello this is apollo hospital billing your father is being discharged today please pay the remaining bill of 12000 at the counter",
+  "sir this is hdfc bank your car loan emi of 8500 is due on the 5th please keep balance in your account",
+  "hi this is the police station we found your lost wallet please come and collect it with an id proof",
+  "your otp for the bank login is 482913 it is valid for 10 minutes never share it with anyone",
+  "madam your parcel from flipkart will be delivered tomorrow please keep the delivery code ready",
+  "hello this is the bank your fixed deposit is maturing next week please visit the branch to renew it",
+  "sir your phonepe payment of 500 to the grocery store was successful thank you",
+  "hi dad i reached office safely will call you in the evening",
+  "this is a reminder from the cyber crime police never share your otp or upi pin with anyone who calls you",
+  "madam the electrician will come tomorrow to fix your meter there is no charge",
+  "your amazon order will be delivered today the delivery agent will ask for the delivery code",
+  "this is the school please pay the term fee of 15000 at the school office before monday",
+  "beware of fake calls asking you to join a video call with police there is no digital arrest hang up and call 1930",
+  "hello sir i am from the gas agency your cylinder is booked pay the delivery person in cash",
+  "your sim card upgrade to 5g is free visit the nearest jio store with your aadhaar",
+  "hi this is the hospital your blood test reports are ready you can collect them after 4 pm",
+  "the rbi never asks for your account details or otp if someone calls claiming to be rbi hang up",
+  "dad i transferred 2000 to your account for the electricity bill please check",
+  "sir your insurance policy is due for renewal you can pay online on our official website"
+ ],
+ "hi": [
+  "beta school ki fees jama karni hai kal tak online bhar dena",
+  "sir aapka gas cylinder book ho gaya hai kal delivery hogi payment cash mein kar dena",
+  "मैं बैंक से बोल रहा हूं आपका नया चेकबुक तैयार है ब्रांच से ले जाइए",
+  "पापा मैं ठीक हूं हॉस्टल पहुंच गया कल पैसे की ज़रूरत नहीं है",
+  "beta kal ghar aa rahe ho kya mummy ne kheer banayi hai",
+  "sir aapka fixed deposit agle hafte mature hoga branch aakar renew kara lijiye",
+  "paytm se 200 rupaye ka payment kirana dukaan ko ho gaya hai",
+  "साइबर पुलिस की सलाह किसी को भी अपना ओटीपी या यूपीआई पिन मत बताइए",
+  "डिलीवरी वाला आएगा तो उसे डिलीवरी कोड बता देना",
+  "स्कूल की फीस पंद्रह हज़ार सोमवार तक स्कूल ऑफिस में जमा करनी है",
+  "कोई वीडियो कॉल पर पुलिस बनकर डराए तो डरिए मत डिजिटल अरेस्ट जैसा कुछ नहीं होता 1930 पर कॉल करें",
+  "मीटर ठीक करने कल बिजली विभाग वाले आएंगे कोई पैसा नहीं लगेगा",
+  "papa main office pahunch gaya shaam ko call karta hoon",
+  "gas booking ho gayi hai delivery wale ko cash de dena",
+  "पापा मैंने बिजली बिल के लिए आपके खाते में दो हज़ार भेज दिए हैं देख लीजिए",
+  "बैंक की तरफ से सूचना है कि कोई भी आपसे ओटीपी मांगे तो मत दीजिए",
+  "sir aapki gaadi ki service ho gayi hai shaam ko le jaiye bill 3200 hai",
+  "माँ मैं ठीक हूं कल बात करता हूं"
+ ],
+ "kn": [
+  "ಸರ್ ನಿಮ್ಮ ಕಾರ್ ಲೋನ್ ಇಎಂಐ ಐದನೇ ತಾರೀಖು ಇದೆ ಖಾತೆಯಲ್ಲಿ ಹಣ ಇಟ್ಟಿರಿ",
+  "ಆಸ್ಪತ್ರೆ ಬಿಲ್ಲಿಂಗ್ ವಿಭಾಗದಿಂದ ಕರೆ ನಿಮ್ಮ ತಂದೆ ಇವತ್ತು ಡಿಸ್ಚಾರ್ಜ್ ಉಳಿದ ಬಿಲ್ ಕೌಂಟರ್‌ನಲ್ಲಿ ಕಟ್ಟಿ",
+  "amma naanu hostel ge reach aade naale call maadtini",
+  "ನಿಮ್ಮ ಬ್ಯಾಂಕ್ ಲಾಗಿನ್ ಒಟಿಪಿ ನಾಲ್ಕು ಎಂಟು ಎರಡು ಯಾರಿಗೂ ಹೇಳಬೇಡಿ",
+  "amma naanu office talupide sanje call maadtini",
+  "ನಿಮ್ಮ ಫಿಕ್ಸೆಡ್ ಡೆಪಾಸಿಟ್ ಮುಂದಿನ ವಾರ ಮೆಚ್ಯೂರ್ ಆಗುತ್ತೆ ಬ್ರಾಂಚ್ ಗೆ ಬಂದು ರಿನ್ಯೂ ಮಾಡಿ",
+  "ಫೋನ್‌ಪೇ ಮೂಲಕ ಐನೂರು ರೂಪಾಯಿ ದಿನಸಿ ಅಂಗಡಿಗೆ ಪಾವತಿ ಆಗಿದೆ",
+  "ಸೈಬರ್ ಪೊಲೀಸ್ ಸಲಹೆ ಯಾರಿಗೂ ನಿಮ್ಮ ಓಟಿಪಿ ಅಥವಾ ಯುಪಿಐ ಪಿನ್ ಹೇಳಬೇಡಿ",
+  "ಡೆಲಿವರಿ ಹುಡುಗ ಬಂದಾಗ ಡೆಲಿವರಿ ಕೋಡ್ ಹೇಳಿ",
+  "ಶಾಲೆ ಶುಲ್ಕ ಹದಿನೈದು ಸಾವಿರ ಸೋಮವಾರದೊಳಗೆ ಶಾಲೆ ಕಚೇರಿಯಲ್ಲಿ ಕಟ್ಟಬೇಕು",
+  "ವಿಡಿಯೋ ಕಾಲ್ ನಲ್ಲಿ ಪೊಲೀಸ್ ಅಂತ ಹೆದರಿಸಿದರೆ ಹೆದರಬೇಡಿ ಡಿಜಿಟಲ್ ಅರೆಸ್ಟ್ ಅನ್ನೋದು ಇಲ್ಲ 1930 ಗೆ ಕರೆ ಮಾಡಿ",
+  "ನಾಳೆ ಕರೆಂಟ್ ಮೀಟರ್ ಸರಿ ಮಾಡಲು ಬೆಸ್ಕಾಂ ಅವರು ಬರುತ್ತಾರೆ ಯಾವುದೇ ಹಣ ಇಲ್ಲ",
+  "gas booking aagide delivery avrige cash kodi",
+  "ಮಗನೇ ಊಟ ಆಯ್ತಾ ಬೇಗ ಮನೆಗೆ ಬಾ",
+  "ಅಪ್ಪ ಕರೆಂಟ್ ಬಿಲ್ ಗೆ ನಿಮ್ಮ ಖಾತೆಗೆ ಎರಡು ಸಾವಿರ ಹಾಕಿದ್ದೇನೆ ನೋಡಿ",
+  "ಯಾರಾದರೂ ಆರ್ ಬಿ ಐ ಅಂತ ಕರೆ ಮಾಡಿ ಒಟಿಪಿ ಕೇಳಿದರೆ ಕೊಡಬೇಡಿ ಕರೆ ಕಟ್ ಮಾಡಿ",
+  "ಸರ್ ನಿಮ್ಮ ಇನ್ಶೂರೆನ್ಸ್ ರಿನ್ಯೂವಲ್ ಇದೆ ಅಧಿಕೃತ ವೆಬ್‌ಸೈಟ್ ನಲ್ಲಿ ಪಾವತಿಸಬಹುದು",
+  "naale school ge raje ide"
  ]
 }
